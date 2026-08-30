@@ -1,0 +1,11 @@
+# dependencies
+node_modules
+bun.lock
+
+# opencode runtime/cache
+cache/
+tmp/
+*.log
+
+# editor/system
+.DS_Store
