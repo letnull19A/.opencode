@@ -7,7 +7,8 @@
 ```
 .
 ├── agents/
-│   └── refactor.md      # агент для рефакторинга (FSD-монорепа)
+│   ├── refactor.md          # агент для рефакторинга (FSD-монорепа)
+│   └── component-builder.md # агент-проектировщик UI-китов (компоненты по правилам проекта)
 ├── package.json         # зависимости плагинов (@opencode-ai/plugin)
 └── .gitignore
 ```
@@ -50,7 +51,7 @@ npm install               # или bun install
 ## Проверка
 
 ```sh
-opencode agent list       # должен быть виден refactor
+opencode agent list       # должны быть видны refactor и component-builder
 ```
 
 Если opencode не стартует из-за битого конфига:
