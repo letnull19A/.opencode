@@ -1,11 +1,16 @@
 # dependencies
 node_modules
 bun.lock
+scripts/screenshot-report/node_modules
 
 # opencode runtime/cache
 cache/
 tmp/
 *.log
+
+# screenshot-report outputs
+scripts/screenshot-report/out/
+scripts/screenshot-report/.env
 
 # editor/system
 .DS_Store

@@ -1,0 +1,19 @@
+{
+  "name": "screenshot-report",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "capture": "node capture.js",
+    "report": "node report.js",
+    "send": "node send.js"
+  },
+  "dependencies": {
+    "playwright": "^1.47.0",
+    "archiver": "^7.0.1",
+    "dotenv": "^16.4.5"
+  },
+  "optionalDependencies": {
+    "@aws-sdk/client-s3": "^3.600.0"
+  }
+}
