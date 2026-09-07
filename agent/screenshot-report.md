@@ -1,7 +1,6 @@
 ---
 description: Runs the adaptive-screenshot report (Playwright, multiple viewports) and delivers it. Does not write or edit code.
 mode: primary
-model: anthropic/claude-haiku-4-5-20251001
 temperature: 0
 permission:
   bash:
