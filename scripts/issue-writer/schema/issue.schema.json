@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "IssueData",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["type", "title", "description"],
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": ["bug", "feature", "task"]
+    },
+    "title": {
+      "type": "string",
+      "minLength": 5,
+      "maxLength": 120
+    },
+    "description": {
+      "type": "string",
+      "minLength": 10
+    },
+    "steps_to_reproduce": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": []
+    },
+    "expected": {
+      "type": "string",
+      "default": ""
+    },
+    "actual": {
+      "type": "string",
+      "default": ""
+    },
+    "environment": {
+      "type": "string",
+      "default": ""
+    },
+    "labels": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": []
+    },
+    "priority": {
+      "type": "string",
+      "enum": ["low", "medium", "high"],
+      "default": "medium"
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "type": { "const": "bug" } } },
+      "then": { "required": ["steps_to_reproduce", "expected", "actual"] }
+    }
+  ]
+}

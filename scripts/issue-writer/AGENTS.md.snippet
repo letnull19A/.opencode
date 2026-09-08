@@ -1,0 +1,23 @@
+<!-- Добавь этот блок в AGENTS.md проекта, где должны создаваться issue -->
+
+## Issue tracker
+
+<!-- Явное указание провайдера (обязательно для self-hosted gitea/gitlab,
+     опционально для github.com/gitlab.com/bitbucket.org — там есть автодетект) -->
+issue_provider: github
+
+### Как агенту создавать issue
+
+Не пиши issue текстом сам. Используй пайплайн `.opencode/scripts/issue-writer/`:
+
+1. Вызови subagent `@issue-writer`, дай ему контекст (баг/фичу/задачу).
+   Он вернёт провалидированный JSON
+   (`.opencode/scripts/issue-writer/schema/issue.schema.json`).
+2. Сохрани JSON во временный файл, например `/tmp/issue.json`.
+3. Просмотр перед созданием:
+   `bash .opencode/scripts/issue-writer/orchestrate.sh preview /tmp/issue.json`
+4. Только после явного подтверждения пользователя — реальное создание:
+   `bash .opencode/scripts/issue-writer/orchestrate.sh create /tmp/issue.json "bug,needs-triage"`
+
+Никогда не вызывай `create-issue.sh` напрямую, минуя preview,
+без явного "да, создавай" от пользователя.
