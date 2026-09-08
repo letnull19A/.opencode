@@ -1,0 +1,8 @@
+{
+  "name": "tunnel-manager",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "localtunnel": "^2.0.2"
+  }
+}
