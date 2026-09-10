@@ -18,6 +18,16 @@
         "CONTEXT7_API_KEY": "{env:CONTEXT7_API_KEY}"
       },
       "enabled": true
+    },
+    "dokploy": {
+      "type": "local",
+      "command": ["npx", "-y", "@dokploy/mcp"],
+      "environment": {
+        "DOKPLOY_URL": "{env:DOKPLOY_URL}",
+        "DOKPLOY_API_KEY": "{env:DOKPLOY_API_KEY}",
+        "DOKPLOY_TOOL_PRESET": "minimal"
+      },
+      "enabled": true
     }
   },
   "permission": {

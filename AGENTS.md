@@ -78,8 +78,10 @@ issue_provider: github
   `bash .opencode/scripts/sync/run.sh*`; `mcp.trello` (`npx -y
   @delorenj/mcp-server-trello`, ключи только через `{env:TRELLO_API_KEY}` /
   `{env:TRELLO_TOKEN}`) + `mcp.context7` (remote `https://mcp.context7.com/mcp`,
-  ключ опционален через `{env:CONTEXT7_API_KEY}`; секреты в репозиторий
-  не коммитить). Root `package.json`
+  ключ опционален через `{env:CONTEXT7_API_KEY}`) + `mcp.dokploy`
+  (`npx -y @dokploy/mcp`, `DOKPLOY_URL` + `DOKPLOY_API_KEY` только через
+  `{env:...}`, пресет `minimal` против 508 инструментов; секреты
+  в репозиторий не коммитить). Root `package.json`
   has only `@opencode-ai/plugin`, no scripts.
 
 ## Commands (run from consumer repo root)
@@ -162,3 +164,9 @@ bash .opencode/scripts/trello-task/move.sh (--id <id> | --url <url> | --card "<n
 - `scripts/trello-task/*` intentionally NOT in `opencode.json` bash allowlist:
   creating external Trello cards is a side effect — first run asks approval
   via opencode itself (on top of the agent's draft + «да» rule).
+- `mcp.dokploy` needs both env vars (self-hosted, URL у каждого свой):
+  `DOKPLOY_URL=https://<твой-докплей>` + `DOKPLOY_API_KEY` (Dokploy Settings →
+  API Keys). Preset `minimal` грузит мало инструментов против всех 508;
+  расширить: `all`/`core`/`deploy`/`databases`/`git` или точечно через
+  `DOKPLOY_ENABLED_TAGS=project,application,postgres`.
+  (also only via `{env:...}`, never committed).
