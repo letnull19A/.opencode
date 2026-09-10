@@ -59,7 +59,9 @@ issue_provider: github
   `bash .opencode/scripts/push/run.sh*` +
   `bash .opencode/scripts/sync/run.sh*`; `mcp.trello` (`npx -y
   @delorenj/mcp-server-trello`, ключи только через `{env:TRELLO_API_KEY}` /
-  `{env:TRELLO_TOKEN}`, секреты в репозиторий не коммитить). Root `package.json`
+  `{env:TRELLO_TOKEN}`) + `mcp.context7` (remote `https://mcp.context7.com/mcp`,
+  ключ опционален через `{env:CONTEXT7_API_KEY}`; секреты в репозиторий
+  не коммитить). Root `package.json`
   has only `@opencode-ai/plugin`, no scripts.
 
 ## Commands (run from consumer repo root)
@@ -126,3 +128,6 @@ bash .opencode/scripts/sync/run.sh [--remote <name>] [--dry-run]
   `TRELLO_TOKEN` (generate on the same page, scope: read/write).
   Set via `export TRELLO_API_KEY=... TRELLO_TOKEN=...` or `.env`
   (never commit real values — `opencode.json` references only `{env:...}`).
+- `mcp.context7` works without a key (lower rate limits); with a free key
+  from `https://context7.com` limits are higher:
+  `export CONTEXT7_API_KEY=...` (also only via `{env:...}`, never committed).
