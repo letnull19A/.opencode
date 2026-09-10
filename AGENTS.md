@@ -17,6 +17,13 @@ issue_provider: github
 - Issue pipeline: never call `create-issue.sh` directly, never run `create`
   without `preview` + explicit user "yes". Only `@issue-writer` thinks (LLM);
   everything after it is deterministic scripts.
+- Push pipeline (внутри `/push`): never `git add` / `git commit` / manual
+  `git push` / `--force`. Only `bash .opencode/scripts/push/run.sh` — it pushes
+  committed commits only, uncommitted files always stay local.
+- Commit pipeline (внутри `/commit`): коммиты создаёт только агент через
+  скилл `commit` (атомарно, Conventional Commits, план + явное «да»).
+  Никогда `push` / `--force` / коммит секретов. Вне `/commit` агент сам
+  `git commit` не делает.
 
 ## Layout (ownership)
 
@@ -25,6 +32,8 @@ issue_provider: github
   `@web2bizz/ui` kit, not this repo — don't apply its rules here.
 - `skills/tunnel-manager/SKILL.md` — preview-tunnel runner (wraps
   `scripts/tunnel/`).
+- `skills/commit/SKILL.md` — стратегия атомарных коммитов (Conventional
+  Commits, группировка по интентам, план + явное «да», без push).
 - `scripts/issue-writer/` — `schema/issue.schema.json` (LLM contract) +
   `validate-issue-data.py` → `detect-provider.sh` → `render-issue.py` →
   `create-issue.sh`, glued by `orchestrate.sh`.
@@ -32,9 +41,17 @@ issue_provider: github
   `send.js`; viewports fixed in `config/viewports.js`; per-script `package.json`.
 - `scripts/tunnel/` — `run.sh` → `tunnel.js` (localtunnel/loca.lt),
   per-script `package.json`. State in `~/.local/state/opencode-tunnel/<name>.json`.
+- `commands/` — custom slash-commands (`push.md` → `/push`, thin runner over
+  `scripts/push/run.sh`, no git thinking in the agent; `commit.md` → `/commit`,
+  thinking command over skill `commit`: atomic Conventional Commits, no push).
+- `scripts/push/` — `run.sh` (deterministic `git push` of committed commits
+  only; no `add`/`commit`/`--force`; see `scripts/push/README.md`).
 - `opencode.json` — `default_agent: build`, only pre-approved bash is
-  `bash .opencode/scripts/tunnel/run.sh*`. Root `package.json` has only
-  `@opencode-ai/plugin`, no scripts.
+  `bash .opencode/scripts/tunnel/run.sh*` +
+  `bash .opencode/scripts/push/run.sh*`; `mcp.trello` (`npx -y
+  @delorenj/mcp-server-trello`, ключи только через `{env:TRELLO_API_KEY}` /
+  `{env:TRELLO_TOKEN}`, секреты в репозиторий не коммитить). Root `package.json`
+  has only `@opencode-ai/plugin`, no scripts.
 
 ## Commands (run from consumer repo root)
 
@@ -63,6 +80,19 @@ bash .opencode/scripts/tunnel/run.sh kill [--name <n> | --all]
 # ALWAYS relay PREVIEW_URL + note: loca.lt reminder page password = PUBLIC_IP. Debug via ~/.local/state/opencode-tunnel/<name>.log
 ```
 
+```bash
+# push (agent runs this ONLY via /push; pushes committed commits only, never add/commit/--force):
+bash .opencode/scripts/push/run.sh [--remote <name>] [--dry-run]
+# dirty tree is a warning, not a blocker: uncommitted files stay local, only commits are pushed.
+```
+
+```bash
+# commit (agent runs this ONLY via /commit; skill `commit` thinks, then acts):
+# /commit [<hint>] — анализ diff, план атомарных коммитов, явное «да», затем
+# точечный git add <paths> + git commit по группам. Никогда push/--force.
+# Отправка — только отдельным /push.
+```
+
 ## Version / env gotchas
 
 - Agent dir is `.opencode/agent/` here, but some opencode versions expect
@@ -76,3 +106,8 @@ bash .opencode/scripts/tunnel/run.sh kill [--name <n> | --all]
 - `detect-provider.sh` reads `^issue_provider:` from consumer `AGENTS.md`;
   autodetect only works for `github.com|gitlab.com|bitbucket.org` — self-hosted
   requires the explicit field.
+- `mcp.trello` needs env keys, otherwise its tools fail at startup:
+  `TRELLO_API_KEY` (from `https://trello.com/app-key`) +
+  `TRELLO_TOKEN` (generate on the same page, scope: read/write).
+  Set via `export TRELLO_API_KEY=... TRELLO_TOKEN=...` or `.env`
+  (never commit real values — `opencode.json` references only `{env:...}`).
