@@ -1,9 +1,21 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "default_agent": "build",
+  "mcp": {
+    "trello": {
+      "type": "local",
+      "command": ["npx", "-y", "@delorenj/mcp-server-trello"],
+      "environment": {
+        "TRELLO_API_KEY": "{env:TRELLO_API_KEY}",
+        "TRELLO_TOKEN": "{env:TRELLO_TOKEN}"
+      },
+      "enabled": true
+    }
+  },
   "permission": {
     "bash": {
-      "bash .opencode/scripts/tunnel/run.sh*": "allow"
+      "bash .opencode/scripts/tunnel/run.sh*": "allow",
+      "bash .opencode/scripts/push/run.sh*": "allow"
     }
   }
 }
