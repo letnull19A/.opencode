@@ -24,6 +24,11 @@ issue_provider: github
   скилл `commit` (атомарно, Conventional Commits, план + явное «да»).
   Никогда `push` / `--force` / коммит секретов. Вне `/commit` агент сам
   `git commit` не делает.
+- Sync pipeline (внутри `/sync`): never `git pull` / `git fetch` / `git rebase`
+  / `git merge` / `git stash` вручную / `--force`. Only
+  `bash .opencode/scripts/sync/run.sh` — он тянет только через
+  `pull --rebase --autostash`, без merge-коммитов; конфликт rebase агент
+  сам не разруливает, а отдаёт пользователю.
 
 ## Layout (ownership)
 
@@ -43,12 +48,16 @@ issue_provider: github
   per-script `package.json`. State in `~/.local/state/opencode-tunnel/<name>.json`.
 - `commands/` — custom slash-commands (`push.md` → `/push`, thin runner over
   `scripts/push/run.sh`, no git thinking in the agent; `commit.md` → `/commit`,
-  thinking command over skill `commit`: atomic Conventional Commits, no push).
+  thinking command over skill `commit`: atomic Conventional Commits, no push;
+  `sync.md` → `/sync`, thin runner over `scripts/sync/run.sh`, no git thinking).
 - `scripts/push/` — `run.sh` (deterministic `git push` of committed commits
   only; no `add`/`commit`/`--force`; see `scripts/push/README.md`).
+- `scripts/sync/` — `run.sh` (deterministic `git pull --rebase --autostash`
+  of current branch; no `merge`/`--force`; see `scripts/sync/README.md`).
 - `opencode.json` — `default_agent: build`, only pre-approved bash is
   `bash .opencode/scripts/tunnel/run.sh*` +
-  `bash .opencode/scripts/push/run.sh*`; `mcp.trello` (`npx -y
+  `bash .opencode/scripts/push/run.sh*` +
+  `bash .opencode/scripts/sync/run.sh*`; `mcp.trello` (`npx -y
   @delorenj/mcp-server-trello`, ключи только через `{env:TRELLO_API_KEY}` /
   `{env:TRELLO_TOKEN}`, секреты в репозиторий не коммитить). Root `package.json`
   has only `@opencode-ai/plugin`, no scripts.
@@ -84,6 +93,12 @@ bash .opencode/scripts/tunnel/run.sh kill [--name <n> | --all]
 # push (agent runs this ONLY via /push; pushes committed commits only, never add/commit/--force):
 bash .opencode/scripts/push/run.sh [--remote <name>] [--dry-run]
 # dirty tree is a warning, not a blocker: uncommitted files stay local, only commits are pushed.
+```
+
+```bash
+# sync (agent runs this ONLY via /sync; rebase-only, never merge/--force):
+bash .opencode/scripts/sync/run.sh [--remote <name>] [--dry-run]
+# dirty tree is autostashed and restored automatically, no merge commits; rebase conflict is a stop-and-report, never auto-resolved.
 ```
 
 ```bash

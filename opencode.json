@@ -15,7 +15,8 @@
   "permission": {
     "bash": {
       "bash .opencode/scripts/tunnel/run.sh*": "allow",
-      "bash .opencode/scripts/push/run.sh*": "allow"
+      "bash .opencode/scripts/push/run.sh*": "allow",
+      "bash .opencode/scripts/sync/run.sh*": "allow"
     }
   }
 }
