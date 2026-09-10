@@ -29,16 +29,28 @@ issue_provider: github
   `bash .opencode/scripts/sync/run.sh` — он тянет только через
   `pull --rebase --autostash`, без merge-коммитов; конфликт rebase агент
   сам не разруливает, а отдаёт пользователю.
+- Trello-task pipeline (внутри `/new-task` / `@trello-task`): думает только
+  агент `trello-task`; Trello API касаются только скрипты
+  (`scripts/trello-task/`), агент сам curl к api.trello.com не делает.
+  Создание/перемещение карточки — только после черновика + явного «да»;
+  тег проекта — только из `.trello-project` (NAME), имена досок/листов
+  не выдумываются.
 
 ## Layout (ownership)
 
 - `agent/` — opencode subagents (`issue-writer`, `screenshot-report`,
-  `component-builder`, `refactor`). `component-builder` targets the external
-  `@web2bizz/ui` kit, not this repo — don't apply its rules here.
+  `component-builder`, `refactor`, `trello-task`). `component-builder` targets
+  the external `@web2bizz/ui` kit, not this repo — don't apply its rules here.
+  `trello-task` — `mode: all` (и primary, и subagent), думает за весь
+  trello-task пайплайн, права зажаты (bash только на `scripts/trello-task/*`).
 - `skills/tunnel-manager/SKILL.md` — preview-tunnel runner (wraps
   `scripts/tunnel/`).
 - `skills/commit/SKILL.md` — стратегия атомарных коммитов (Conventional
   Commits, группировка по интентам, план + явное «да», без push).
+- `skills/trello-task/SKILL.md` — качественное использование trello-task
+  скриптов любым агентом (рецепты init/boards/lists/create/move, точные
+  имена, мутации только после «да»); `@trello-task` остаётся
+  предпочтительным исполнителем.
 - `scripts/issue-writer/` — `schema/issue.schema.json` (LLM contract) +
   `validate-issue-data.py` → `detect-provider.sh` → `render-issue.py` →
   `create-issue.sh`, glued by `orchestrate.sh`.
@@ -49,11 +61,17 @@ issue_provider: github
 - `commands/` — custom slash-commands (`push.md` → `/push`, thin runner over
   `scripts/push/run.sh`, no git thinking in the agent; `commit.md` → `/commit`,
   thinking command over skill `commit`: atomic Conventional Commits, no push;
-  `sync.md` → `/sync`, thin runner over `scripts/sync/run.sh`, no git thinking).
+  `sync.md` → `/sync`, thin runner over `scripts/sync/run.sh`, no git thinking;
+  `new-task.md` → `/new-task`, delegates to `trello-task` subagent).
 - `scripts/push/` — `run.sh` (deterministic `git push` of committed commits
   only; no `add`/`commit`/`--force`; see `scripts/push/README.md`).
 - `scripts/sync/` — `run.sh` (deterministic `git pull --rebase --autostash`
   of current branch; no `merge`/`--force`; see `scripts/sync/README.md`).
+- `scripts/trello-task/` — `init.sh` (project tag → `.trello-project`) +
+  `boards.sh` / `lists.sh` (discovery) + `create.sh` (card with NAME label)
+  + `move.sh` (card → target list via PUT `idList`, `--dry-run` без мутаций),
+  всё via Trello REST; агент думает, скрипты исполняют; see
+  `scripts/trello-task/README.md`).
 - `opencode.json` — `default_agent: build`, only pre-approved bash is
   `bash .opencode/scripts/tunnel/run.sh*` +
   `bash .opencode/scripts/push/run.sh*` +
@@ -110,6 +128,16 @@ bash .opencode/scripts/sync/run.sh [--remote <name>] [--dry-run]
 # Отправка — только отдельным /push.
 ```
 
+```bash
+# trello-task (agent runs this ONLY via /new-task or @trello-task; scripts do Trello API):
+bash .opencode/scripts/trello-task/init.sh [--name <tag>] [--force]   # тег проекта → .trello-project (NAME)
+bash .opencode/scripts/trello-task/boards.sh                          # мои доски (точные имена)
+bash .opencode/scripts/trello-task/lists.sh --board "<name>"          # листы доски
+bash .opencode/scripts/trello-task/create.sh --title "<t>" [--board "<b>"] [--list "<l>"] [--desc "<d>"] [--save-defaults]
+bash .opencode/scripts/trello-task/move.sh (--id <id> | --url <url> | --card "<name>") --list "<target>" [--to-board "<b>"] [--dry-run]
+# карточка — только после черновика + явного «да»; нужны TRELLO_API_KEY/TRELLO_TOKEN в env.
+```
+
 ## Version / env gotchas
 
 - Agent dir is `.opencode/agent/` here, but some opencode versions expect
@@ -131,3 +159,6 @@ bash .opencode/scripts/sync/run.sh [--remote <name>] [--dry-run]
 - `mcp.context7` works without a key (lower rate limits); with a free key
   from `https://context7.com` limits are higher:
   `export CONTEXT7_API_KEY=...` (also only via `{env:...}`, never committed).
+- `scripts/trello-task/*` intentionally NOT in `opencode.json` bash allowlist:
+  creating external Trello cards is a side effect — first run asks approval
+  via opencode itself (on top of the agent's draft + «да» rule).
