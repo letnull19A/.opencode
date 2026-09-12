@@ -44,13 +44,15 @@ issue_provider: github
 ## Layout (ownership)
 
 - `agent/` — opencode subagents (`issue-writer`, `screenshot-report`,
-  `component-builder`, `refactor`, `trello-task`, `react-fix`). `component-builder` targets
+  `component-builder`, `refactor`, `trello-task`, `react-fix`, `unit-test`). `component-builder` targets
   the external `@web2bizz/ui` kit, not this repo — don't apply its rules here.
   `trello-task` — `mode: all` (и primary, и subagent), думает за весь
   trello-task пайплайн, права зажаты (bash только на `scripts/trello-task/*`).
   `react-fix` — тоже `mode: all`; думает за весь react-fix пайплайн
   (поиск классов — только скриптом, правки — только после выясненного
   «что менять», см. `scripts/react-fix/README.md`).
+  `unit-test` — тоже `mode: all`; пишет юнит-тесты под любой фреймворк,
+  синтаксис фреймворка — только из Context7 MCP (по памяти запрещено).
 - `skills/tunnel-manager/SKILL.md` — preview-tunnel runner (wraps
   `scripts/tunnel/`).
 - `skills/commit/SKILL.md` — стратегия атомарных коммитов (Conventional
