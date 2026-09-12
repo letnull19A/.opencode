@@ -35,14 +35,22 @@ issue_provider: github
   Создание/перемещение карточки — только после черновика + явного «да»;
   тег проекта — только из `.trello-project` (NAME), имена досок/листов
   не выдумываются.
+- React-fix pipeline (внутри `/fix` / `@react-fix`): классы в коде ищет
+  только `scripts/react-fix/find-class.sh` (сырой grep/rg по классам
+  запрещён); пока точно не выяснено «что менять + где» — никаких `edit`,
+  агент спрашивает пользователя; правит ровно подтверждённое, чеклист —
+  по одному «да» на пункт.
 
 ## Layout (ownership)
 
 - `agent/` — opencode subagents (`issue-writer`, `screenshot-report`,
-  `component-builder`, `refactor`, `trello-task`). `component-builder` targets
+  `component-builder`, `refactor`, `trello-task`, `react-fix`). `component-builder` targets
   the external `@web2bizz/ui` kit, not this repo — don't apply its rules here.
   `trello-task` — `mode: all` (и primary, и subagent), думает за весь
   trello-task пайплайн, права зажаты (bash только на `scripts/trello-task/*`).
+  `react-fix` — тоже `mode: all`; думает за весь react-fix пайплайн
+  (поиск классов — только скриптом, правки — только после выясненного
+  «что менять», см. `scripts/react-fix/README.md`).
 - `skills/tunnel-manager/SKILL.md` — preview-tunnel runner (wraps
   `scripts/tunnel/`).
 - `skills/commit/SKILL.md` — стратегия атомарных коммитов (Conventional
@@ -50,6 +58,10 @@ issue_provider: github
 - `skills/trello-task/SKILL.md` — качественное использование trello-task
   скриптов любым агентом (рецепты init/boards/lists/create/move, точные
   имена, мутации только после «да»); `@trello-task` остаётся
+  предпочтительным исполнителем.
+- `skills/react-fix/SKILL.md` — качественное использование react-fix
+  скрипта любым агентом (рецепт find-class → вопрос → точечная правка,
+  разбор таблицы, BEM/camelCase-нюансы); `@react-fix` остаётся
   предпочтительным исполнителем.
 - `scripts/issue-writer/` — `schema/issue.schema.json` (LLM contract) +
   `validate-issue-data.py` → `detect-provider.sh` → `render-issue.py` →
@@ -62,9 +74,13 @@ issue_provider: github
   `scripts/push/run.sh`, no git thinking in the agent; `commit.md` → `/commit`,
   thinking command over skill `commit`: atomic Conventional Commits, no push;
   `sync.md` → `/sync`, thin runner over `scripts/sync/run.sh`, no git thinking;
-  `new-task.md` → `/new-task`, delegates to `trello-task` subagent).
+  `new-task.md` → `/new-task`, delegates to `trello-task` subagent;
+  `fix.md` → `/fix`, delegates to `react-fix` subagent).
 - `scripts/push/` — `run.sh` (deterministic `git push` of committed commits
   only; no `add`/`commit`/`--force`; see `scripts/push/README.md`).
+- `scripts/react-fix/` — `find-class.sh` (поиск CSS-класса в tsx/css →
+  таблица `FILE|LINE|KIND|TEXT` для ИИ; точное имя + BEM-дети, без
+  подстрок; read-only; см. `scripts/react-fix/README.md`).
 - `scripts/sync/` — `run.sh` (deterministic `git pull --rebase --autostash`
   of current branch; no `merge`/`--force`; see `scripts/sync/README.md`).
 - `scripts/trello-task/` — `init.sh` (project tag → `.trello-project`) +
@@ -75,7 +91,8 @@ issue_provider: github
 - `opencode.json` — `default_agent: build`, only pre-approved bash is
   `bash .opencode/scripts/tunnel/run.sh*` +
   `bash .opencode/scripts/push/run.sh*` +
-  `bash .opencode/scripts/sync/run.sh*`; `mcp.trello` (`npx -y
+  `bash .opencode/scripts/sync/run.sh*` +
+  `bash .opencode/scripts/react-fix/*` (read-only class search); `mcp.trello` (`npx -y
   @delorenj/mcp-server-trello`, ключи только через `{env:TRELLO_API_KEY}` /
   `{env:TRELLO_TOKEN}`) + `mcp.context7` (remote `https://mcp.context7.com/mcp`,
   ключ опционален через `{env:CONTEXT7_API_KEY}`) + `mcp.dokploy`
@@ -140,6 +157,13 @@ bash .opencode/scripts/trello-task/move.sh (--id <id> | --url <url> | --card "<n
 # карточка — только после черновика + явного «да»; нужны TRELLO_API_KEY/TRELLO_TOKEN в env.
 ```
 
+```bash
+# react-fix (agent runs this ONLY via /fix or @react-fix; script finds, agent asks, then edits):
+bash .opencode/scripts/react-fix/find-class.sh --class journal [--class header] [--root src]
+# → таблица FILE|LINE|KIND|TEXT → если неясно что/где править — вопрос пользователю (без edit!) →
+# → точечная правка только подтверждённого → проверка командами consumer-проекта.
+```
+
 ## Version / env gotchas
 
 - Agent dir is `.opencode/agent/` here, but some opencode versions expect
@@ -164,6 +188,9 @@ bash .opencode/scripts/trello-task/move.sh (--id <id> | --url <url> | --card "<n
 - `scripts/trello-task/*` intentionally NOT in `opencode.json` bash allowlist:
   creating external Trello cards is a side effect — first run asks approval
   via opencode itself (on top of the agent's draft + «да» rule).
+- `scripts/react-fix/*` IS in `opencode.json` bash allowlist: `find-class.sh`
+  is read-only (stdout only, no mutations), so class search never asks
+  for approval; edits themselves stay behind the agent's «что менять» rule.
 - `mcp.dokploy` needs both env vars (self-hosted, URL у каждого свой):
   `DOKPLOY_URL=https://<твой-докплей>` + `DOKPLOY_API_KEY` (Dokploy Settings →
   API Keys). Preset `minimal` грузит мало инструментов против всех 508;
