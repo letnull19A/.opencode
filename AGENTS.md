@@ -40,6 +40,13 @@ issue_provider: github
   запрещён); пока точно не выяснено «что менять + где» — никаких `edit`,
   агент спрашивает пользователя; правит ровно подтверждённое, чеклист —
   по одному «да» на пункт.
+- Module pipeline (внутри `/new-module`): стратегию (add/update/delete/decompose,
+  приоритет decompose>delete>update>add) и домен (только по файлам проекта)
+  выбирает агент по скиллу `module-develop`; тесты — делегирование
+  `@unit-test`, implementation для update/delete/decompose — `@refactor`,
+  add — сам `build`; правки — после компактного плана + явного «да»;
+  верификация — реальным раннером, возвраты по `PIPELINE_MAX_RETRIES`;
+  git агент не трогает (коммиты — `/commit`, пуш — `/push`).
 
 ## Layout (ownership)
 
@@ -77,7 +84,9 @@ issue_provider: github
   thinking command over skill `commit`: atomic Conventional Commits, no push;
   `sync.md` → `/sync`, thin runner over `scripts/sync/run.sh`, no git thinking;
   `new-task.md` → `/new-task`, delegates to `trello-task` subagent;
-  `fix.md` → `/fix`, delegates to `react-fix` subagent).
+  `fix.md` → `/fix`, delegates to `react-fix` subagent;
+  `new-module.md` → `/new-module`, thinking over skill `module-develop`,
+  orchestrated by `build` (делегирует `@unit-test`/`@refactor`).
 - `scripts/push/` — `run.sh` (deterministic `git push` of committed commits
   only; no `add`/`commit`/`--force`; see `scripts/push/README.md`).
 - `scripts/react-fix/` — `find-class.sh` (поиск CSS-класса в tsx/css →
