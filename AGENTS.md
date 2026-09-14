@@ -35,6 +35,10 @@ issue_provider: github
   (`scripts/task-manager/`), агенты сами curl к api.trello.com не делают.
   Создание/перемещение карточки — сразу по просьбе пользователя, без
   черновика и «да» (вопросы только про недостающие данные);
+  задача — только по строгому формату (заголовок + Контекст/Что сделать/
+  Критерии приёмки/Связи, неполную не создавать);
+  подзадачи — чек-листом (`checklist.sh`), зависимости — строкой
+  `Blocked by:` (нативного графа в Trello нет);
   тег проекта — только из `.trello-project` (NAME), имена досок/листов
   не выдумываются; аудит — чтение с возвратом строго JSON.
 - React-fix pipeline (внутри `/fix` / `@react-fix`): классы в коде ищет
@@ -69,9 +73,9 @@ issue_provider: github
 - `skills/commit/SKILL.md` — стратегия атомарных коммитов (Conventional
   Commits, группировка по интентам, план + явное «да», без push).
 - `skills/task-manager/SKILL.md` — качественное использование task-manager
-  скриптов любым агентом (рецепты init/boards/lists/create/move/audit, точные
-  имена, мутации — сразу по просьбе, без «да»); `@task-manager` остаётся
-  предпочтительным исполнителем.
+  скриптов любым агентом (рецепты init/boards/lists/create/move/checklist/audit,
+  строгий формат задачи, точные имена, мутации — сразу по просьбе, без «да»);
+  `@task-manager` остаётся предпочтительным исполнителем.
 - `skills/react-fix/SKILL.md` — качественное использование react-fix
   скрипта любым агентом (рецепт find-class → вопрос → точечная правка,
   разбор таблицы, BEM/camelCase-нюансы); `@react-fix` остаётся
@@ -101,8 +105,9 @@ issue_provider: github
 - `scripts/task-manager/` — `init.sh` (project tag → `.trello-project`) +
   `boards.sh` / `lists.sh` (discovery) + `create.sh` (card with NAME label)
   + `move.sh` (card → target list via PUT `idList`, `--dry-run` без мутаций)
-  + `audit.sh` (read-only board audit → JSON для `task-audit`) +
-  `schema/audit.schema.json` (AI-контракт),
+  + `checklist.sh` (подзадачи чек-листом: create/add-item/complete/show JSON)
+  + `audit.sh` (read-only board audit → JSON для `task-audit`, парсит
+  `Blocked by:` в `blocked_by`) + `schema/audit.schema.json` (AI-контракт),
   всё via Trello REST; агент думает, скрипты исполняют; see
   `scripts/task-manager/README.md`).
 - `opencode.json` — `default_agent: build`, only pre-approved bash is
@@ -171,6 +176,7 @@ bash .opencode/scripts/task-manager/boards.sh                          # мои 
 bash .opencode/scripts/task-manager/lists.sh --board "<name>"          # листы доски
 bash .opencode/scripts/task-manager/create.sh --title "<t>" [--board "<b>"] [--list "<l>"] [--desc "<d>"] [--save-defaults]
 bash .opencode/scripts/task-manager/move.sh (--id <id> | --url <url> | --card "<name>") --list "<target>" [--to-board "<b>"] [--dry-run]
+bash .opencode/scripts/task-manager/checklist.sh --card "<name>" --create "Подзадачи" --items "Шаг 1;Шаг 2"
 bash .opencode/scripts/task-manager/audit.sh --board "<name>" [--tag "<t>" | --all]  # JSON для task-audit
 # карточка — сразу по просьбе пользователя, без «да»; нужны TRELLO_API_KEY/TRELLO_TOKEN в env.
 ```

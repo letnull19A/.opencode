@@ -82,11 +82,11 @@ BOARD_ID="$(find_board_id "$BOARD")" || {
 }
 
 LISTS_JSON="$(trello_get "/boards/${BOARD_ID}/lists" --data-urlencode "filter=open" --data-urlencode "fields=name")"
-CARDS_JSON="$(trello_get "/boards/${BOARD_ID}/cards" --data-urlencode "fields=name,idList,due,dueComplete,labels,shortUrl")"
+CARDS_JSON="$(trello_get "/boards/${BOARD_ID}/cards" --data-urlencode "fields=name,idList,due,dueComplete,labels,shortUrl,desc")"
 
 export FILTER_TAG FILTER_MODE BOARD BOARD_ID LIMIT
 LISTS_JSON="$LISTS_JSON" CARDS_JSON="$CARDS_JSON" python3 -c '
-import json, os, sys
+import json, os, re, sys
 from datetime import datetime, timezone
 
 board = os.environ["BOARD"]
@@ -121,6 +121,20 @@ def match_tag(c):
 
 tagged = [c for c in cards if match_tag(c)]
 
+BLOCKED_RE = re.compile(r"(?im)^\s*blocked\s+by\s*:\s*(.+?)\s*$")
+URL_RE = re.compile(r"https?://[^\s,)]+")
+
+def parse_blocked(desc):
+    # Формат зависимости task-manager пайплайна: строка "Blocked by: <url>[, <url>...]".
+    found = []
+    for m in BLOCKED_RE.finditer(desc or ""):
+        urls = URL_RE.findall(m.group(1))
+        if urls:
+            found.extend(urls)
+        elif m.group(1).strip():
+            found.append(m.group(1).strip())
+    return found
+
 def card_view(c):
     due = c.get("due")
     due_complete = bool(c.get("dueComplete"))
@@ -133,6 +147,7 @@ def card_view(c):
         "due": due,
         "dueComplete": due_complete,
         "overdue": overdue,
+        "blocked_by": parse_blocked(c.get("desc")),
     }
 
 by_list = {lid: [] for lid in list_order}
@@ -146,6 +161,7 @@ for c in tagged:
 
 out_lists = []
 overdue_all = []
+blocked_all = []
 no_due = 0
 for l in lists:
     lid = l["id"]
@@ -162,6 +178,8 @@ for l in lists:
     for cv in items:
         if cv["overdue"]:
             overdue_all.append({"list": l.get("name", ""), **cv})
+        if cv["blocked_by"]:
+            blocked_all.append({"list": l.get("name", ""), **cv})
         if not cv["due"]:
             no_due += 1
 
@@ -175,10 +193,12 @@ out = {
         "tagged": len(tagged),
         "on_board": len(cards),
         "overdue": len(overdue_all),
+        "blocked": len(blocked_all),
         "no_due": no_due,
     },
     "lists": out_lists,
     "overdue": overdue_all,
+    "blocked": blocked_all,
 }
 print(json.dumps(out, ensure_ascii=False))
 '

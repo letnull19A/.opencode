@@ -26,7 +26,11 @@ description: Manage Trello cards with a project tag via .opencode/scripts/task-m
 2. Разведка (только чтение, подтверждения не надо):
    `bash .opencode/scripts/task-manager/boards.sh` — точные имена досок;
    `bash .opencode/scripts/task-manager/lists.sh --board "<name>"` — листы.
-3. Создание — сразу, без черновика и «да» (просьба пользователя уже приказ):
+3. Создание — сразу, без черновика и «да» (просьба пользователя уже приказ),
+   но строго по формату (неполную задачу не создаёшь — уточняешь):
+   - Заголовок: императив, что + где, до ~80 символов, без точки; один результат.
+   - Описание по шаблону: `## Контекст` / `## Что сделать` (нумерованные шаги) /
+     `## Критерии приёмки` (`- [ ] ...`) / `## Связи` (`Blocked by: <url>`, если есть).
    `bash .opencode/scripts/task-manager/create.sh --title "<t>" --board "<b>" --list "<l>" [--desc "<d>"]`
    Флаги `--board/--list` опускай, только если они уже в дефолтах
    `.trello-project`. Запомнить выбор: добавь `--save-defaults`.
@@ -38,9 +42,20 @@ description: Manage Trello cards with a project tag via .opencode/scripts/task-m
    `--card` без `--from-board` ищет по всем открытым доскам; при дублях
    скрипт перечислит id — уточни через `--id`/`--url`, не гадай.
    «Уже в этом листе» — успех, дублей не делаешь.
-5. Аудит (только чтение, AI-first JSON для `@task-manager`):
+5. Подзадачи = пункты чек-листа (шаги одного результата в одном листе):
+   `bash .opencode/scripts/task-manager/checklist.sh --url <url> --create "Подзадачи" --items "шаг 1;шаг 2"`
+   Добавить: `--add-item "<текст>"`; отметить: `--complete "<пункт>"` / `--uncomplete`;
+   прочитать: `--show` (JSON). Карточка — через `--id | --url | --card`, чек-лист —
+   через `--list` (точное имя; при единственном можно опустить).
+   Независимые куски ценности — отдельные карточки по формату п.3, связанные
+   через `## Связи` / `Blocked by`, а не чек-лист.
+6. Зависимости — строка `Blocked by: <url>` в секции `## Связи` описания
+   (нативного графа в Trello нет; `audit.sh` парсит её в `blocked_by`).
+   Пишешь только указанную пользователем зависимость, URL — только точный.
+   Заблокированную задачу выполняешь как обычно, но помечаешь в отчёте.
+7. Аудит (только чтение, AI-first JSON для `@task-manager`):
    `bash .opencode/scripts/task-manager/audit.sh --board "<name>" [--tag "<t>" | --all]`
-   Stdout — только JSON по `schema/audit.schema.json` (`totals/lists/overdue`).
+   Stdout — только JSON по `schema/audit.schema.json` (`totals/lists/overdue/blocked`).
    Прямо из чата не зовёшь — это делает сабагент `task-audit` по оркестрации `@task-manager`.
 
 ## Правила качества
@@ -75,6 +90,10 @@ bash .opencode/scripts/task-manager/create.sh --title "Next fix"
 
 # Сдвиг задачи по канбану (сразу, без --dry-run и «да»):
 bash .opencode/scripts/task-manager/move.sh --card "Fix login" --list "Doing"
+
+# Подзадачи чек-листом + отметка выполнения:
+bash .opencode/scripts/task-manager/checklist.sh --card "Fix login" --create "Подзадачи" --items "Повторить баг;Починить;Покрыть тестом"
+bash .opencode/scripts/task-manager/checklist.sh --card "Fix login" --complete "Повторить баг"
 
 # Аудит доски (читает task-audit по оркестрации @task-manager, stdout — JSON):
 bash .opencode/scripts/task-manager/audit.sh --board "My board"

@@ -9,10 +9,18 @@
 [/new-task "текст"] → @task-manager (subagent)
   1. init.sh            → .trello-project (NAME=owner/repo из git remote)
   2. boards.sh/lists.sh → точные имена доски/листа (агент не выдумывает)
-  3. create.sh          → карточка с меткой NAME → URL (сразу, без «да»)
+  3. create.sh          → карточка по строгому формату → URL (сразу, без «да»)
+  4. checklist.sh       → подзадачи чек-листом (если 2+ шагов одного результата)
 [@task-manager "перемести X в Done"] → move.sh → карточка в целевом листе (сразу, без «да»)
 [@task-manager "аудит/статус"] → task-audit → audit.sh → JSON → рендер человеку
 ```
+
+## Формат задачи (строгий)
+
+Неполную задачу агент НЕ создаёт — уточняет вопросом. Заголовок: императив,
+что + где, до ~80 символов, без точки, один проверяемый результат. Описание
+строго по шаблону: `## Контекст` / `## Что сделать` (шаги) /
+`## Критерии приёмки` (`- [ ]`) / `## Связи` (`Blocked by: <url>`, если есть).
 
 ## Файлы
 
@@ -40,18 +48,25 @@
   лист (той же или другой доски): `--id | --url | --card` (+ `--from-board`
   для сужения поиска по имени) → `--list` (+ `--to-board`, по умолчанию
   текущая доска) → PUT `idList`+`pos`. `--dry-run` показывает план без PUT.
+- `.opencode/scripts/task-manager/checklist.sh` — подзадачи чек-листом:
+  `--create "<чек-лист>" [--items "a;b;c"]`, `--add-item`, `--complete` /
+  `--uncomplete`, `--show` (JSON). Карточка — `--id | --url | --card`
+  (+ `--from-board`), чек-лист — точным `--list` (при единственном опускается).
 - `.opencode/scripts/task-manager/audit.sh` — read-only аудит доски, stdout —
   ТОЛЬКО JSON (AI-first для `task-audit`): `--board "<name>"` (точное имя
   или дефолт BOARD) + фильтр по метке (`NAME` по умолчанию, `--tag` перекрывает,
   `--all` — без фильтра) + `--limit N` (карточек на лист, по умолчанию 50).
-  Просрочки (`due < now && !dueComplete`) считает скрипт, агент даты не сравнивает.
+  Просрочки (`due < now && !dueComplete`) и зависимости (`Blocked by:` в описании)
+  считает скрипт, агент даты не сравнивает и зависимости не выдумывает.
 - `.opencode/scripts/task-manager/audit.sh` — read-only аудит доски, stdout —
   ТОЛЬКО JSON (AI-first для `task-audit`): `--board "<name>"` (точное имя
   или дефолт BOARD) + фильтр по метке (`NAME` по умолчанию, `--tag` перекрывает,
   `--all` — без фильтра) + `--limit N` (карточек на лист, по умолчанию 50).
   Просрочки (`due < now && !dueComplete`) считает скрипт, агент даты не сравнивает.
 - `.opencode/scripts/task-manager/schema/audit.schema.json` — контракт
-  `task-audit → task-manager` (`board/tag/filter/fetched_at/totals/lists/overdue`).
+  `task-audit → task-manager` (`board/tag/filter/fetched_at/totals/lists/overdue/blocked`).
+- Зависимости — соглашение пайплайна (нативного графа в Trello нет): строка
+  `Blocked by: <url>` в описании карточки; `audit.sh` парсит её в `blocked_by`.
 
 ## Поведение
 
@@ -84,5 +99,6 @@ bash .opencode/scripts/task-manager/lists.sh --board "My board"
 bash .opencode/scripts/task-manager/create.sh --title "Test" --board "My board" --list "To Do" --save-defaults
 bash .opencode/scripts/task-manager/create.sh --title "Next"   # доска/лист уже из дефолтов
 bash .opencode/scripts/task-manager/move.sh --card "Next" --list "Doing"   # сразу, без «да» (--dry-run только по просьбе «покажи план»)
+bash .opencode/scripts/task-manager/checklist.sh --card "Next" --create "Подзадачи" --items "Шаг 1;Шаг 2"
 bash .opencode/scripts/task-manager/audit.sh --board "My board" | python3 -m json.tool  # JSON для task-audit
 ```

@@ -123,3 +123,77 @@ for l in json.load(sys.stdin):
     --data-urlencode "color=${color}" \
     | python3 -c 'import json, sys; print(json.load(sys.stdin)["id"])'
 }
+
+# Резолвит карточку в её id. Селектор — ровно один:
+# --id <id> | --url <card-url> | --card "<точное имя>" [--from-board "<доска>"].
+# Печатает id карточки; exit 1 + подсказка иначе. Только чтение.
+resolve_card_id() {
+  local id="" url="" card="" from_board=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --id) id="${2:?--id требует id карточки}"; shift 2 ;;
+      --url) url="${2:?--url требует URL карточки}"; shift 2 ;;
+      --card) card="${2:?--card требует точное имя}"; shift 2 ;;
+      --from-board) from_board="${2:?--from-board требует имя доски}"; shift 2 ;;
+      *) die "resolve_card_id: неизвестный аргумент '$1'" ;;
+    esac
+  done
+
+  local nsel=0
+  [[ -n "$id" ]] && nsel=$((nsel+1))
+  [[ -n "$url" ]] && nsel=$((nsel+1))
+  [[ -n "$card" ]] && nsel=$((nsel+1))
+  [[ "$nsel" -eq 1 ]] || die "укажи карточку ровно одним способом: --id, --url или --card"
+
+  if [[ -n "$url" ]]; then
+    id="$(printf '%s' "$url" | python3 -c '
+import sys
+parts = sys.stdin.read().strip().split("/")
+try:
+    print(parts[parts.index("c") + 1])
+except (ValueError, IndexError):
+    sys.exit("not a trello card url")
+')" || die "не похоже на URL карточки Trello: '$url'"
+  fi
+
+  if [[ -n "$id" ]]; then
+    trello_get "/cards/${id}" --data-urlencode "fields=id" \
+      | python3 -c 'import json, sys; print(json.load(sys.stdin)["id"])'
+    return 0
+  fi
+
+  local search_boards matches nmatch scope
+  if [[ -n "$from_board" ]]; then
+    search_boards="$(find_board_id "$from_board")" || return 1
+  else
+    search_boards="$(trello_get "/members/me/boards" --data-urlencode "filter=open" --data-urlencode "fields=name" \
+      | python3 -c 'import json, sys; [print(b["id"]) for b in json.load(sys.stdin)]')"
+  fi
+  matches=""
+  local bid hits
+  for bid in $search_boards; do
+    hits="$(trello_get "/boards/${bid}/cards" --data-urlencode "fields=name" | python3 -c '
+import json, sys
+want = sys.argv[1]
+for c in json.load(sys.stdin):
+    if c.get("name") == want:
+        print(c["id"] + "\t" + bid)
+' "$card" "$bid")"
+    [[ -n "$hits" ]] && matches="${matches}${hits}"$'\n'
+  done
+  nmatch="$(printf '%s' "$matches" | grep -c . || true)"
+  if [[ "$nmatch" -eq 0 ]]; then
+    scope="${from_board:-все открытые доски}"
+    die "карточка '$card' не найдена ($scope) — проверь точное имя"
+  fi
+  if [[ "$nmatch" -gt 1 ]]; then
+    echo "task-manager: карточек с именем '$card' несколько — уточни через --id или --url:" >&2
+    printf '%s' "$matches" | while IFS=$'\t' read -r cid bid; do
+      local bname
+      bname="$(trello_get "/boards/${bid}" --data-urlencode "fields=name" | python3 -c 'import json, sys; print(json.load(sys.stdin)["name"])')"
+      echo " - id=$cid (доска '$bname')" >&2
+    done
+    return 1
+  fi
+  printf '%s' "$matches" | cut -f1
+}
