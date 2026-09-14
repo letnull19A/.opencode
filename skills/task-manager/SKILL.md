@@ -1,11 +1,11 @@
 ---
-name: trello-task
-description: Create and move Trello cards with a project tag via .opencode/scripts/trello-task/*. Use when any agent needs to file a task, move a card, or resolve Trello board/list names without guessing.
+name: task-manager
+description: Manage Trello cards with a project tag via .opencode/scripts/task-manager/*. Use when any agent needs to file a task, move a card, or resolve Trello board/list names without guessing.
 ---
 
 Ты умеешь качественно работать с Trello через скрипты пака, а не через
 прямые вызовы API. Все команды — из корня проекта. Если в сессии доступен
-агент `@trello-task` — предпочтителен он (у него зажаты права); этот скилл —
+агент `@task-manager` — предпочтителен он (у него зажаты права); этот скилл —
 для остальных случаев и для проверки чужой работы.
 
 ## Предпосылки
@@ -19,20 +19,20 @@ description: Create and move Trello cards with a project tag via .opencode/scrip
 ## Рецепты (порядок важен)
 
 1. Тег проекта (идемпотентно, повтор безопасен):
-   `bash .opencode/scripts/trello-task/init.sh`
+   `bash .opencode/scripts/task-manager/init.sh`
    Повтор без `--force` просто покажет файл. Другой тег:
    `init.sh --name <tag> --force`. Нет git remote — скрипт скажет спросить
    тег у пользователя явно; так и делаешь, не выдумываешь.
 2. Разведка (только чтение, подтверждения не надо):
-   `bash .opencode/scripts/trello-task/boards.sh` — точные имена досок;
-   `bash .opencode/scripts/trello-task/lists.sh --board "<name>"` — листы.
+   `bash .opencode/scripts/task-manager/boards.sh` — точные имена досок;
+   `bash .opencode/scripts/task-manager/lists.sh --board "<name>"` — листы.
 3. Создание (мутация — только после черновика + явного «да»):
-   `bash .opencode/scripts/trello-task/create.sh --title "<t>" --board "<b>" --list "<l>" [--desc "<d>"]`
+   `bash .opencode/scripts/task-manager/create.sh --title "<t>" --board "<b>" --list "<l>" [--desc "<d>"]`
    Флаги `--board/--list` опускай, только если они уже в дефолтах
    `.trello-project`. Запомнить выбор: добавь `--save-defaults`.
    В ответ — URL карточки, его и ретранслируешь.
 4. Перемещение (мутация — тоже только после «да», сначала покажи from → to):
-   `bash .opencode/scripts/trello-task/move.sh (--id <id> | --url <url> | --card "<имя>") --list "<цель>" [--to-board "<b>"] [--pos top|bottom|N]`
+   `bash .opencode/scripts/task-manager/move.sh (--id <id> | --url <url> | --card "<имя>") --list "<цель>" [--to-board "<b>"] [--pos top|bottom|N]`
    Безопасный предпросмотр: тот же вызов + `--dry-run` (ничего не меняет).
    `--card` без `--from-board` ищет по всем открытым доскам; при дублях
    скрипт перечислит id — уточни через `--id`/`--url`, не гадай.
@@ -43,7 +43,7 @@ description: Create and move Trello cards with a project tag via .opencode/scrip
 - Точные имена: доски, листы, карточки — только из вывода скриптов или
   из слов пользователя. Почти-совпадение — не совпадение: показываешь
   список из ошибки скрипта и спрашиваешь.
-- Trello REST касается только `scripts/trello-task/*`. Никакого ручного
+- Trello REST касается только `scripts/task-manager/*`. Никакого ручного
   curl к `api.trello.com`, никаких id из головы, никаких «одноразовых»
   python-сниппетов вместо скриптов.
 - Мутации (`create`, `move` без `--dry-run`) — по одной за раз, каждую
@@ -58,16 +58,16 @@ description: Create and move Trello cards with a project tag via .opencode/scrip
 
 ```bash
 # Новая задача с нуля (первый раз в проекте):
-bash .opencode/scripts/trello-task/init.sh
-bash .opencode/scripts/trello-task/boards.sh
-bash .opencode/scripts/trello-task/lists.sh --board "My board"
+bash .opencode/scripts/task-manager/init.sh
+bash .opencode/scripts/task-manager/boards.sh
+bash .opencode/scripts/task-manager/lists.sh --board "My board"
 # → черновик пользователю → «да» →
-bash .opencode/scripts/trello-task/create.sh --title "Fix login" --board "My board" --list "To Do" --save-defaults
+bash .opencode/scripts/task-manager/create.sh --title "Fix login" --board "My board" --list "To Do" --save-defaults
 
 # Следующие задачи (дефолты уже запомнены):
-bash .opencode/scripts/trello-task/create.sh --title "Next fix"
+bash .opencode/scripts/task-manager/create.sh --title "Next fix"
 
 # Сдвиг задачи по канбану:
-bash .opencode/scripts/trello-task/move.sh --card "Fix login" --list "Doing" --dry-run
+bash .opencode/scripts/task-manager/move.sh --card "Fix login" --list "Doing" --dry-run
 # → «да» → тот же вызов без --dry-run
 ```

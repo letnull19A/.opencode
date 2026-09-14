@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# _common.sh — общие функции trello-task пайплайна. Не запускать напрямую:
-# его source'ят остальные скрипты (init/boards/lists/create).
+# _common.sh — общие функции task-manager пайплайна. Не запускать напрямую:
+# его source'ят остальные скрипты (init/boards/lists/create/move).
 # Требует: curl, python3. Секреты — только из окружения, никогда из файлов.
 
 set -euo pipefail
@@ -8,7 +8,7 @@ set -euo pipefail
 TRELLO_API="https://api.trello.com/1"
 PROJECT_FILE="${PROJECT_FILE:-.trello-project}"
 
-die() { echo "trello-task: $*" >&2; exit 1; }
+die() { echo "task-manager: $*" >&2; exit 1; }
 
 need_cmd() {
   command -v "$1" >/dev/null 2>&1 || die "нужен '$1' (не найден в PATH)"
@@ -48,12 +48,12 @@ trello_put() { # trello_put <path> [--data-urlencode k=v ...]
 
 # Загружает .trello-project (env-формат) в переменные NAME/BOARD/LIST.
 load_project() {
-  [[ -f "$PROJECT_FILE" ]] || die "нет $PROJECT_FILE — сначала: bash .opencode/scripts/trello-task/init.sh"
+  [[ -f "$PROJECT_FILE" ]] || die "нет $PROJECT_FILE — сначала: bash .opencode/scripts/task-manager/init.sh"
   set -a
   # shellcheck disable=SC1090
   . "./$PROJECT_FILE"
   set +a
-  [[ -n "${NAME:-}" ]] || die "$PROJECT_FILE без NAME — перезапусти: bash .opencode/scripts/trello-task/init.sh --force"
+  [[ -n "${NAME:-}" ]] || die "$PROJECT_FILE без NAME — перезапусти: bash .opencode/scripts/task-manager/init.sh --force"
 }
 
 # Находит id доски по ТОЧНОМУ имени. Печатает id; exit 1 + подсказка иначе.
@@ -69,7 +69,7 @@ for b in json.load(sys.stdin):
 ' "$want")"
   n="$(printf '%s' "$hits" | grep -c . || true)"
   if [[ "$n" -eq 0 ]]; then
-    echo "trello-task: доска '$want' не найдена. Доступные доски:" >&2
+    echo "task-manager: доска '$want' не найдена. Доступные доски:" >&2
     printf '%s' "$json" | python3 -c 'import json, sys; [print(" -", b.get("name")) for b in json.load(sys.stdin)]' >&2
     return 1
   fi
@@ -92,7 +92,7 @@ for l in json.load(sys.stdin):
 ' "$want")"
   n="$(printf '%s' "$hits" | grep -c . || true)"
   if [[ "$n" -eq 0 ]]; then
-    echo "trello-task: лист '$want' не найден. Листы доски:" >&2
+    echo "task-manager: лист '$want' не найден. Листы доски:" >&2
     printf '%s' "$json" | python3 -c 'import json, sys; [print(" -", l.get("name")) for l in json.load(sys.stdin)]' >&2
     return 1
   fi
