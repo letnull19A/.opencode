@@ -33,7 +33,8 @@ issue_provider: github
   оркестратор `task-manager`, аудит — сабагент `task-audit` по его делегированию;
   Trello API касаются только скрипты
   (`scripts/task-manager/`), агенты сами curl к api.trello.com не делают.
-  Создание/перемещение карточки — только после черновика + явного «да»;
+  Создание/перемещение карточки — сразу по просьбе пользователя, без
+  черновика и «да» (вопросы только про недостающие данные);
   тег проекта — только из `.trello-project` (NAME), имена досок/листов
   не выдумываются; аудит — чтение с возвратом строго JSON.
 - React-fix pipeline (внутри `/fix` / `@react-fix`): классы в коде ищет
@@ -69,7 +70,7 @@ issue_provider: github
   Commits, группировка по интентам, план + явное «да», без push).
 - `skills/task-manager/SKILL.md` — качественное использование task-manager
   скриптов любым агентом (рецепты init/boards/lists/create/move/audit, точные
-  имена, мутации только после «да»); `@task-manager` остаётся
+  имена, мутации — сразу по просьбе, без «да»); `@task-manager` остаётся
   предпочтительным исполнителем.
 - `skills/react-fix/SKILL.md` — качественное использование react-fix
   скрипта любым агентом (рецепт find-class → вопрос → точечная правка,
@@ -171,7 +172,7 @@ bash .opencode/scripts/task-manager/lists.sh --board "<name>"          # лис�
 bash .opencode/scripts/task-manager/create.sh --title "<t>" [--board "<b>"] [--list "<l>"] [--desc "<d>"] [--save-defaults]
 bash .opencode/scripts/task-manager/move.sh (--id <id> | --url <url> | --card "<name>") --list "<target>" [--to-board "<b>"] [--dry-run]
 bash .opencode/scripts/task-manager/audit.sh --board "<name>" [--tag "<t>" | --all]  # JSON для task-audit
-# карточка — только после черновика + явного «да»; нужны TRELLO_API_KEY/TRELLO_TOKEN в env.
+# карточка — сразу по просьбе пользователя, без «да»; нужны TRELLO_API_KEY/TRELLO_TOKEN в env.
 ```
 
 ```bash
@@ -204,7 +205,7 @@ bash .opencode/scripts/react-fix/find-class.sh --class journal [--class header] 
   `export CONTEXT7_API_KEY=...` (also only via `{env:...}`, never committed).
 - `scripts/task-manager/*` intentionally NOT in `opencode.json` bash allowlist:
   creating external Trello cards is a side effect — first run asks approval
-  via opencode itself (on top of the agent's draft + «да» rule).
+  via opencode itself (agent-level «да» убран: просьба уже приказ).
 - `scripts/react-fix/*` IS in `opencode.json` bash allowlist: `find-class.sh`
   is read-only (stdout only, no mutations), so class search never asks
   for approval; edits themselves stay behind the agent's «что менять» rule.

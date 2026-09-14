@@ -9,9 +9,8 @@
 [/new-task "текст"] → @task-manager (subagent)
   1. init.sh            → .trello-project (NAME=owner/repo из git remote)
   2. boards.sh/lists.sh → точные имена доски/листа (агент не выдумывает)
-  3. черновик → явное «да» пользователя
-  4. create.sh          → карточка с меткой NAME → URL
-[@task-manager "перемести X в Done"] → move.sh → карточка в целевом листе
+  3. create.sh          → карточка с меткой NAME → URL (сразу, без «да»)
+[@task-manager "перемести X в Done"] → move.sh → карточка в целевом листе (сразу, без «да»)
 [@task-manager "аудит/статус"] → task-audit → audit.sh → JSON → рендер человеку
 ```
 
@@ -46,14 +45,20 @@
   или дефолт BOARD) + фильтр по метке (`NAME` по умолчанию, `--tag` перекрывает,
   `--all` — без фильтра) + `--limit N` (карточек на лист, по умолчанию 50).
   Просрочки (`due < now && !dueComplete`) считает скрипт, агент даты не сравнивает.
+- `.opencode/scripts/task-manager/audit.sh` — read-only аудит доски, stdout —
+  ТОЛЬКО JSON (AI-first для `task-audit`): `--board "<name>"` (точное имя
+  или дефолт BOARD) + фильтр по метке (`NAME` по умолчанию, `--tag` перекрывает,
+  `--all` — без фильтра) + `--limit N` (карточек на лист, по умолчанию 50).
+  Просрочки (`due < now && !dueComplete`) считает скрипт, агент даты не сравнивает.
 - `.opencode/scripts/task-manager/schema/audit.schema.json` — контракт
   `task-audit → task-manager` (`board/tag/filter/fetched_at/totals/lists/overdue`).
 
 ## Поведение
 
-- Создание карточки — только после черновика + явного «да» (как `create`
-  в issue-writer). `boards.sh`/`lists.sh`/`init.sh`/`audit.sh` — чтение,
-  подтверждения не требуют.
+- Создание/перемещение карточки — сразу по просьбе пользователя, без
+  черновика и «да» (просьба уже приказ). Вопросы — только про недостающие
+  данные (пустой заголовок, неизвестные доска/лист). `--dry-run` у `move.sh` —
+  только по просьбе «покажи план».
 - Аудит — только через оркестрацию: пользователь просит `@task-manager`,
   тот делегирует `task-audit`, тот гоняет `audit.sh` и возвращает JSON.
   Прямой вызов `@task-audit` запрещён.
@@ -78,7 +83,6 @@ bash .opencode/scripts/task-manager/boards.sh
 bash .opencode/scripts/task-manager/lists.sh --board "My board"
 bash .opencode/scripts/task-manager/create.sh --title "Test" --board "My board" --list "To Do" --save-defaults
 bash .opencode/scripts/task-manager/create.sh --title "Next"   # доска/лист уже из дефолтов
-bash .opencode/scripts/task-manager/move.sh --card "Next" --list "Doing" --dry-run
-bash .opencode/scripts/task-manager/move.sh --card "Next" --list "Doing"   # только после «да» пользователя
+bash .opencode/scripts/task-manager/move.sh --card "Next" --list "Doing"   # сразу, без «да» (--dry-run только по просьбе «покажи план»)
 bash .opencode/scripts/task-manager/audit.sh --board "My board" | python3 -m json.tool  # JSON для task-audit
 ```

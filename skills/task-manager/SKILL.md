@@ -26,14 +26,15 @@ description: Manage Trello cards with a project tag via .opencode/scripts/task-m
 2. Разведка (только чтение, подтверждения не надо):
    `bash .opencode/scripts/task-manager/boards.sh` — точные имена досок;
    `bash .opencode/scripts/task-manager/lists.sh --board "<name>"` — листы.
-3. Создание (мутация — только после черновика + явного «да»):
+3. Создание — сразу, без черновика и «да» (просьба пользователя уже приказ):
    `bash .opencode/scripts/task-manager/create.sh --title "<t>" --board "<b>" --list "<l>" [--desc "<d>"]`
    Флаги `--board/--list` опускай, только если они уже в дефолтах
    `.trello-project`. Запомнить выбор: добавь `--save-defaults`.
    В ответ — URL карточки, его и ретранслируешь.
-4. Перемещение (мутация — тоже только после «да», сначала покажи from → to):
+   Спрашиваешь только недостающее (пустой заголовок, неизвестные доска/лист).
+4. Перемещение — тоже сразу, без «да» и без `--dry-run`:
    `bash .opencode/scripts/task-manager/move.sh (--id <id> | --url <url> | --card "<имя>") --list "<цель>" [--to-board "<b>"] [--pos top|bottom|N]`
-   Безопасный предпросмотр: тот же вызов + `--dry-run` (ничего не меняет).
+   `--dry-run` — только по просьбе «покажи план».
    `--card` без `--from-board` ищет по всем открытым доскам; при дублях
    скрипт перечислит id — уточни через `--id`/`--url`, не гадай.
    «Уже в этом листе» — успех, дублей не делаешь.
@@ -50,8 +51,9 @@ description: Manage Trello cards with a project tag via .opencode/scripts/task-m
 - Trello REST касается только `scripts/task-manager/*`. Никакого ручного
   curl к `api.trello.com`, никаких id из головы, никаких «одноразовых»
   python-сниппетов вместо скриптов.
-- Мутации (`create`, `move` без `--dry-run`) — по одной за раз, каждую
-  после своего «да». Чтение (`boards`, `lists`, `audit`, `init`, `move --dry-run`) —
+- Мутации (`create`, `move`) — выполняешь сразу по просьбе пользователя,
+  по одной за раз, без «да». Вопросы — только про недостающие данные.
+  Чтение (`boards`, `lists`, `audit`, `init`, `move --dry-run`) —
   свободно, пачками при независимых вызовах.
 - Ошибка скрипта — не повод импровизировать: вставляешь вывод как есть,
   следуешь его подсказке (обычно там уже список доступных имён).
@@ -65,15 +67,14 @@ description: Manage Trello cards with a project tag via .opencode/scripts/task-m
 bash .opencode/scripts/task-manager/init.sh
 bash .opencode/scripts/task-manager/boards.sh
 bash .opencode/scripts/task-manager/lists.sh --board "My board"
-# → черновик пользователю → «да» →
+# → сразу выполняешь (без черновика и «да») →
 bash .opencode/scripts/task-manager/create.sh --title "Fix login" --board "My board" --list "To Do" --save-defaults
 
 # Следующие задачи (дефолты уже запомнены):
 bash .opencode/scripts/task-manager/create.sh --title "Next fix"
 
-# Сдвиг задачи по канбану:
-bash .opencode/scripts/task-manager/move.sh --card "Fix login" --list "Doing" --dry-run
-# → «да» → тот же вызов без --dry-run
+# Сдвиг задачи по канбану (сразу, без --dry-run и «да»):
+bash .opencode/scripts/task-manager/move.sh --card "Fix login" --list "Doing"
 
 # Аудит доски (читает task-audit по оркестрации @task-manager, stdout — JSON):
 bash .opencode/scripts/task-manager/audit.sh --board "My board"
