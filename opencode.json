@@ -55,7 +55,7 @@
       "environment": {
         "DOKPLOY_URL": "{env:DOKPLOY_URL}",
         "DOKPLOY_API_KEY": "{env:DOKPLOY_API_KEY}",
-        "DOKPLOY_TOOL_PRESET": "minimal"
+        "DOKPLOY_TOOL_PRESET": "all"
       },
       "enabled": true
     }
