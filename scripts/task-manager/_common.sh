@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # _common.sh — общие функции task-manager пайплайна. Не запускать напрямую:
-# его source'ят остальные скрипты (init/boards/lists/create/move).
+# его source'ят остальные скрипты (init/boards/lists/create/move/audit).
 # Требует: curl, python3. Секреты — только из окружения, никогда из файлов.
 
 set -euo pipefail

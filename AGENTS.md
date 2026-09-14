@@ -30,11 +30,12 @@ issue_provider: github
   `pull --rebase --autostash`, без merge-коммитов; конфликт rebase агент
   сам не разруливает, а отдаёт пользователю.
 - Task-manager pipeline (внутри `/new-task` / `@task-manager`): думает только
-  агент `task-manager`; Trello API касаются только скрипты
-  (`scripts/task-manager/`), агент сам curl к api.trello.com не делает.
+  оркестратор `task-manager`, аудит — сабагент `task-audit` по его делегированию;
+  Trello API касаются только скрипты
+  (`scripts/task-manager/`), агенты сами curl к api.trello.com не делают.
   Создание/перемещение карточки — только после черновика + явного «да»;
   тег проекта — только из `.trello-project` (NAME), имена досок/листов
-  не выдумываются.
+  не выдумываются; аудит — чтение с возвратом строго JSON.
 - React-fix pipeline (внутри `/fix` / `@react-fix`): классы в коде ищет
   только `scripts/react-fix/find-class.sh` (сырой grep/rg по классам
   запрещён); пока точно не выяснено «что менять + где» — никаких `edit`,
@@ -51,10 +52,12 @@ issue_provider: github
 ## Layout (ownership)
 
 - `agent/` — opencode subagents (`issue-writer`, `screenshot-report`,
-  `component-builder`, `refactor`, `task-manager`, `react-fix`, `unit-test`). `component-builder` targets
+  `component-builder`, `refactor`, `task-manager`, `task-audit`, `react-fix`, `unit-test`). `component-builder` targets
   the external `@web2bizz/ui` kit, not this repo — don't apply its rules here.
   `task-manager` — `mode: all` (и primary, и subagent), думает за весь
   task-manager пайплайн, права зажаты (bash только на `scripts/task-manager/*`).
+  `task-audit` — `mode: subagent`, только аудит по делегированию `task-manager`,
+  возврат строго JSON по `scripts/task-manager/schema/audit.schema.json`.
   `react-fix` — тоже `mode: all`; думает за весь react-fix пайплайн
   (поиск классов — только скриптом, правки — только после выясненного
   «что менять», см. `scripts/react-fix/README.md`).
@@ -65,7 +68,7 @@ issue_provider: github
 - `skills/commit/SKILL.md` — стратегия атомарных коммитов (Conventional
   Commits, группировка по интентам, план + явное «да», без push).
 - `skills/task-manager/SKILL.md` — качественное использование task-manager
-  скриптов любым агентом (рецепты init/boards/lists/create/move, точные
+  скриптов любым агентом (рецепты init/boards/lists/create/move/audit, точные
   имена, мутации только после «да»); `@task-manager` остаётся
   предпочтительным исполнителем.
 - `skills/react-fix/SKILL.md` — качественное использование react-fix
@@ -96,7 +99,9 @@ issue_provider: github
   of current branch; no `merge`/`--force`; see `scripts/sync/README.md`).
 - `scripts/task-manager/` — `init.sh` (project tag → `.trello-project`) +
   `boards.sh` / `lists.sh` (discovery) + `create.sh` (card with NAME label)
-  + `move.sh` (card → target list via PUT `idList`, `--dry-run` без мутаций),
+  + `move.sh` (card → target list via PUT `idList`, `--dry-run` без мутаций)
+  + `audit.sh` (read-only board audit → JSON для `task-audit`) +
+  `schema/audit.schema.json` (AI-контракт),
   всё via Trello REST; агент думает, скрипты исполняют; see
   `scripts/task-manager/README.md`).
 - `opencode.json` — `default_agent: build`, only pre-approved bash is
@@ -165,6 +170,7 @@ bash .opencode/scripts/task-manager/boards.sh                          # мои 
 bash .opencode/scripts/task-manager/lists.sh --board "<name>"          # листы доски
 bash .opencode/scripts/task-manager/create.sh --title "<t>" [--board "<b>"] [--list "<l>"] [--desc "<d>"] [--save-defaults]
 bash .opencode/scripts/task-manager/move.sh (--id <id> | --url <url> | --card "<name>") --list "<target>" [--to-board "<b>"] [--dry-run]
+bash .opencode/scripts/task-manager/audit.sh --board "<name>" [--tag "<t>" | --all]  # JSON для task-audit
 # карточка — только после черновика + явного «да»; нужны TRELLO_API_KEY/TRELLO_TOKEN в env.
 ```
 

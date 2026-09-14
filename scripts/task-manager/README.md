@@ -1,8 +1,9 @@
-# task-manager — задачи в Trello с тегом проекта
+# task-manager — задачи в Trello с тегом проекта + аудит
 
-Пайплайн как у issue-writer: **думает только агент** (`@task-manager`),
+Пайплайн как у issue-writer: **думает агент-оркестратор** (`@task-manager`),
 всё детерминированное — в коде. Агент сам Trello API не касается
 (никакого curl вручную) — он гоняет скрипты и ретранслирует вывод.
+Аудит выполняет сабагент `task-audit` (только чтение, возврат строго JSON).
 
 ```
 [/new-task "текст"] → @task-manager (subagent)
@@ -11,13 +12,17 @@
   3. черновик → явное «да» пользователя
   4. create.sh          → карточка с меткой NAME → URL
 [@task-manager "перемести X в Done"] → move.sh → карточка в целевом листе
+[@task-manager "аудит/статус"] → task-audit → audit.sh → JSON → рендер человеку
 ```
 
 ## Файлы
 
-- `.opencode/agent/task-manager.md` — агент (`mode: all`: и primary через
+- `.opencode/agent/task-manager.md` — оркестратор (`mode: all`: и primary через
   Tab, и subagent через `@` / `/new-task`). Права зажаты: `edit: deny`,
-  bash только на `scripts/task-manager/*`, вопросы разрешены.
+  bash только на `scripts/task-manager/*`, разрешены вопросы и делегирование (task).
+- `.opencode/agent/task-audit.md` — сабагент аудита (`mode: subagent`, только
+  оркестрация через `@task-manager`). Возвращает ТОЛЬКО JSON по
+  `schema/audit.schema.json`, вопросов пользователю не задаёт.
 - `.opencode/commands/new-task.md` — команда `/new-task`, делегирует
   агенту task-manager (выполняется как subagent, контекст не засоряет).
 - `.opencode/scripts/task-manager/_common.sh` — общий код (не запускать):
@@ -36,14 +41,25 @@
   лист (той же или другой доски): `--id | --url | --card` (+ `--from-board`
   для сужения поиска по имени) → `--list` (+ `--to-board`, по умолчанию
   текущая доска) → PUT `idList`+`pos`. `--dry-run` показывает план без PUT.
+- `.opencode/scripts/task-manager/audit.sh` — read-only аудит доски, stdout —
+  ТОЛЬКО JSON (AI-first для `task-audit`): `--board "<name>"` (точное имя
+  или дефолт BOARD) + фильтр по метке (`NAME` по умолчанию, `--tag` перекрывает,
+  `--all` — без фильтра) + `--limit N` (карточек на лист, по умолчанию 50).
+  Просрочки (`due < now && !dueComplete`) считает скрипт, агент даты не сравнивает.
+- `.opencode/scripts/task-manager/schema/audit.schema.json` — контракт
+  `task-audit → task-manager` (`board/tag/filter/fetched_at/totals/lists/overdue`).
 
 ## Поведение
 
 - Создание карточки — только после черновика + явного «да» (как `create`
-  в issue-writer). `boards.sh`/`lists.sh`/`init.sh` — чтение или локальный
-  файл, подтверждения не требуют.
+  в issue-writer). `boards.sh`/`lists.sh`/`init.sh`/`audit.sh` — чтение,
+  подтверждения не требуют.
+- Аудит — только через оркестрацию: пользователь просит `@task-manager`,
+  тот делегирует `task-audit`, тот гоняет `audit.sh` и возвращает JSON.
+  Прямой вызов `@task-audit` запрещён.
 - Несовпадение имён (нет доски/листа, дубли) — ненулевой exit со списком
   доступных; агент показывает список и спрашивает, а не гадает.
+  `audit.sh` в этом случае печатает `{"error": ...}` JSON.
 - Нет `TRELLO_API_KEY`/`TRELLO_TOKEN` — понятная ошибка с подсказкой
   (ключи: `https://trello.com/app-key`). Секреты только в env/`.env`,
   в репозиторий не коммитить.
@@ -64,4 +80,5 @@ bash .opencode/scripts/task-manager/create.sh --title "Test" --board "My board" 
 bash .opencode/scripts/task-manager/create.sh --title "Next"   # доска/лист уже из дефолтов
 bash .opencode/scripts/task-manager/move.sh --card "Next" --list "Doing" --dry-run
 bash .opencode/scripts/task-manager/move.sh --card "Next" --list "Doing"   # только после «да» пользователя
+bash .opencode/scripts/task-manager/audit.sh --board "My board" | python3 -m json.tool  # JSON для task-audit
 ```

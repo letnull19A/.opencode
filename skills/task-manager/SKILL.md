@@ -1,6 +1,6 @@
 ---
 name: task-manager
-description: Manage Trello cards with a project tag via .opencode/scripts/task-manager/*. Use when any agent needs to file a task, move a card, or resolve Trello board/list names without guessing.
+description: Manage Trello cards with a project tag via .opencode/scripts/task-manager/*. Use when any agent needs to file a task, move a card, resolve board/list names, or audit board status without guessing.
 ---
 
 Ты умеешь качественно работать с Trello через скрипты пака, а не через
@@ -37,6 +37,10 @@ description: Manage Trello cards with a project tag via .opencode/scripts/task-m
    `--card` без `--from-board` ищет по всем открытым доскам; при дублях
    скрипт перечислит id — уточни через `--id`/`--url`, не гадай.
    «Уже в этом листе» — успех, дублей не делаешь.
+5. Аудит (только чтение, AI-first JSON для `@task-manager`):
+   `bash .opencode/scripts/task-manager/audit.sh --board "<name>" [--tag "<t>" | --all]`
+   Stdout — только JSON по `schema/audit.schema.json` (`totals/lists/overdue`).
+   Прямо из чата не зовёшь — это делает сабагент `task-audit` по оркестрации `@task-manager`.
 
 ## Правила качества
 
@@ -47,7 +51,7 @@ description: Manage Trello cards with a project tag via .opencode/scripts/task-m
   curl к `api.trello.com`, никаких id из головы, никаких «одноразовых»
   python-сниппетов вместо скриптов.
 - Мутации (`create`, `move` без `--dry-run`) — по одной за раз, каждую
-  после своего «да». Чтение (`boards`, `lists`, `init`, `move --dry-run`) —
+  после своего «да». Чтение (`boards`, `lists`, `audit`, `init`, `move --dry-run`) —
   свободно, пачками при независимых вызовах.
 - Ошибка скрипта — не повод импровизировать: вставляешь вывод как есть,
   следуешь его подсказке (обычно там уже список доступных имён).
@@ -70,4 +74,7 @@ bash .opencode/scripts/task-manager/create.sh --title "Next fix"
 # Сдвиг задачи по канбану:
 bash .opencode/scripts/task-manager/move.sh --card "Fix login" --list "Doing" --dry-run
 # → «да» → тот же вызов без --dry-run
+
+# Аудит доски (читает task-audit по оркестрации @task-manager, stdout — JSON):
+bash .opencode/scripts/task-manager/audit.sh --board "My board"
 ```
