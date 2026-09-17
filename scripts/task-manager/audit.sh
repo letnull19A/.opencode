@@ -85,7 +85,7 @@ LISTS_JSON="$(trello_get "/boards/${BOARD_ID}/lists" --data-urlencode "filter=op
 CARDS_JSON="$(trello_get "/boards/${BOARD_ID}/cards" --data-urlencode "fields=name,idList,due,dueComplete,labels,shortUrl,desc")"
 
 export FILTER_TAG FILTER_MODE BOARD BOARD_ID LIMIT
-LISTS_JSON="$LISTS_JSON" CARDS_JSON="$CARDS_JSON" python3 -c '
+printf '%s' "$LISTS_JSON" > /tmp/lists.json; printf '%s' "$CARDS_JSON" > /tmp/cards.json; LISTS_TMP=/tmp/lists.json CARDS_TMP=/tmp/cards.json python3 -c '
 import json, os, re, sys
 from datetime import datetime, timezone
 
@@ -95,8 +95,8 @@ filter_tag = os.environ.get("FILTER_TAG", "")
 filter_mode = os.environ.get("FILTER_MODE", "tag")
 limit = int(os.environ.get("LIMIT", "50"))
 
-lists = json.loads(os.environ["LISTS_JSON"])
-cards = json.loads(os.environ["CARDS_JSON"])
+lists = json.load(open(os.environ["LISTS_TMP"]))
+cards = json.load(open(os.environ["CARDS_TMP"]))
 
 def parse_due(s):
     if not s:
