@@ -42,20 +42,29 @@ permission:
 3. **Сделай очень краткое summary для каждого коммита (Conventional Commits, английский):**
    ```
    <type>(<scope>): <subject>
+
+   [body]
+
+   Trello: https://trello.com/c/<SHORT>
+   Closes: https://trello.com/c/<SHORT>
    ```
    - `type` из списка выше, `scope` опционально коротко (`commit`, `tunnel`, `task-manager`, `check`), `subject` — повелительное, строчными, без точки, до ~72 символов, очень кратко: `add graphify index` а не `added graphify index for file search`.
    - Тело (`-m` второй) — только если «зачем» неочевидно из subject. `BREAKING CHANGE:` — только для ломающих.
    - Язык — английский (как `git log`), общение с вызвавшим — на его языке, но сообщение коммита — английский.
+   - **Trello-трейлеры (если коммит связан с задачей `efimov-dev/milesnear-webapp`):**
+     - `Trello: https://trello.com/c/<SHORT>` — связь (можно несколько строк, `shortUrl`/`shortLink`/`id`). Парсер: `^Trello:\s*https?://trello\.com/c/(\w+)`
+     - `Closes: https://trello.com/c/<SHORT>` (синоним `Fixes:`) — маркер закрытия → CI/move в `Done`. Без `Closes:` — только упоминание.
+     - Трейлеры — последние строки после пустой строки (формат `git interpret-trailers`). Спроси у пользователя `Trello card URL?` если из `git log`/`audit` видно связь, но URL не передан; если карточки нет — опусти трейлеры.
 
 4. **Коммить строго по группам:**
-   `git add <paths группы>` → `git commit -m "<type>(<scope>): <subject>"` → `git status --short` — проверь. Никогда `git add -A` / `git add .` если групп >1 — только точечный `add`. Не коммить секреты (`.env`, токены, `out/`, `*.log`) — сверь с `.gitignore`.
+   `git add <paths группы>` → `git commit -m "<type>(<scope>): <subject>" -m "Trello: https://trello.com/c/<SHORT>" -m "Closes: https://trello.com/c/<SHORT>"` (если есть Trello-связь) → `git status --short` — проверь. Никогда `git add -A` / `git add .` если групп >1 — только точечный `add`. Не коммить секреты (`.env`, токены, `out/`, `*.log`) — сверь с `.gitignore`.
 
-5. **Верни JSON для вызвавшего:**
+5. **Верни JSON для вызвавшего (с Trello если есть):**
    ```json
    {
      "commits": [
-       {"type":"feat","scope":"graphify","subject":"add file index and content search","files":["scripts/graphify/run.sh"],"hash":"abc1234"},
-       {"type":"chore","scope":"ci","subject":"update docker-build workflow","files":[".github/workflows/docker-build-all.yml"],"hash":"def5678"}
+       {"type":"feat","scope":"graphify","subject":"add file index and content search","files":["scripts/graphify/run.sh"],"hash":"abc1234","trello":["https://trello.com/c/gFZbZhni"],"closes":["https://trello.com/c/gFZbZhni"]},
+       {"type":"chore","scope":"ci","subject":"update docker-build workflow","files":[".github/workflows/docker-build-all.yml"],"hash":"def5678","trello":[],"closes":[]}
      ],
      "summary": "2 commits: feat(graphify) + chore(ci)",
      "remaining": "M .opencode (untracked content)"

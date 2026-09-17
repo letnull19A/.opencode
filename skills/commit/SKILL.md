@@ -53,6 +53,10 @@ description: Create atomic Conventional Commits from a dirty git tree — split 
 
 ```
 <type>(<scope>): <subject>
+
+[body]
+
+[footer(s)]
 ```
 
 - Типы (как в истории этого пака): `feat`, `fix`, `docs`, `refactor`,
@@ -65,6 +69,39 @@ description: Create atomic Conventional Commits from a dirty git tree — split 
   Футеры `BREAKING CHANGE:` / `Refs #123` — по необходимости.
 - Язык сообщений — английский (как `git log` этого репозитория);
   общение с пользователем — на языке пользователя.
+
+### Trello-трейлеры (машинно-парсибельные, для связи коммита с задачей)
+
+Если коммит закрывает или связан с Trello-карточкой проекта (`efimov-dev/milesnear-webapp` на доске `Aleksei — Work Hub`), добавь футеры-трейлеры после пустой строки (формат `git interpret-trailers`):
+
+```
+Trello: https://trello.com/c/<SHORT>
+Closes: https://trello.com/c/<SHORT>
+```
+
+- `Trello:` — связь (может быть несколько строк, одна на карточку). Значение — `shortUrl` (`https://trello.com/c/gFZbZhni`) или `shortLink` (`gFZbZhni`) или полный `id` (`6aab9c9ededf65ddfeb08de2`). Парсер: `^Trello:\s*https?://trello\.com/c/(\w+)` `m`.
+- `Closes:` — маркер закрытия (переместить в `Done`). Синоним `Fixes:`. Парсер: `^Closes:\s*https?://trello\.com/c/(\w+)`. Без `Closes:` карточка только упоминается (`Refs`).
+- Несколько карточек — несколько строк трейлеров.
+- Трейлеры — последние строки сообщения, отделены пустой строкой от тела.
+
+Примеры:
+```
+fix(web): add phone mask to onboarding
+
+Implements libphonenumber mask, adds e2e test.
+
+Trello: https://trello.com/c/gFZbZhni
+Closes: https://trello.com/c/gFZbZhni
+```
+```
+feat(web): add onboarding steps
+
+Trello: https://trello.com/c/0Uu70Zcw
+Trello: https://trello.com/c/9phgmdNG
+Closes: https://trello.com/c/0Uu70Zcw
+```
+
+CI парсит все `Trello:` для линковки, а `Closes:` — для автоперемещения в `Done` через `scripts/task-manager/move.sh` / Trello API.
 
 ## Запреты и безопасность
 

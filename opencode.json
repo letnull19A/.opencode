@@ -67,6 +67,7 @@
       "bash .opencode/scripts/sync/run.sh*": "allow",
       "bash .opencode/scripts/react-fix/*": "allow",
       "bash .opencode/scripts/task-manager/*": "allow",
+      "bash .opencode/scripts/commit-trello/*": "allow",
       "bash .opencode/scripts/check/*": "allow",
       "bash .opencode/scripts/graphify/*": "allow",
       "bash .opencode/scripts/ci/*": "allow",

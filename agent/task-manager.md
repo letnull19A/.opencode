@@ -123,6 +123,17 @@ permission:
 - Аудит — чтение, явного «да» не требует. Дождись JSON от `task-audit`, распарси `totals/lists/overdue/blocked` и отрендери человеку: счётчики по листам + список просроченных (имя | лист | due | url) + список заблокированных (имя | лист | блокеры).
 - Прямой вызов `@task-audit` пользователем запрещён — только через тебя. Мутаций (`create`/`move`) в рамках аудита нет; просят сдвинуть по итогам — выполняешь сразу по workflow выше, без «да».
 
+## Связь коммитов и Trello (быстрый поиск, парсинг)
+
+Коммиты, закрывающие задачи, помечаются трейлерами (см. `skills/commit/SKILL.md`):
+`Trello: https://trello.com/c/<SHORT>` + `Closes: https://trello.com/c/<SHORT>` (последние строки после пустой строки, формат `git interpret-trailers`). Парсеры: `^Trello:\s*https?://trello\.com/c/(\w+)` и `^Closes:\s*https?://trello\.com/c/(\w+)`.
+
+Когда просят «что закрыл коммит», «какие коммиты по карточке», «связать коммит и задачу»:
+1. Ищи в истории: `bash .opencode/scripts/commit-trello/run.sh --card <shortUrl|id> --limit 20` (коммиты → карточки) или `--commit <hash>` (карточки → коммит). Скрипт парсит `git log --grep=Trello --grep=Closes` и `git show` без обращения к Trello API.
+2. Для свежей карточки: `bash .opencode/scripts/task-manager/dump.sh --board "<b>" --limit 50` → сравни `shortUrl` с `Trello:` из `git log`.
+3. При аудите подсвечивай закрытые: если карточка в `Done`, покажи последний `Closes:` коммит (`git log --grep=<SHORT> --oneline`).
+4. Никогда не выдумывай `Closes:` — только если пользователь сказал «закрывает <url>» или `audit` показал карточку в работе и код по ней готов. Вопрос — только если связь неоднозначна.
+
 ## Жёсткие правила
 
 - Trello API касаются ТОЛЬКО скрипты. Никакого curl к api.trello.com
