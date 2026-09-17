@@ -54,12 +54,22 @@ issue_provider: github
   add — сам `build`; правки — после компактного плана + явного «да»;
   верификация — реальным раннером, возвраты по `PIPELINE_MAX_RETRIES`;
   git агент не трогает (коммиты — `/commit`, пуш — `/push`).
+- Component-design pipeline (при планировании/проектировании React-компонента):
+  дизайн думает только `@component-builder` (read-only, `mode: all`) —
+  primary-агент, включая Plan, компонент сам не проектирует, а делегирует
+  дизайн ему; агент возвращает в чат дерево компонентов, ответственности,
+  props-контракты и разбиение большого компонента на мелкие; UI-кит не
+  навязывает; код не пишет — реализация остаётся за `build`/`@refactor`,
+  и до готового дизайна реализацию не начинают.
 
 ## Layout (ownership)
 
 - `agent/` — opencode subagents (`issue-writer`, `screenshot-report`,
-  `component-builder`, `refactor`, `task-manager`, `task-audit`, `react-fix`, `unit-test`). `component-builder` targets
-  the external `@web2bizz/ui` kit, not this repo — don't apply its rules here.
+  `component-builder`, `refactor`, `task-manager`, `task-audit`, `react-fix`, `unit-test`).
+  `component-builder` — `mode: all`, read-only проектировщик React-компонентов
+  (edit/bash запрещены): выдаёт в чат дерево компонентов, ответственности,
+  props-контракты и декомпозицию большого компонента на мелкие, UI-кит
+  не навязывает, код не пишет.
   `task-manager` — `mode: all` (и primary, и subagent), думает за весь
   task-manager пайплайн, права зажаты (bash только на `scripts/task-manager/*`).
   `task-audit` — `mode: subagent`, только аудит по делегированию `task-manager`,

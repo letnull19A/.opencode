@@ -1,6 +1,36 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "default_agent": "build",
+  "agent": {
+    "evol-plan": {
+      "model": "opencode-go/muse-spark-1.1",
+      "mode": "all"
+    },
+    "router": {
+      "model": "opencode-go/muse-spark-1.2-contributor",
+      "mode": "all"
+    },
+    "build-fast": {
+      "model": "opencode-go/muse-spark-1.1",
+      "mode": "primary"
+    },
+    "build-smart": {
+      "model": "opencode-go/muse-spark-1.2-contributor",
+      "mode": "primary"
+    },
+    "task-manager": {
+      "model": "opencode-go/muse-spark-1.1",
+      "mode": "all"
+    },
+    "ask": {
+      "model": "opencode-go/muse-spark-1.1",
+      "mode": "all"
+    },
+    "diagnostics": {
+      "model": "opencode-go/muse-spark-1.2-contributor",
+      "mode": "all"
+    }
+  },
   "mcp": {
     "trello": {
       "type": "local",
@@ -37,6 +67,9 @@
       "bash .opencode/scripts/sync/run.sh*": "allow",
       "bash .opencode/scripts/react-fix/*": "allow",
       "bash .opencode/scripts/task-manager/*": "allow",
+      "bash .opencode/scripts/check/*": "allow",
+      "bash .opencode/scripts/graphify/*": "allow",
+      "bash .opencode/scripts/ci/*": "allow",
       "git status *": "allow",
       "git diff *": "allow",
       "git log *": "allow",

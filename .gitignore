@@ -6,6 +6,11 @@ scripts/screenshot-report/node_modules
 # opencode runtime/cache
 cache/
 tmp/
+.graphify/
+.tmp/
+tmp/opencode/
+.opencode/.cache/
+.opencode/.graphify/
 *.log
 
 # screenshot-report outputs
