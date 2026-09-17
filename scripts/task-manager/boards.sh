@@ -2,7 +2,7 @@
 # boards.sh — список доступных досок (id + точное имя).
 # Только чтение. Имена нужны для lists.sh / create.sh --board.
 #
-# Использование: bash .opencode/scripts/trello-task/boards.sh
+# Использование: bash .opencode/scripts/task-manager/boards.sh
 
 set -euo pipefail
 
@@ -13,7 +13,7 @@ HERE="$(dirname "$0")"
 usage() { echo "Usage: boards.sh"; }
 
 [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]] && { usage; exit 0; }
-[[ $# -eq 0 ]] || { echo "trello-task: boards.sh без аргументов" >&2; usage >&2; exit 1; }
+[[ $# -eq 0 ]] || { echo "task-manager: boards.sh без аргументов" >&2; usage >&2; exit 1; }
 
 require_creds
 echo "== мои открытые доски =="

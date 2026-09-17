@@ -1,0 +1,123 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TaskAudit",
+  "description": "AI-first контракт аудита Trello-доски: task-audit возвращает task-manager только такой JSON.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["board", "filter", "fetched_at", "totals", "lists", "overdue", "blocked"],
+  "properties": {
+    "board": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "id"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "id": { "type": "string", "minLength": 1 }
+      }
+    },
+    "tag": {
+      "type": ["string", "null"],
+      "description": "Метка проекта NAME; null при filter=all"
+    },
+    "filter": {
+      "type": "string",
+      "enum": ["tag", "all"]
+    },
+    "fetched_at": {
+      "type": "string",
+      "description": "ISO-8601 UTC, напр. 2026-09-14T00:00:00Z"
+    },
+    "totals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tagged", "on_board", "overdue", "blocked", "no_due"],
+      "properties": {
+        "tagged": { "type": "integer", "minimum": 0 },
+        "on_board": { "type": "integer", "minimum": 0 },
+        "overdue": { "type": "integer", "minimum": 0 },
+        "blocked": { "type": "integer", "minimum": 0 },
+        "no_due": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "lists": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "count", "truncated", "cards"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "count": { "type": "integer", "minimum": 0 },
+          "truncated": { "type": "boolean" },
+          "cards": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["id", "name", "shortUrl", "due", "dueComplete", "overdue", "blocked_by"],
+              "properties": {
+                "id": { "type": "string" },
+                "name": { "type": "string" },
+                "shortUrl": { "type": ["string", "null"] },
+                "due": { "type": ["string", "null"] },
+                "dueComplete": { "type": "boolean" },
+                "overdue": { "type": "boolean" },
+                "blocked_by": {
+                  "type": "array",
+                  "description": "URL карточек-блокеров из строки 'Blocked by:' в описании",
+                  "items": { "type": "string" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "overdue": {
+      "type": "array",
+      "description": "Плоский список просроченных (due < fetched_at и !dueComplete), отсортирован по due.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["list", "id", "name", "shortUrl", "due", "dueComplete", "overdue", "blocked_by"],
+        "properties": {
+          "list": { "type": "string" },
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "shortUrl": { "type": ["string", "null"] },
+          "due": { "type": ["string", "null"] },
+          "dueComplete": { "type": "boolean" },
+          "overdue": { "type": true, "const": true },
+          "blocked_by": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "blocked": {
+      "type": "array",
+      "description": "Плоский список заблокированных (в описании есть строка 'Blocked by:').",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["list", "id", "name", "shortUrl", "due", "dueComplete", "overdue", "blocked_by"],
+        "properties": {
+          "list": { "type": "string" },
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "shortUrl": { "type": ["string", "null"] },
+          "due": { "type": ["string", "null"] },
+          "dueComplete": { "type": "boolean" },
+          "overdue": { "type": "boolean" },
+          "blocked_by": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}

@@ -2,7 +2,7 @@
 # lists.sh — список открытых листов доски по её ТОЧНОМУ имени.
 # Только чтение. Имена нужны для create.sh --list.
 #
-# Использование: bash .opencode/scripts/trello-task/lists.sh --board "<name>"
+# Использование: bash .opencode/scripts/task-manager/lists.sh --board "<name>"
 
 set -euo pipefail
 
@@ -21,11 +21,11 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --board) BOARD="${2:?--board требует имя доски}"; shift 2 ;;
     -h|--help) usage; exit 0 ;;
-    *) echo "trello-task: неизвестный аргумент '$1'" >&2; usage >&2; exit 1 ;;
+    *) echo "task-manager: неизвестный аргумент '$1'" >&2; usage >&2; exit 1 ;;
   esac
 done
 
-[[ -n "$BOARD" ]] || { echo "trello-task: укажи --board" >&2; usage >&2; exit 1; }
+[[ -n "$BOARD" ]] || { echo "task-manager: укажи --board" >&2; usage >&2; exit 1; }
 
 require_creds
 BOARD_ID="$(find_board_id "$BOARD")" || exit 1

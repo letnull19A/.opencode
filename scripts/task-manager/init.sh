@@ -8,7 +8,7 @@
 # спросить тег у пользователя явно.
 #
 # Использование (из корня проекта):
-#   bash .opencode/scripts/trello-task/init.sh [--name <tag>] [--force] [--remote <name>]
+#   bash .opencode/scripts/task-manager/init.sh [--name <tag>] [--force] [--remote <name>]
 #
 # Файл без секретов — можно коммитить.
 
@@ -17,7 +17,7 @@ set -euo pipefail
 HERE="$(dirname "$0")"
 # shellcheck disable=SC1091
 . "$HERE/_common.sh" 2>/dev/null || {
-  echo "trello-task: нет _common.sh рядом с init.sh" >&2; exit 1;
+  echo "task-manager: нет _common.sh рядом с init.sh" >&2; exit 1;
 }
 
 NAME_ARG=""
@@ -37,7 +37,7 @@ while [[ $# -gt 0 ]]; do
     --force)  FORCE=1; shift ;;
     --remote) REMOTE="${2:?--remote требует имя remote}"; shift 2 ;;
     -h|--help) usage; exit 0 ;;
-    *) echo "trello-task: неизвестный аргумент '$1'" >&2; usage >&2; exit 1 ;;
+    *) echo "task-manager: неизвестный аргумент '$1'" >&2; usage >&2; exit 1 ;;
   esac
 done
 
@@ -59,7 +59,7 @@ NAME="$NAME_ARG"
 if [[ -z "$NAME" ]]; then
   URL="$(git remote get-url "$REMOTE" 2>/dev/null || true)"
   [[ -n "$URL" ]] || {
-    echo "trello-task: нет git remote '$REMOTE' — тег вывести не из чего." >&2
+    echo "task-manager: нет git remote '$REMOTE' — тег вывести не из чего." >&2
     echo "Спроси тег проекта у пользователя явно и перезапусти: init.sh --name <tag>" >&2
     exit 1
   }
@@ -67,7 +67,7 @@ if [[ -z "$NAME" ]]; then
   PATH_PART="$(printf '%s' "$URL" | sed -E -e 's#^[A-Za-z0-9+.-]+@[^:]+:##' -e 's#^[a-z]+://[^/]+/##' -e 's#\.git$##')"
   OWNER="${PATH_PART%%/*}"; REPO="${PATH_PART##*/}"
   if [[ -z "$OWNER" || -z "$REPO" || "$PATH_PART" != */* ]]; then
-    echo "trello-task: не разобрал owner/repo из URL '$URL'." >&2
+    echo "task-manager: не разобрал owner/repo из URL '$URL'." >&2
     echo "Спроси тег проекта у пользователя явно и перезапусти: init.sh --name <tag>" >&2
     exit 1
   fi
@@ -80,8 +80,8 @@ fi
 [[ "$NAME" != *$'\n'* && "$NAME" != *"="* ]] || die "тег не должен содержать перевод строки или '=': '$NAME'"
 
 {
-  echo "# .trello-project — тег проекта для Trello-задач (trello-task pipeline)."
-  echo "# Сгенерировано scripts/trello-task/init.sh. Без секретов — можно коммитить."
+  echo "# .trello-project — тег проекта для Trello-задач (task-manager pipeline)."
+  echo "# Сгенерировано scripts/task-manager/init.sh. Без секретов — можно коммитить."
   echo "# BOARD/LIST — дефолтные доска/лист (точные имена); запоминаются через create.sh --save-defaults."
   echo "NAME=$NAME"
   [[ -n "$OLD_BOARD" ]] && echo "BOARD=$OLD_BOARD"

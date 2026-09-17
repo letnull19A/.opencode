@@ -1,41 +1,43 @@
 #!/usr/bin/env node
 'use strict';
 
-const { spawn } = require('child_process');
+const { spawn, spawnSync, execSync } = require('child_process');
 const fs = require('fs');
 const https = require('https');
+const http = require('http');
 const os = require('os');
 const path = require('path');
 
 const DEFAULT_NAME = 'default';
 const DEFAULT_TTL = 3600;
 const START_TIMEOUT_MS = 25000;
-const POLL_INTERVAL_MS = 250;
+const POLL_INTERVAL_MS = 500;
 const KILL_GRACE_MS = 5000;
 const KILL_FINAL_MS = 1000;
 const IP_TIMEOUT_MS = 4000;
 const IPV4_RE = /^\d{1,3}(\.\d{1,3}){3}$/;
 const NAME_RE = /^[A-Za-z0-9._-]+$/;
+const PROVIDER_RE = /^(auto|localtunnel|ngrok)$/;
 
 const STATE_DIR = process.env.OPENCODE_TUNNEL_STATE_DIR
   || path.join(os.homedir(), '.local', 'state', 'opencode-tunnel');
 
 const USAGE = [
   'Usage:',
-  '  tunnel.js start --port <port> [--name <name>] [--ttl <seconds>]',
-  '  tunnel.js restart [--port <port>] [--name <name>] [--ttl <seconds>]',
+  '  tunnel.js start --port <port> [--name <name>] [--ttl <seconds>] [--provider auto|ngrok|localtunnel]',
+  '  tunnel.js restart [--port <port>] [--name <name>] [--ttl <seconds>] [--provider auto|ngrok|localtunnel]',
   '  tunnel.js kill [--name <name>] [--all]',
   '  tunnel.js status [--name <name>]',
   '  tunnel.js url [--name <name>]',
 ].join('\n');
 
 const COMMAND_KEYS = {
-  start: ['port', 'name', 'ttl'],
-  restart: ['port', 'name', 'ttl'],
+  start: ['port', 'name', 'ttl', 'provider'],
+  restart: ['port', 'name', 'ttl', 'provider'],
   kill: ['name', 'all'],
   status: ['name'],
   url: ['name'],
-  _run: ['name', 'port', 'ttl'],
+  _run: ['name', 'port', 'ttl', 'provider'],
 };
 
 class UsageError extends Error {}
@@ -98,6 +100,39 @@ function parseTtl(value) {
   return ttl;
 }
 
+function parseProvider(value) {
+  if (value === undefined) return 'auto';
+  if (!PROVIDER_RE.test(value)) {
+    throw new UsageError(`Invalid provider: ${value} (allowed: auto, ngrok, localtunnel)`);
+  }
+  return value;
+}
+
+function isNgrokAvailable() {
+  // check via which / command -v and common paths, plus npx fallback
+  try {
+    const res = spawnSync('which', ['ngrok'], { stdio: 'ignore' });
+    if (res.status === 0) return true;
+  } catch {}
+  try {
+    const res2 = spawnSync('command', ['-v', 'ngrok'], { shell: true, stdio: 'ignore' });
+    if (res2.status === 0) return true;
+  } catch {}
+  const candidates = ['/usr/local/bin/ngrok', '/usr/bin/ngrok', '/opt/homebrew/bin/ngrok', path.join(os.homedir(), '.local/bin/ngrok')];
+  for (const p of candidates) {
+    try { if (fs.existsSync(p)) return true; } catch {}
+  }
+  return false;
+}
+
+function resolveProvider(requested) {
+  if (requested === 'ngrok') return 'ngrok';
+  if (requested === 'localtunnel') return 'localtunnel';
+  // auto: prefer ngrok if available and authtoken likely set, otherwise localtunnel
+  if (isNgrokAvailable()) return 'ngrok';
+  return 'localtunnel';
+}
+
 function readRecord(name) {
   try {
     return JSON.parse(fs.readFileSync(statePath(name), 'utf8'));
@@ -151,16 +186,21 @@ function reapStale() {
 function printInfo(rec) {
   console.log(`TUNNEL_NAME=${rec.name}`);
   console.log(`PORT=${rec.port}`);
+  console.log(`PROVIDER=${rec.provider || 'localtunnel'}`);
   console.log(`PREVIEW_URL=${rec.url}`);
   console.log(`PUBLIC_IP=${rec.publicIp || ''}`);
   console.log(`EXPIRES_AT=${new Date(rec.expiresAt).toISOString()}`);
 }
 
 function printReminderHint(rec) {
-  console.error(
-    `Note: the first visit to ${rec.url} shows a loca.lt reminder page; ` +
+  if ((rec.provider || 'localtunnel') === 'ngrok') {
+    console.error(`Note: ngrok tunnel ${rec.url} is ready (no loca.lt password needed).`);
+  } else {
+    console.error(
+      `Note: the first visit to ${rec.url} shows a loca.lt reminder page; ` +
       `the tunnel password is the PUBLIC_IP printed above (${rec.publicIp || 'unknown'}).`
-  );
+    );
+  }
 }
 
 async function waitPidExit(pid, timeoutMs) {
@@ -194,15 +234,16 @@ async function killTunnel(name) {
   return alive;
 }
 
-function spawnSupervisor(name, port, ttl) {
+function spawnSupervisor(name, port, ttl, provider) {
   const scriptPath = path.resolve(__filename);
   ensureStateDir();
   const logFd = fs.openSync(logFile(name), 'a');
   let child;
   try {
+    const args = [scriptPath, '_run', '--name', name, '--port', String(port), '--ttl', String(ttl), '--provider', provider];
     child = spawn(
       process.execPath,
-      [scriptPath, '_run', '--name', name, '--port', String(port), '--ttl', String(ttl)],
+      args,
       { detached: true, stdio: ['ignore', logFd, logFd] }
     );
   } finally {
@@ -214,8 +255,8 @@ function spawnSupervisor(name, port, ttl) {
   return child;
 }
 
-async function spawnSupervisorAndAwait(name, port, ttl) {
-  const child = spawnSupervisor(name, port, ttl);
+async function spawnSupervisorAndAwait(name, port, ttl, provider) {
+  const child = spawnSupervisor(name, port, ttl, provider);
   let spawnError = null;
   child.on('error', (err) => {
     spawnError = err;
@@ -248,7 +289,7 @@ async function spawnSupervisorAndAwait(name, port, ttl) {
   console.error(
     `ERROR=tunnel_start_timeout MESSAGE="no state file with url after ${Math.round(
       START_TIMEOUT_MS / 1000
-    )}s" LOG=${logFile(name)}`
+    )}s" LOG=${logFile(name)} PROVIDER=${provider}`
   );
   if (child.pid && child.exitCode === null && child.signalCode === null) {
     try {
@@ -268,7 +309,8 @@ async function cmdStart(args) {
   }
   const port = parsePort(args.port, { required: true });
   const ttl = parseTtl(args.ttl);
-  return spawnSupervisorAndAwait(name, port, ttl);
+  const provider = resolveProvider(parseProvider(args.provider));
+  return spawnSupervisorAndAwait(name, port, ttl, provider);
 }
 
 async function cmdRestart(args) {
@@ -277,7 +319,7 @@ async function cmdRestart(args) {
   if (previous) {
     const killed = await killTunnel(name);
     if (killed) {
-      console.log(`KILLED=${name}`);
+      console.log(`KILLED=${name} PROVIDER=${previous.provider || 'localtunnel'}`);
     }
   }
   const port =
@@ -290,7 +332,11 @@ async function cmdRestart(args) {
     throw new UsageError('Missing required option: --port <port> (no previous record for this name)');
   }
   const ttl = parseTtl(args.ttl);
-  return spawnSupervisorAndAwait(name, port, ttl);
+  // provider: explicit or previous or auto
+  let providerReq = args.provider !== undefined ? parseProvider(args.provider) : (previous && previous.provider ? previous.provider : 'auto');
+  const provider = resolveProvider(providerReq);
+  console.log(`RESTARTING=${name} PROVIDER=${provider} PORT=${port}`);
+  return spawnSupervisorAndAwait(name, port, ttl, provider);
 }
 
 async function cmdKill(args) {
@@ -304,7 +350,7 @@ async function cmdKill(args) {
 
 function statusLine(rec) {
   const ttlLeft = Math.max(0, Math.ceil((rec.expiresAt - Date.now()) / 1000));
-  return `TUNNEL_NAME=${rec.name} PORT=${rec.port} PREVIEW_URL=${rec.url} PUBLIC_IP=${
+  return `TUNNEL_NAME=${rec.name} PORT=${rec.port} PROVIDER=${rec.provider || 'localtunnel'} PREVIEW_URL=${rec.url} PUBLIC_IP=${
     rec.publicIp || ''
   } TTL_LEFT_S=${ttlLeft}`;
 }
@@ -332,6 +378,7 @@ function cmdUrl(args) {
   const rec = readRecord(name);
   if (isLive(rec) && rec.url) {
     console.log(`PREVIEW_URL=${rec.url}`);
+    console.log(`PROVIDER=${rec.provider || 'localtunnel'}`);
     return 0;
   }
   console.error(`No active tunnel named "${name}".`);
@@ -372,39 +419,136 @@ function fetchPublicIp() {
   });
 }
 
-async function cmdRun(args) {
-  const localtunnel = require('localtunnel');
-  const name = parseName(args.name);
-  const port = parsePort(args.port, { required: true });
-  const ttl = parseTtl(args.ttl);
+function fetchNgrokUrl(retries = 30) {
+  return new Promise((resolve) => {
+    let attempts = 0;
+    const tryFetch = () => {
+      attempts++;
+      const req = http.get('http://127.0.0.1:4040/api/tunnels', (res) => {
+        let data = '';
+        res.setEncoding('utf8');
+        res.on('data', (c) => data += c);
+        res.on('end', () => {
+          try {
+            const j = JSON.parse(data);
+            const tunnels = j.tunnels || [];
+            // prefer https
+            const httpsTunnel = tunnels.find(t => t.public_url && t.public_url.startsWith('https://'));
+            const any = tunnels.find(t => t.public_url);
+            const url = (httpsTunnel || any || {}).public_url;
+            if (url) return resolve(url);
+          } catch {}
+          if (attempts < retries) setTimeout(tryFetch, 500);
+          else resolve(null);
+        });
+      });
+      req.on('error', () => {
+        if (attempts < retries) setTimeout(tryFetch, 500);
+        else resolve(null);
+      });
+      req.setTimeout(2000, () => { req.destroy(); if (attempts < retries) setTimeout(tryFetch, 500); else resolve(null); });
+    };
+    tryFetch();
+  });
+}
 
+async function runLocaltunnel(name, port, ttl) {
+  const localtunnel = require('localtunnel');
   let tunnel;
   try {
     tunnel = await localtunnel({ port, local_host: 'localhost' });
   } catch (err) {
     console.error(
-      `[tunnel:${name}] failed to open tunnel: ${err && err.message ? err.message : err}`
+      `[tunnel:${name}] localtunnel failed: ${err && err.message ? err.message : err}`
     );
-    deleteStateFile(name);
-    process.exit(1);
+    return null;
   }
-
   const url = tunnel.url;
   if (!url) {
-    console.error(`[tunnel:${name}] tunnel opened without a url`);
-    try {
-      tunnel.close();
-    } catch {}
-    deleteStateFile(name);
-    process.exit(1);
+    console.error(`[tunnel:${name}] localtunnel opened without url`);
+    try { tunnel.close(); } catch {}
+    return null;
+  }
+  const publicIp = await fetchPublicIp();
+  return { url, publicIp, close: () => { try { tunnel.close(); } catch {} }, onClose: (cb) => tunnel.on('close', cb), onError: (cb) => tunnel.on('error', cb) };
+}
+
+async function runNgrok(name, port, ttl) {
+  // spawn ngrok http <port> --log stdout
+  // ngrok binary must be in PATH or NGROK_PATH env
+  const ngrokBin = process.env.NGROK_PATH || 'ngrok';
+  let proc;
+  try {
+    proc = spawn(ngrokBin, ['http', String(port), '--log=stdout'], { stdio: ['ignore', 'pipe', 'pipe'] });
+  } catch (err) {
+    console.error(`[tunnel:${name}] ngrok spawn failed: ${err && err.message ? err.message : err}`);
+    return null;
+  }
+  // pipe logs to file
+  const logPath = logFile(name);
+  let logStream;
+  try { logStream = fs.createWriteStream(logPath, { flags: 'a' }); proc.stdout.pipe(logStream); proc.stderr.pipe(logStream); } catch {}
+
+  proc.on('error', (err) => {
+    console.error(`[tunnel:${name}] ngrok error: ${err && err.message ? err.message : err}`);
+  });
+
+  // wait for ngrok api to be ready and return url
+  const url = await fetchNgrokUrl(30);
+  if (!url) {
+    console.error(`[tunnel:${name}] ngrok failed to get public_url from http://127.0.0.1:4040/api/tunnels (is ngrok authtoken set? NGROK_AUTHTOKEN env) LOG=${logPath}`);
+    try { proc.kill('SIGTERM'); } catch {}
+    try { logStream && logStream.end(); } catch {}
+    return null;
+  }
+  return {
+    url,
+    publicIp: '',
+    close: () => { try { proc.kill('SIGTERM'); } catch {} try { setTimeout(() => { try { proc.kill('SIGKILL'); } catch {} }, 1000); } catch {} },
+    onClose: (cb) => proc.on('close', cb),
+    onError: (cb) => proc.on('error', cb),
+    _proc: proc,
+    _logStream: logStream,
+  };
+}
+
+async function cmdRun(args) {
+  const name = parseName(args.name);
+  const port = parsePort(args.port, { required: true });
+  const ttl = parseTtl(args.ttl);
+  const providerReq = parseProvider(args.provider);
+  const provider = resolveProvider(providerReq);
+
+  let handle = null;
+  if (provider === 'ngrok') {
+    handle = await runNgrok(name, port, ttl);
+    if (!handle) {
+      // fallback to localtunnel if ngrok failed and auto was requested
+      if (providerReq === 'auto') {
+        console.error(`[tunnel:${name}] ngrok failed, falling back to localtunnel`);
+        handle = await runLocaltunnel(name, port, ttl);
+        if (!handle) { deleteStateFile(name); process.exit(1); }
+        // provider effectively localtunnel
+      } else {
+        deleteStateFile(name);
+        process.exit(1);
+      }
+    }
+  } else {
+    handle = await runLocaltunnel(name, port, ttl);
+    if (!handle) { deleteStateFile(name); process.exit(1); }
   }
 
-  const publicIp = await fetchPublicIp();
+  const effectiveProvider = handle.url && handle.url.includes('ngrok') ? 'ngrok' : provider;
+  // for fallback case, correct provider
+  const finalProvider = handle.url.includes('loca.lt') ? 'localtunnel' : effectiveProvider;
+  const publicIp = handle.publicIp || (finalProvider === 'ngrok' ? '' : await fetchPublicIp());
   const record = {
     name,
     port,
     pid: process.pid,
-    url,
+    url: handle.url,
+    provider: finalProvider,
     startedAt: Date.now(),
     expiresAt: Date.now() + ttl * 1000,
     publicIp,
@@ -415,9 +559,7 @@ async function cmdRun(args) {
     console.error(
       `[tunnel:${name}] failed to write state file: ${err && err.message ? err.message : err}`
     );
-    try {
-      tunnel.close();
-    } catch {}
+    try { handle.close(); } catch {}
     deleteStateFile(name);
     process.exit(1);
   }
@@ -431,18 +573,17 @@ async function cmdRun(args) {
       return;
     }
     shuttingDown = true;
-    console.error(`[tunnel:${name}] shutting down (${reason})`);
-    try {
-      tunnel.close();
-    } catch {}
+    console.error(`[tunnel:${name}] shutting down (${reason}) provider=${finalProvider}`);
+    try { handle.close(); } catch {}
+    try { handle._logStream && handle._logStream.end(); } catch {}
     deleteStateFile(name);
     clearInterval(keepAlive);
     clearTimeout(ttlTimer);
     process.exit(0);
   }
 
-  tunnel.on('close', () => shutdown('tunnel closed'));
-  tunnel.on('error', (err) => {
+  handle.onClose(() => shutdown('tunnel closed'));
+  handle.onError((err) => {
     console.error(`[tunnel:${name}] error: ${err && err.message ? err.message : err}`);
   });
   process.on('SIGTERM', () => shutdown('sigterm'));

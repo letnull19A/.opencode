@@ -7,7 +7,7 @@
 # или спрашивать у пользователя; дефолты BOARD/LIST — из .trello-project.
 #
 # Использование (из корня проекта):
-#   bash .opencode/scripts/trello-task/create.sh --title "<text>" [--board "<name>"] [--list "<name>"]
+#   bash .opencode/scripts/task-manager/create.sh --title "<text>" [--board "<name>"] [--list "<name>"]
 #       [--desc "<text>"] [--color <color>] [--save-defaults]
 #
 # Цвета меток Trello: green yellow orange red purple blue sky lime pink black.
@@ -35,11 +35,11 @@ while [[ $# -gt 0 ]]; do
     --color) COLOR="${2:?--color требует цвет}"; shift 2 ;;
     --save-defaults) SAVE=1; shift ;;
     -h|--help) usage; exit 0 ;;
-    *) echo "trello-task: неизвестный аргумент '$1'" >&2; usage >&2; exit 1 ;;
+    *) echo "task-manager: неизвестный аргумент '$1'" >&2; usage >&2; exit 1 ;;
   esac
 done
 
-[[ -n "$TITLE" ]] || { echo "trello-task: укажи --title" >&2; usage >&2; exit 1; }
+[[ -n "$TITLE" ]] || { echo "task-manager: укажи --title" >&2; usage >&2; exit 1; }
 case "$COLOR" in
   green|yellow|orange|red|purple|blue|sky|lime|pink|black) ;;
   *) die "неизвестный цвет метки '$COLOR' (можно: green yellow orange red purple blue sky lime pink black)" ;;

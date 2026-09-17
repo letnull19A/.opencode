@@ -7,7 +7,7 @@
 # — из boards.sh / lists.sh или из слов пользователя.
 #
 # Использование (из корня проекта):
-#   bash .opencode/scripts/trello-task/move.sh (--id <id> | --url <url> | --card "<name>" [--from-board "<b>"]) --list "<target>" [--to-board "<b>"] [--pos top|bottom|N] [--dry-run]
+#   bash .opencode/scripts/task-manager/move.sh (--id <id> | --url <url> | --card "<name>" [--from-board "<b>"]) --list "<target>" [--to-board "<b>"] [--pos top|bottom|N] [--dry-run]
 #
 # --to-board без флага = текущая доска карточки (перемещение внутри доски).
 # --pos по умолчанию bottom. --dry-run резолвит всё и показывает план без PUT.
@@ -36,7 +36,7 @@ while [[ $# -gt 0 ]]; do
     --pos)        POS="${2:?--pos требует top|bottom|N}"; shift 2 ;;
     --dry-run)    DRY=1; shift ;;
     -h|--help) usage; exit 0 ;;
-    *) echo "trello-task: неизвестный аргумент '$1'" >&2; usage >&2; exit 1 ;;
+    *) echo "task-manager: неизвестный аргумент '$1'" >&2; usage >&2; exit 1 ;;
   esac
 done
 
@@ -45,8 +45,8 @@ NSEL=0
 [[ -n "$ID" ]] && NSEL=$((NSEL+1))
 [[ -n "$URL" ]] && NSEL=$((NSEL+1))
 [[ -n "$CARD" ]] && NSEL=$((NSEL+1))
-[[ "$NSEL" -eq 1 ]] || { echo "trello-task: укажи карточку ровно одним способом: --id, --url или --card" >&2; usage >&2; exit 1; }
-[[ -n "$LIST" ]] || { echo "trello-task: укажи целевой --list" >&2; usage >&2; exit 1; }
+[[ "$NSEL" -eq 1 ]] || { echo "task-manager: укажи карточку ровно одним способом: --id, --url или --card" >&2; usage >&2; exit 1; }
+[[ -n "$LIST" ]] || { echo "task-manager: укажи целевой --list" >&2; usage >&2; exit 1; }
 [[ "$POS" == "top" || "$POS" == "bottom" || "$POS" =~ ^[0-9]+(\.[0-9]+)?$ ]] \
   || die "--pos: только top|bottom|число, получено '$POS'"
 
@@ -97,7 +97,7 @@ for c in json.load(sys.stdin):
     die "карточка '$CARD' не найдена ($SCOPE) — проверь точное имя"
   fi
   if [[ "$NMATCH" -gt 1 ]]; then
-    echo "trello-task: карточек с именем '$CARD' несколько — уточни через --id или --url:" >&2
+    echo "task-manager: карточек с именем '$CARD' несколько — уточни через --id или --url:" >&2
     printf '%s' "$MATCHES" | while IFS=$'\t' read -r cid _ bid; do
       BNAME="$(trello_get "/boards/${bid}" --data-urlencode "fields=name" | python3 -c 'import json, sys; print(json.load(sys.stdin)["name"])')"
       echo " - id=$cid (доска '$BNAME')" >&2

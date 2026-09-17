@@ -21,35 +21,75 @@ issue_provider: github
   `git push` / `--force`. Only `bash .opencode/scripts/push/run.sh` — it pushes
   committed commits only, uncommitted files always stay local.
 - Commit pipeline (внутри `/commit`): коммиты создаёт только агент через
-  скилл `commit` (атомарно, Conventional Commits, план + явное «да»).
-  Никогда `push` / `--force` / коммит секретов. Вне `/commit` агент сам
-  `git commit` не делает.
+  скилл `commit` (атомарно, Conventional Commits, сразу по явной просьбе
+  без «да»; вопросы только при неоднозначности/секретах).
+  Никогда `push` / `--force` / коммит секретов. Вне `/commit` агент
+  коммитит только по прямому указанию пользователя («сделай коммит»).
 - Sync pipeline (внутри `/sync`): never `git pull` / `git fetch` / `git rebase`
   / `git merge` / `git stash` вручную / `--force`. Only
   `bash .opencode/scripts/sync/run.sh` — он тянет только через
   `pull --rebase --autostash`, без merge-коммитов; конфликт rebase агент
   сам не разруливает, а отдаёт пользователю.
-- Trello-task pipeline (внутри `/new-task` / `@trello-task`): думает только
-  агент `trello-task`; Trello API касаются только скрипты
-  (`scripts/trello-task/`), агент сам curl к api.trello.com не делает.
-  Создание/перемещение карточки — только после черновика + явного «да»;
+- Task-manager pipeline (внутри `/new-task` / `@task-manager`): думает только
+  оркестратор `task-manager`, аудит — сабагент `task-audit` по его делегированию;
+  Trello API касаются только скрипты
+  (`scripts/task-manager/`), агенты сами curl к api.trello.com не делают.
+  Создание/перемещение карточки — сразу по просьбе пользователя, без
+  черновика и «да» (вопросы только про недостающие данные);
+  задача — только по строгому формату (заголовок + Контекст/Что сделать/
+  Критерии приёмки/Связи, неполную не создавать);
+  подзадачи — чек-листом (`checklist.sh`), зависимости — строкой
+  `Blocked by:` (нативного графа в Trello нет);
   тег проекта — только из `.trello-project` (NAME), имена досок/листов
-  не выдумываются.
+  не выдумываются; аудит — чтение с возвратом строго JSON.
+- React-fix pipeline (внутри `/fix` / `@react-fix`): классы в коде ищет
+  только `scripts/react-fix/find-class.sh` (сырой grep/rg по классам
+  запрещён); пока точно не выяснено «что менять + где» — никаких `edit`,
+  агент спрашивает пользователя; правит ровно подтверждённое, чеклист —
+  по одному «да» на пункт.
+- Module pipeline (внутри `/new-module`): стратегию (add/update/delete/decompose,
+  приоритет decompose>delete>update>add) и домен (только по файлам проекта)
+  выбирает агент по скиллу `module-develop`; тесты — делегирование
+  `@unit-test`, implementation для update/delete/decompose — `@refactor`,
+  add — сам `build`; правки — после компактного плана + явного «да»;
+  верификация — реальным раннером, возвраты по `PIPELINE_MAX_RETRIES`;
+  git агент не трогает (коммиты — `/commit`, пуш — `/push`).
+- Component-design pipeline (при планировании/проектировании React-компонента):
+  дизайн думает только `@component-builder` (read-only, `mode: all`) —
+  primary-агент, включая Plan, компонент сам не проектирует, а делегирует
+  дизайн ему; агент возвращает в чат дерево компонентов, ответственности,
+  props-контракты и разбиение большого компонента на мелкие; UI-кит не
+  навязывает; код не пишет — реализация остаётся за `build`/`@refactor`,
+  и до готового дизайна реализацию не начинают.
 
 ## Layout (ownership)
 
 - `agent/` — opencode subagents (`issue-writer`, `screenshot-report`,
-  `component-builder`, `refactor`, `trello-task`). `component-builder` targets
-  the external `@web2bizz/ui` kit, not this repo — don't apply its rules here.
-  `trello-task` — `mode: all` (и primary, и subagent), думает за весь
-  trello-task пайплайн, права зажаты (bash только на `scripts/trello-task/*`).
+  `component-builder`, `refactor`, `task-manager`, `task-audit`, `react-fix`, `unit-test`).
+  `component-builder` — `mode: all`, read-only проектировщик React-компонентов
+  (edit/bash запрещены): выдаёт в чат дерево компонентов, ответственности,
+  props-контракты и декомпозицию большого компонента на мелкие, UI-кит
+  не навязывает, код не пишет.
+  `task-manager` — `mode: all` (и primary, и subagent), думает за весь
+  task-manager пайплайн, права зажаты (bash только на `scripts/task-manager/*`).
+  `task-audit` — `mode: subagent`, только аудит по делегированию `task-manager`,
+  возврат строго JSON по `scripts/task-manager/schema/audit.schema.json`.
+  `react-fix` — тоже `mode: all`; думает за весь react-fix пайплайн
+  (поиск классов — только скриптом, правки — только после выясненного
+  «что менять», см. `scripts/react-fix/README.md`).
+  `unit-test` — тоже `mode: all`; пишет юнит-тесты под любой фреймворк,
+  синтаксис фреймворка — только из Context7 MCP (по памяти запрещено).
 - `skills/tunnel-manager/SKILL.md` — preview-tunnel runner (wraps
   `scripts/tunnel/`).
 - `skills/commit/SKILL.md` — стратегия атомарных коммитов (Conventional
-  Commits, группировка по интентам, план + явное «да», без push).
-- `skills/trello-task/SKILL.md` — качественное использование trello-task
-  скриптов любым агентом (рецепты init/boards/lists/create/move, точные
-  имена, мутации только после «да»); `@trello-task` остаётся
+  Commits, группировка по интентам, сразу по явной просьбе без «да», без push).
+- `skills/task-manager/SKILL.md` — качественное использование task-manager
+  скриптов любым агентом (рецепты init/boards/lists/create/move/checklist/audit,
+  строгий формат задачи, точные имена, мутации — сразу по просьбе, без «да»);
+  `@task-manager` остаётся предпочтительным исполнителем.
+- `skills/react-fix/SKILL.md` — качественное использование react-fix
+  скрипта любым агентом (рецепт find-class → вопрос → точечная правка,
+  разбор таблицы, BEM/camelCase-нюансы); `@react-fix` остаётся
   предпочтительным исполнителем.
 - `scripts/issue-writer/` — `schema/issue.schema.json` (LLM contract) +
   `validate-issue-data.py` → `detect-provider.sh` → `render-issue.py` →
@@ -62,20 +102,30 @@ issue_provider: github
   `scripts/push/run.sh`, no git thinking in the agent; `commit.md` → `/commit`,
   thinking command over skill `commit`: atomic Conventional Commits, no push;
   `sync.md` → `/sync`, thin runner over `scripts/sync/run.sh`, no git thinking;
-  `new-task.md` → `/new-task`, delegates to `trello-task` subagent).
+  `new-task.md` → `/new-task`, delegates to `task-manager` subagent;
+  `fix.md` → `/fix`, delegates to `react-fix` subagent;
+  `new-module.md` → `/new-module`, thinking over skill `module-develop`,
+  orchestrated by `build` (делегирует `@unit-test`/`@refactor`).
 - `scripts/push/` — `run.sh` (deterministic `git push` of committed commits
   only; no `add`/`commit`/`--force`; see `scripts/push/README.md`).
+- `scripts/react-fix/` — `find-class.sh` (поиск CSS-класса в tsx/css →
+  таблица `FILE|LINE|KIND|TEXT` для ИИ; точное имя + BEM-дети, без
+  подстрок; read-only; см. `scripts/react-fix/README.md`).
 - `scripts/sync/` — `run.sh` (deterministic `git pull --rebase --autostash`
   of current branch; no `merge`/`--force`; see `scripts/sync/README.md`).
-- `scripts/trello-task/` — `init.sh` (project tag → `.trello-project`) +
+- `scripts/task-manager/` — `init.sh` (project tag → `.trello-project`) +
   `boards.sh` / `lists.sh` (discovery) + `create.sh` (card with NAME label)
-  + `move.sh` (card → target list via PUT `idList`, `--dry-run` без мутаций),
+  + `move.sh` (card → target list via PUT `idList`, `--dry-run` без мутаций)
+  + `checklist.sh` (подзадачи чек-листом: create/add-item/complete/show JSON)
+  + `audit.sh` (read-only board audit → JSON для `task-audit`, парсит
+  `Blocked by:` в `blocked_by`) + `schema/audit.schema.json` (AI-контракт),
   всё via Trello REST; агент думает, скрипты исполняют; see
-  `scripts/trello-task/README.md`).
+  `scripts/task-manager/README.md`).
 - `opencode.json` — `default_agent: build`, only pre-approved bash is
   `bash .opencode/scripts/tunnel/run.sh*` +
   `bash .opencode/scripts/push/run.sh*` +
-  `bash .opencode/scripts/sync/run.sh*`; `mcp.trello` (`npx -y
+  `bash .opencode/scripts/sync/run.sh*` +
+  `bash .opencode/scripts/react-fix/*` (read-only class search); `mcp.trello` (`npx -y
   @delorenj/mcp-server-trello`, ключи только через `{env:TRELLO_API_KEY}` /
   `{env:TRELLO_TOKEN}`) + `mcp.context7` (remote `https://mcp.context7.com/mcp`,
   ключ опционален через `{env:CONTEXT7_API_KEY}`) + `mcp.dokploy`
@@ -125,19 +175,28 @@ bash .opencode/scripts/sync/run.sh [--remote <name>] [--dry-run]
 
 ```bash
 # commit (agent runs this ONLY via /commit; skill `commit` thinks, then acts):
-# /commit [<hint>] — анализ diff, план атомарных коммитов, явное «да», затем
+# /commit [<hint>] — анализ diff, сразу по явной просьбе без «да», затем
 # точечный git add <paths> + git commit по группам. Никогда push/--force.
 # Отправка — только отдельным /push.
 ```
 
 ```bash
-# trello-task (agent runs this ONLY via /new-task or @trello-task; scripts do Trello API):
-bash .opencode/scripts/trello-task/init.sh [--name <tag>] [--force]   # тег проекта → .trello-project (NAME)
-bash .opencode/scripts/trello-task/boards.sh                          # мои доски (точные имена)
-bash .opencode/scripts/trello-task/lists.sh --board "<name>"          # листы доски
-bash .opencode/scripts/trello-task/create.sh --title "<t>" [--board "<b>"] [--list "<l>"] [--desc "<d>"] [--save-defaults]
-bash .opencode/scripts/trello-task/move.sh (--id <id> | --url <url> | --card "<name>") --list "<target>" [--to-board "<b>"] [--dry-run]
-# карточка — только после черновика + явного «да»; нужны TRELLO_API_KEY/TRELLO_TOKEN в env.
+# task-manager (agent runs this ONLY via /new-task or @task-manager; scripts do Trello API):
+bash .opencode/scripts/task-manager/init.sh [--name <tag>] [--force]   # тег проекта → .trello-project (NAME)
+bash .opencode/scripts/task-manager/boards.sh                          # мои доски (точные имена)
+bash .opencode/scripts/task-manager/lists.sh --board "<name>"          # листы доски
+bash .opencode/scripts/task-manager/create.sh --title "<t>" [--board "<b>"] [--list "<l>"] [--desc "<d>"] [--save-defaults]
+bash .opencode/scripts/task-manager/move.sh (--id <id> | --url <url> | --card "<name>") --list "<target>" [--to-board "<b>"] [--dry-run]
+bash .opencode/scripts/task-manager/checklist.sh --card "<name>" --create "Подзадачи" --items "Шаг 1;Шаг 2"
+bash .opencode/scripts/task-manager/audit.sh --board "<name>" [--tag "<t>" | --all]  # JSON для task-audit
+# карточка — сразу по просьбе пользователя, без «да»; нужны TRELLO_API_KEY/TRELLO_TOKEN в env.
+```
+
+```bash
+# react-fix (agent runs this ONLY via /fix or @react-fix; script finds, agent asks, then edits):
+bash .opencode/scripts/react-fix/find-class.sh --class journal [--class header] [--root src]
+# → таблица FILE|LINE|KIND|TEXT → если неясно что/где править — вопрос пользователю (без edit!) →
+# → точечная правка только подтверждённого → проверка командами consumer-проекта.
 ```
 
 ## Version / env gotchas
@@ -161,9 +220,13 @@ bash .opencode/scripts/trello-task/move.sh (--id <id> | --url <url> | --card "<n
 - `mcp.context7` works without a key (lower rate limits); with a free key
   from `https://context7.com` limits are higher:
   `export CONTEXT7_API_KEY=...` (also only via `{env:...}`, never committed).
-- `scripts/trello-task/*` intentionally NOT in `opencode.json` bash allowlist:
-  creating external Trello cards is a side effect — first run asks approval
-  via opencode itself (on top of the agent's draft + «да» rule).
+- `scripts/task-manager/*` IS in `opencode.json` bash allowlist for autonomous
+  work: creating Trello cards is a side effect, but user explicitly enabled
+  auto-approval (agent-level «да» убран: просьба уже приказ, permission-prompt
+  тоже отключён).
+- `scripts/react-fix/*` IS in `opencode.json` bash allowlist: `find-class.sh`
+  is read-only (stdout only, no mutations), so class search never asks
+  for approval; edits themselves stay behind the agent's «что менять» rule.
 - `mcp.dokploy` needs both env vars (self-hosted, URL у каждого свой):
   `DOKPLOY_URL=https://<твой-докплей>` + `DOKPLOY_API_KEY` (Dokploy Settings →
   API Keys). Preset `minimal` грузит мало инструментов против всех 508;
