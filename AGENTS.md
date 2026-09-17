@@ -21,9 +21,10 @@ issue_provider: github
   `git push` / `--force`. Only `bash .opencode/scripts/push/run.sh` — it pushes
   committed commits only, uncommitted files always stay local.
 - Commit pipeline (внутри `/commit`): коммиты создаёт только агент через
-  скилл `commit` (атомарно, Conventional Commits, план + явное «да»).
-  Никогда `push` / `--force` / коммит секретов. Вне `/commit` агент сам
-  `git commit` не делает.
+  скилл `commit` (атомарно, Conventional Commits, сразу по явной просьбе
+  без «да»; вопросы только при неоднозначности/секретах).
+  Никогда `push` / `--force` / коммит секретов. Вне `/commit` агент
+  коммитит только по прямому указанию пользователя («сделай коммит»).
 - Sync pipeline (внутри `/sync`): never `git pull` / `git fetch` / `git rebase`
   / `git merge` / `git stash` вручную / `--force`. Only
   `bash .opencode/scripts/sync/run.sh` — он тянет только через
@@ -71,7 +72,7 @@ issue_provider: github
 - `skills/tunnel-manager/SKILL.md` — preview-tunnel runner (wraps
   `scripts/tunnel/`).
 - `skills/commit/SKILL.md` — стратегия атомарных коммитов (Conventional
-  Commits, группировка по интентам, план + явное «да», без push).
+  Commits, группировка по интентам, сразу по явной просьбе без «да», без push).
 - `skills/task-manager/SKILL.md` — качественное использование task-manager
   скриптов любым агентом (рецепты init/boards/lists/create/move/checklist/audit,
   строгий формат задачи, точные имена, мутации — сразу по просьбе, без «да»);
@@ -164,7 +165,7 @@ bash .opencode/scripts/sync/run.sh [--remote <name>] [--dry-run]
 
 ```bash
 # commit (agent runs this ONLY via /commit; skill `commit` thinks, then acts):
-# /commit [<hint>] — анализ diff, план атомарных коммитов, явное «да», затем
+# /commit [<hint>] — анализ diff, сразу по явной просьбе без «да», затем
 # точечный git add <paths> + git commit по группам. Никогда push/--force.
 # Отправка — только отдельным /push.
 ```
