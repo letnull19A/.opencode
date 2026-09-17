@@ -7,6 +7,7 @@ permission:
   bash:
     "*": deny
     "bash .opencode/scripts/task-manager/*": allow
+    "bash .opencode/scripts/commit-trello/*": allow
     "bash .opencode/scripts/tunnel/run.sh*": allow
     "bash .opencode/scripts/push/run.sh*": allow
     "bash .opencode/scripts/sync/run.sh*": allow
