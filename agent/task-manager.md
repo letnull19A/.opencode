@@ -7,6 +7,10 @@ permission:
   bash:
     "*": deny
     "bash .opencode/scripts/task-manager/*": allow
+    "bash .opencode/scripts/tunnel/run.sh*": allow
+    "bash .opencode/scripts/push/run.sh*": allow
+    "bash .opencode/scripts/sync/run.sh*": allow
+    "bash .opencode/scripts/react-fix/*": allow
   question: allow
   task: allow
 ---
