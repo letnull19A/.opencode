@@ -9,6 +9,8 @@ description: Create atomic Conventional Commits from a dirty git tree — split 
 стандартные `git add <paths>` / `git commit` — никакого пуша
 (пуш делает только `/push`).
 
+**Делегирование:** для написания очень кратких сообщений и разбиения на атомарные коммиты делегируй сабагенту `commit-writer` через `task` tool — передай `git status`/`git diff --stat` и подсказку `$ARGUMENTS`. Сабагент вернёт `{"commits": [...]}` и сам сделает `git add`/`git commit` по группам. Ты только ретранслируй его итог.
+
 ## Workflow
 
 1. Осмотри состояние (только чтение, ничего не стейджишь):

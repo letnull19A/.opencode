@@ -10,9 +10,11 @@
 #   checklist.sh (--id ... ) --create "<checklist>" [--items "шаг 1;шаг 2;шаг 3"]
 #   checklist.sh (... ) --add-item "<текст>" [--list "<checklist>"]
 #   checklist.sh (... ) --complete "<пункт>" [--list "<checklist>"]
+#   checklist.sh (... ) --complete-all [--list "<checklist>"]
 #   checklist.sh (... ) --uncomplete "<пункт>" [--list "<checklist>"]
 #
 # --show печатает в stdout только JSON (AI-first): карточка + чек-листы + пункты.
+# --complete-all ставит галочки всем незавершённым пунктам (по всем чек-листам или в --list).
 # Остальные действия печатают короткий итог (имя чек-листа/пункта + id).
 # --list — точное имя чек-листа; если опущен и на карточке ровно один чек-лист —
 # используется он, иначе скрипт перечислит доступные и выйдет с ошибкой.
@@ -28,7 +30,7 @@ ID=""; URL=""; CARD=""; FROM_BOARD=""; LIST=""
 ACTION=""; ARG=""; ITEMS=""
 
 usage() {
-  echo "Usage: checklist.sh (--id <card-id> | --url <card-url> | --card \"<exact name>\" [--from-board \"<b>\"]) (--show | --create \"<checklist>\" [--items \"a;b;c\"] | --add-item \"<text>\" [--list \"<l>\"] | --complete \"<item>\" [--list \"<l>\"] | --uncomplete \"<item>\" [--list \"<l>\"])"
+  echo "Usage: checklist.sh (--id <card-id> | --url <card-url> | --card \"<exact name>\" [--from-board \"<b>\"]) (--show | --create \"<checklist>\" [--items \"a;b;c\"] | --add-item \"<text>\" [--list \"<l>\"] | --complete \"<item>\" [--list \"<l>\"] | --complete-all [--list \"<l>\"] | --uncomplete \"<item>\" [--list \"<l>\"])"
   echo "  Карточка — ровно одним способом; --show возвращает JSON."
 }
 
@@ -44,13 +46,14 @@ while [[ $# -gt 0 ]]; do
     --items)      ITEMS="${2:?--items требует строку}"; shift 2 ;;
     --add-item)   ACTION="add-item"; ARG="${2:?--add-item требует текст}"; shift 2 ;;
     --complete)   ACTION="complete"; ARG="${2:?--complete требует имя пункта}"; shift 2 ;;
+    --complete-all) ACTION="complete-all"; shift ;;
     --uncomplete) ACTION="uncomplete"; ARG="${2:?--uncomplete требует имя пункта}"; shift 2 ;;
     -h|--help) usage; exit 0 ;;
     *) echo "task-manager: неизвестный аргумент '$1'" >&2; usage >&2; exit 1 ;;
   esac
 done
 
-[[ -n "$ACTION" ]] || { echo "task-manager: укажи действие: --show, --create, --add-item, --complete или --uncomplete" >&2; usage >&2; exit 1; }
+[[ -n "$ACTION" ]] || { echo "task-manager: укажи действие: --show, --create, --add-item, --complete, --complete-all или --uncomplete" >&2; usage >&2; exit 1; }
 if [[ -n "$ITEMS" && "$ACTION" != "create" ]]; then
   echo "task-manager: --items работает только вместе с --create" >&2; usage >&2; exit 1
 fi
@@ -249,5 +252,48 @@ for cl in json.load(sys.stdin):
     echo "card: $CARD_NAME"
     echo "list: $LIST_NAME"
     echo "item: $ARG ($STATE)"
+    ;;
+  complete-all)
+    LISTS_JSON="$(checklists_json)"
+    if [[ -n "$LIST" ]]; then
+      LIST_ID="$(resolve_list_id "$LISTS_JSON" "$LIST")" || exit 1
+      IDS="$(printf '%s' "$LISTS_JSON" | python3 -c '
+import json, sys
+lid = sys.argv[1]
+for cl in json.load(sys.stdin):
+    if cl["id"] == lid:
+        for it in cl.get("checkItems") or []:
+            if it.get("state") != "complete":
+                print(it["id"])
+' "$LIST_ID")"
+      LIST_NAME="$LIST"
+    else
+      IDS="$(printf '%s' "$LISTS_JSON" | python3 -c '
+import json, sys
+for cl in json.load(sys.stdin):
+    for it in cl.get("checkItems") or []:
+        if it.get("state") != "complete":
+            print(it["id"])
+' )"
+      LIST_NAME="(все чек-листы)"
+    fi
+    N="$(printf '%s' "$IDS" | grep -c . || true)"
+    if [[ "$N" -eq 0 ]]; then
+      echo "== нечего отмечать =="
+      echo "card: $CARD_NAME"
+      echo "list: $LIST_NAME"
+      echo "все пункты уже complete"
+      exit 0
+    fi
+    CNT=0
+    while IFS= read -r iid; do
+      [[ -z "$iid" ]] && continue
+      trello_put "/cards/${CARD_ID}/checkItem/${iid}" --data-urlencode "state=complete" >/dev/null
+      CNT=$((CNT+1))
+    done <<< "$IDS"
+    echo "== пункты отмечены =="
+    echo "card: $CARD_NAME"
+    echo "list: $LIST_NAME"
+    echo "отмечено: $CNT"
     ;;
 esac
