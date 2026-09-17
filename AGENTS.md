@@ -209,9 +209,10 @@ bash .opencode/scripts/react-fix/find-class.sh --class journal [--class header] 
 - `mcp.context7` works without a key (lower rate limits); with a free key
   from `https://context7.com` limits are higher:
   `export CONTEXT7_API_KEY=...` (also only via `{env:...}`, never committed).
-- `scripts/task-manager/*` intentionally NOT in `opencode.json` bash allowlist:
-  creating external Trello cards is a side effect — first run asks approval
-  via opencode itself (agent-level «да» убран: просьба уже приказ).
+- `scripts/task-manager/*` IS in `opencode.json` bash allowlist for autonomous
+  work: creating Trello cards is a side effect, but user explicitly enabled
+  auto-approval (agent-level «да» убран: просьба уже приказ, permission-prompt
+  тоже отключён).
 - `scripts/react-fix/*` IS in `opencode.json` bash allowlist: `find-class.sh`
   is read-only (stdout only, no mutations), so class search never asks
   for approval; edits themselves stay behind the agent's «что менять» rule.
