@@ -22,8 +22,9 @@ permission:
 
 ## Workflow
 
-1. По триггеру «спланируй», «что совместить», «лёгкие пачкой» — сразу `bash .opencode/scripts/planner/run.sh [--board "<name>"] --json` (board из слов пользователя или дефолт `BOARD` из `.trello-project`).
-2. Разбери JSON: `batches` — предложи `worktree`/`branch` на батч, `incomplete` — перечисли карточки без инструкции как фиксить и попроси дополнить Trello (секции `## Что сделать`, `## Критерии приёмки` с шагами).
-3. Ретранслируй человеку: счётчики `light/batches/incomplete` + батчи (`branch` + `cards[].name` + `shortUrl`) + singles. Мутаций Trello нет, только план.
+1. По триггеру «спланируй», «что совместить», «лёгкие пачкой» — сразу два скрипта:
+   `bash .opencode/scripts/planner/run.sh [--board "<name>"] --json` (батчи) + `bash .opencode/scripts/task-manager/find_duplicates.sh --all --board "<name>" --json` (дубли среди существующих).
+2. Разбери JSON: `batches` — предложи `worktree`/`branch` на батч, `incomplete` — перечисли карточки без инструкции как фиксить и попроси дополнить Trello (секции `## Что сделать`, `## Критерии приёмки` с шагами), `pairs` из `find_duplicates --all` — покажи семантические дубли (`a/b.shortUrl`, `similarity`) и предложи `Related: <url>` вместо батча дублей.
+3. Ретранслируй человеку: счётчики `light/batches/incomplete/pairs` + батчи (`branch` + `cards[].name` + `shortUrl`) + singles + дубли. Мутаций Trello нет, только план.
 
 Не выдумывай критерии лёгкости — бери из скрипта. Не создавай задачи — только планируй.

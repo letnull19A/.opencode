@@ -16,6 +16,7 @@ description: Планирует батчи из Trello — группирует 
 1. **Аудит + батчинг:** `bash .opencode/scripts/planner/run.sh [--board "<name>"] [--tag "<tag>" | --all] [--limit <N>] [--json]`
    - Скрипт сам тянет `lists/cards/checklists` с Trello, считает `has_fix` (есть ли в `desc` секции `## Что сделать`/`Как исправить`/`Критерии` или список) и `is_light` (≤3 чеков, <2000 символов, без `Blocked by`, без тяжёлых ключей `spec: server:`).
    - Группирует лёгкие с `has_fix` по `area` (`frontend/mobile/backend/docs`) и листу (`This Week`) в батчи по 2–3, даёт ветку `chore/batch-<area>-<list>-<id>`.
+1b. **Дубли (обязательно):** `bash .opencode/scripts/task-manager/find_duplicates.sh --all --board "<b>" --threshold 0.65 --json` — находит семантические дубли среди существующих карточек (пары с `similarity≥0.65`). Если `count>0` — покажи `pairs[].a/b.shortUrl` + `reason` и предложи: «не батчить дубли вместе — закрой один, вынеси `Related: <url>` в другой». Дубли не должны попадать в один батч.
 
 2. **Разбор JSON:**
    - `batches[]` — можно делать одним PR/worktree (покажи `branch` + `cards[].name` + `shortUrl` + `reason`)

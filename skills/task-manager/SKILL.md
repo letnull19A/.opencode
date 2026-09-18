@@ -26,34 +26,36 @@ description: Manage Trello cards with a project tag via .opencode/scripts/task-m
 2. Разведка (только чтение, подтверждения не надо):
    `bash .opencode/scripts/task-manager/boards.sh` — точные имена досок;
    `bash .opencode/scripts/task-manager/lists.sh --board "<name>"` — листы.
-3. Создание — сразу, без черновика и «да» (просьба пользователя уже приказ),
-   но строго по формату (неполную задачу не создаёшь — уточняешь):
+3. Проверка дублей — перед созданием, обязательно:
+   `bash .opencode/scripts/task-manager/find_duplicates.sh --title "<t>" [--desc "<d>"] --board "<b>" --json`
+   Stdout — JSON `{count, duplicates:[{name, shortUrl, similarity, reason}]}`. Если `count>0` и `similarity≥0.65` — семантический дубль: **не создаёшь новую карточку**, а выносишь ссылку на существующую (`shortUrl`) в описание/комментарий новой задачи или говоришь пользователю: «похоже на [дубль](url) — сделать ссылку?». Порог `--threshold 0.5` для проверки, `--threshold 0.65` для автоблока. Для аудита всех дублей: `find_duplicates.sh --all --board "<b>" --json` (пары с `similarity`).
+4. Создание — сразу, без черновика и «да» (просьба уже приказ), но строго по формату (неполную не создаёшь — уточняешь) **и только если дублей нет**:
    - Заголовок: императив, что + где, до ~80 символов, без точки; один результат.
    - Описание по шаблону: `## Контекст` / `## Что сделать` (нумерованные шаги) /
-     `## Критерии приёмки` (`- [ ] ...`) / `## Связи` (`Blocked by: <url>`, если есть).
+     `## Критерии приёмки` (`- [ ] ...`) / `## Связи` (`Blocked by: <url>` + при дубле `Related: <shortUrl>`, если есть).
    `bash .opencode/scripts/task-manager/create.sh --title "<t>" --board "<b>" --list "<l>" [--desc "<d>"]`
    Флаги `--board/--list` опускай, только если они уже в дефолтах
    `.trello-project`. Запомнить выбор: добавь `--save-defaults`.
    В ответ — URL карточки, его и ретранслируешь.
    Спрашиваешь только недостающее (пустой заголовок, неизвестные доска/лист).
-4. Перемещение — тоже сразу, без «да» и без `--dry-run`:
+5. Перемещение — тоже сразу, без «да» и без `--dry-run`:
    `bash .opencode/scripts/task-manager/move.sh (--id <id> | --url <url> | --card "<имя>") --list "<цель>" [--to-board "<b>"] [--pos top|bottom|N]`
    `--dry-run` — только по просьбе «покажи план».
    `--card` без `--from-board` ищет по всем открытым доскам; при дублях
    скрипт перечислит id — уточни через `--id`/`--url`, не гадай.
    «Уже в этом листе» — успех, дублей не делаешь.
-5. Подзадачи = пункты чек-листа (шаги одного результата в одном листе):
+6. Подзадачи = пункты чек-листа (шаги одного результата в одном листе):
    `bash .opencode/scripts/task-manager/checklist.sh --url <url> --create "Подзадачи" --items "шаг 1;шаг 2"`
    Добавить: `--add-item "<текст>"`; отметить: `--complete "<пункт>"` / `--uncomplete`;
    прочитать: `--show` (JSON). Карточка — через `--id | --url | --card`, чек-лист —
    через `--list` (точное имя; при единственном можно опустить).
-   Независимые куски ценности — отдельные карточки по формату п.3, связанные
+   Независимые куски ценности — отдельные карточки по формату п.4, связанные
    через `## Связи` / `Blocked by`, а не чек-лист.
-6. Зависимости — строка `Blocked by: <url>` в секции `## Связи` описания
+7. Зависимости — строка `Blocked by: <url>` в секции `## Связи` описания
    (нативного графа в Trello нет; `audit.sh` парсит её в `blocked_by`).
    Пишешь только указанную пользователем зависимость, URL — только точный.
    Заблокированную задачу выполняешь как обычно, но помечаешь в отчёте.
-7. Аудит (только чтение, AI-first JSON для `@task-manager`):
+8. Аудит (только чтение, AI-first JSON для `@task-manager`):
    `bash .opencode/scripts/task-manager/audit.sh --board "<name>" [--tag "<t>" | --all]`
    Stdout — только JSON по `schema/audit.schema.json` (`totals/lists/overdue/blocked`).
    Прямо из чата не зовёшь — это делает сабагент `task-audit` по оркестрации `@task-manager`.
@@ -63,6 +65,7 @@ description: Manage Trello cards with a project tag via .opencode/scripts/task-m
 - Точные имена: доски, листы, карточки — только из вывода скриптов или
   из слов пользователя. Почти-совпадение — не совпадение: показываешь
   список из ошибки скрипта и спрашиваешь.
+- Дубли: перед каждым `create` — `find_duplicates.sh --title "<t>" --board "<b>" --json`, при `count>0` и `similarity≥0.60` не создаёшь дубль, а показываешь `duplicates[0].shortUrl` и предлагаешь `Related: <url>` в `## Связи` или ссылку в описании. Для аудита всех дублей — `find_duplicates.sh --all --board "<b>"`.
 - Trello REST касается только `scripts/task-manager/*`. Никакого ручного
   curl к `api.trello.com`, никаких id из головы, никаких «одноразовых»
   python-сниппетов вместо скриптов.
@@ -82,10 +85,12 @@ description: Manage Trello cards with a project tag via .opencode/scripts/task-m
 bash .opencode/scripts/task-manager/init.sh
 bash .opencode/scripts/task-manager/boards.sh
 bash .opencode/scripts/task-manager/lists.sh --board "My board"
-# → сразу выполняешь (без черновика и «да») →
+# → проверка дублей → сразу выполняешь (без черновика и «да») →
+bash .opencode/scripts/task-manager/find_duplicates.sh --title "Fix login" --board "My board" --json
 bash .opencode/scripts/task-manager/create.sh --title "Fix login" --board "My board" --list "To Do" --save-defaults
 
 # Следующие задачи (дефолты уже запомнены):
+bash .opencode/scripts/task-manager/find_duplicates.sh --title "Next fix" --json
 bash .opencode/scripts/task-manager/create.sh --title "Next fix"
 
 # Сдвиг задачи по канбану (сразу, без --dry-run и «да»):
