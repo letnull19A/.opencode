@@ -26,6 +26,10 @@
       "model": "opencode-go/muse-spark-1.1",
       "mode": "all"
     },
+    "planner": {
+      "model": "opencode-go/muse-spark-1.1",
+      "mode": "all"
+    },
     "ask": {
       "model": "opencode-go/muse-spark-1.1",
       "mode": "all"
@@ -73,6 +77,7 @@
       "bash .opencode/scripts/task-manager/*": "allow",
       "bash .opencode/scripts/commit-trello/*": "allow",
       "bash .opencode/scripts/worktree/*": "allow",
+      "bash .opencode/scripts/planner/*": "allow",
       "bash .opencode/scripts/check/*": "allow",
       "bash .opencode/scripts/graphify/*": "allow",
       "bash .opencode/scripts/ci/*": "allow",
