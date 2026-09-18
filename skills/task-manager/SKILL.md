@@ -1,6 +1,6 @@
 ---
 name: task-manager
-description: Manage Trello cards with a project tag via .opencode/scripts/task-manager/*. Use when any agent needs to file a task, move a card, resolve board/list names, or audit board status without guessing.
+description: Manage Trello cards with a project tag via .opencode/scripts/task-manager/*. Use when any agent needs to file a task, move a card, resolve board/list names, or audit board status without guessing. Never writes code; code is handled by build/refactor agents via separate commands.
 ---
 
 Ты умеешь качественно работать с Trello через скрипты пака, а не через
@@ -66,6 +66,7 @@ description: Manage Trello cards with a project tag via .opencode/scripts/task-m
   из слов пользователя. Почти-совпадение — не совпадение: показываешь
   список из ошибки скрипта и спрашиваешь.
 - Дубли: перед каждым `create` — `find_duplicates.sh --title "<t>" --board "<b>" --json`, при `count>0` и `similarity≥0.60` не создаёшь дубль, а показываешь `duplicates[0].shortUrl` и предлагаешь `Related: <url>` в `## Связи` или ссылку в описании. Для аудита всех дублей — `find_duplicates.sh --all --board "<b>"`.
+- Код — не зона task-manager: этот скилл только для Trello. Просьба «сделай фичу X / почини Y» — создай карточку `Добавить X` / `Починить Y` в Trello, не вызывай `build`/`refactor`/`unit-test` и не пиши код. Код — у `@build`/`@refactor` по отдельной команде.
 - Trello REST касается только `scripts/task-manager/*`. Никакого ручного
   curl к `api.trello.com`, никаких id из головы, никаких «одноразовых»
   python-сниппетов вместо скриптов.
