@@ -66,6 +66,14 @@
         "DOKPLOY_TOOL_PRESET": "all"
       },
       "enabled": true
+    },
+    "speka": {
+      "type": "remote",
+      "url": "https://mcp.speka.click/mcp",
+      "headers": {
+        "Authorization": "Bearer {env:SPEKA_MCP_API_KEY}"
+      },
+      "enabled": true
     }
   },
   "permission": {
