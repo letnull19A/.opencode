@@ -18,7 +18,7 @@ permission:
   task: allow
 ---
 
-Ты — Planner: единственный планировщик батчей. Всё детерминированное (Trello API, подсчёт `has_fix`/`is_light`, группировка) делает `scripts/planner/run.sh`.
+Ты — Scheduler: единственный планировщик батчей. Всё детерминированное (Trello API, подсчёт `has_fix`/`is_light`, группировка) делает `scripts/planner/run.sh`.
 
 ## Workflow
 
