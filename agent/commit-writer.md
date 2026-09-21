@@ -6,6 +6,8 @@ permission:
   edit: deny
   bash:
     "*": deny
+    "bash .opencode/scripts/git-changes/*": allow
+    "bash .opencode/scripts/commit-trello/*": allow
     "git status *": allow
     "git diff *": allow
     "git log *": allow
@@ -19,17 +21,17 @@ permission:
 
 ## Вход
 
-- Список изменений: `git status --porcelain`, `git diff --stat HEAD`, `git diff --cached --stat`, `git diff --name-only HEAD` (ты сам их смотришь, не жди что их передадут)
-- `git log --oneline -5` — стиль сообщений в этом репо (английский, Conventional Commits)
-- Подсказка пользователя из `$ARGUMENTS` (scope/тип) — учитывай, но diff — источник правды
+- Список изменений — обязательно `bash .opencode/scripts/git-changes/run.sh --limit 20 --json` (единый JSON: `dirty` + `log.commits[].trello/closes` + `by_card`). Фолбэк если скрипт недоступен: `git status --porcelain`, `git diff --stat HEAD`, `git diff --name-only HEAD`
+- `git log --oneline -5` или `by_card` из скрипта — стиль сообщений в этом репо (английский, Conventional Commits)
+- Подсказка пользователя из `$ARGUMENTS` (scope/тип + `Trello: https://trello.com/c/<SHORT>`) — учитывай, но `git-changes` — источник правды; карточка из `by_card` обязательна для 1:1
 
 ## Воркфлоу (только чтение → группировка → коммиты)
 
 1. **Осмотри (только чтение):**
-   `git status --short --branch`, `git diff --stat`, `git diff --name-only HEAD`, `git diff --cached --name-only`, `git log --oneline -10`
-   Если дерево чисто — верни `{"status":"clean"}` и стоп.
+    `bash .opencode/scripts/git-changes/run.sh --limit 20 --json` — проверь `dirty.has_dirty`/`dirty.porcelain` и `by_card` (уже закрытые `closes:true` не дублируй). Фолбэк: `git status --short --branch`, `git diff --stat`, `git log --oneline -10`
+    Если дерево чисто — верни `{"status":"clean"}` и стоп.
 
-2. **Сгруппируй по интентам — одна группа = один коммит:**
+2. **Сгруппируй по задачам — одна задача = один коммит (1:1 с Trello):**
    - `feat` — новая фича/поведение
    - `fix` — багфикс
    - `refactor` — рефактор без смены поведения
@@ -51,10 +53,9 @@ permission:
    - `type` из списка выше, `scope` опционально коротко (`commit`, `tunnel`, `task-manager`, `check`), `subject` — повелительное, строчными, без точки, до ~72 символов, очень кратко: `add graphify index` а не `added graphify index for file search`.
    - Тело (`-m` второй) — только если «зачем» неочевидно из subject. `BREAKING CHANGE:` — только для ломающих.
    - Язык — английский (как `git log`), общение с вызвавшим — на его языке, но сообщение коммита — английский.
-   - **Trello-трейлеры (если коммит связан с задачей `efimov-dev/milesnear-webapp`):**
-     - `Trello: https://trello.com/c/<SHORT>` — связь (можно несколько строк, `shortUrl`/`shortLink`/`id`). Парсер: `^Trello:\s*https?://trello\.com/c/(\w+)`
-     - `Closes: https://trello.com/c/<SHORT>` (синоним `Fixes:`) — маркер закрытия → CI/move в `Done`. Без `Closes:` — только упоминание.
-     - Трейлеры — последние строки после пустой строки (формат `git interpret-trailers`). Спроси у пользователя `Trello card URL?` если из `git log`/`audit` видно связь, но URL не передан; если карточки нет — опусти трейлеры.
+    - **Trello-трейлеры — обязательны для каждой задачи (1:1):** каждый коммит, решающий Trello-задачу, **обязан** иметь `Trello: https://trello.com/c/<SHORT>` (и `Closes:` если закрывает). Без трейлера аудит посчитает задачу незакрытой. Парсер: `^Trello:\s*https?://trello\.com/c/(\w+)`
+      - `Closes: https://trello.com/c/<SHORT>` (синоним `Fixes:`) — маркер закрытия → CI/move в `Done`. Без `Closes:` — только упоминание (`Refs`).
+      - Трейлеры — последние строки после пустой строки (формат `git interpret-trailers`). `by_card` из `git-changes` показывает уже закрытые — не дублируй `Closes:` повторно. Спроси `Trello card URL?` если связь видна, но URL не передан; если задачи нет — только `chore` без трейлеров.
 
 4. **Коммить строго по группам:**
    `git add <paths группы>` → `git commit -m "<type>(<scope>): <subject>" -m "Trello: https://trello.com/c/<SHORT>" -m "Closes: https://trello.com/c/<SHORT>"` (если есть Trello-связь) → `git status --short` — проверь. Никогда `git add -A` / `git add .` если групп >1 — только точечный `add`. Не коммить секреты (`.env`, токены, `out/`, `*.log`) — сверь с `.gitignore`.

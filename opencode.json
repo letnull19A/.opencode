@@ -84,6 +84,7 @@
       "bash .opencode/scripts/react-fix/*": "allow",
       "bash .opencode/scripts/task-manager/*": "allow",
       "bash .opencode/scripts/commit-trello/*": "allow",
+      "bash .opencode/scripts/git-changes/*": "allow",
       "bash .opencode/scripts/worktree/*": "allow",
       "bash .opencode/scripts/planner/*": "allow",
       "bash .opencode/scripts/check/*": "allow",

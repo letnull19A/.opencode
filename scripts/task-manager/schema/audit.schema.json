@@ -6,6 +6,17 @@
   "additionalProperties": false,
   "required": ["board", "filter", "fetched_at", "totals", "lists", "overdue", "blocked"],
   "properties": {
+    "git": {
+      "type": "object",
+      "description": "Опциональный блок сверки с гитом (dirty + последние коммиты с Trello-трейлерами). Добавляется task-audit при --with-git / вызове git-changes.",
+      "additionalProperties": true,
+      "properties": {
+        "branch": { "type": "string" },
+        "dirty": { "type": "object", "additionalProperties": true },
+        "log": { "type": "object", "additionalProperties": true },
+        "by_card": { "type": "object", "additionalProperties": true }
+      }
+    },
     "board": {
       "type": "object",
       "additionalProperties": false,

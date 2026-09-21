@@ -8,12 +8,17 @@ permission:
     "*": deny
     "bash .opencode/scripts/task-manager/*": allow
     "bash .opencode/scripts/commit-trello/*": allow
+    "bash .opencode/scripts/git-changes/*": allow
     "bash .opencode/scripts/planner/*": allow
     "bash .opencode/scripts/worktree/*": allow
     "bash .opencode/scripts/tunnel/run.sh*": allow
     "bash .opencode/scripts/push/run.sh*": allow
     "bash .opencode/scripts/sync/run.sh*": allow
     "bash .opencode/scripts/react-fix/*": allow
+    "git status *": allow
+    "git diff *": allow
+    "git log *": allow
+    "git show *": allow
   question: allow
   task: allow
 ---
@@ -33,10 +38,9 @@ permission:
      (question tool) и перезапусти: `init.sh --name <tag>`.
    - Если пользователь хочет другой тег — `init.sh --name <tag> --force`.
 2. Доска и лист — НИКОГДА не выдумывай имена:
-   - Пользователь назвал доску/лист явно — используй как есть.
-   - Иначе: `boards.sh` → покажи список, спроси доску;
-     `lists.sh --board "<name>"` → покажи список, спроси лист.
-   - Если в `.trello-project` уже есть BOARD/LIST — предложи их как дефолт.
+    - Сначала читай `.trello-project` — там уже `BOARD="Aleksei — Work Hub"` (и возможно `LIST`). Этот файл — дефолт; если он есть — не спрашивай доску повторно, бери оттуда. Пользователь назвал другую доску явно — используй её, она перекрывает дефолт.
+    - Иначе (нет BOARD в файле): `boards.sh` → покажи список, спроси доску; `lists.sh --board "<name>"` → покажи список, спроси лист.
+    - При создании с `--save-defaults` дефолты запоминаются в `.trello-project` — в следующий раз спрашивать не нужно.
 3. Проверка дублей — перед каждым `create`, обязательно:
    `bash .opencode/scripts/task-manager/find_duplicates.sh --title "<t>" [--desc "<d>"] --board "<b>" --json`
    Stdout — JSON `{count, duplicates:[{name, shortUrl, similarity, reason}]}`. Если `count>0` и `similarity≥0.60` — семантический дубль: **не создаёшь**, а показываешь `duplicates[0].shortUrl` и предлагаешь `Related: <url>` в `## Связи` или ссылку в описании. Для аудита всех дублей: `find_duplicates.sh --all --board "<b>" --json` (пары).
@@ -120,11 +124,15 @@ permission:
   `--dry-run` — только по явной просьбе «покажи план/предпросмотр».
 - «Уже в этом листе» от скрипта — успех, так и скажи, дублей не делай.
 
-## Аудит (оркестрация сабагента task-audit)
+## Аудит (оркестрация сабагента task-audit + сверка с гитом)
 
-- Триггеры: «аудит», «статус задач», «что выполнено / в работе / не выполнено», «проверь доску».
-- По триггеру сам `audit.sh` НЕ запускаешь — делегируешь сабагенту `task-audit` через task tool (передай board из слов пользователя или дефолт `BOARD` из `.trello-project`, плюс тег `NAME`).
-- Аудит — чтение, явного «да» не требует. Дождись JSON от `task-audit`, распарси `totals/lists/overdue/blocked` и отрендери человеку: счётчики по листам + список просроченных (имя | лист | due | url) + список заблокированных (имя | лист | блокеры).
+- Триггеры: «аудит», «статус задач», «что выполнено / в работе / не выполнено», «проверь доску». На каждый аудит ты **обязан свериться с гитом** — иначе пропустишь «сделали но не отметили».
+- По триггеру сам `audit.sh`/`git` НЕ запускаешь — делегируешь сабагенту `task-audit` через task tool (передай board из слов пользователя или дефолт `BOARD` из `.trello-project` + тег `NAME`). Сабагент сам сходит в `audit.sh` **и** в `git-changes/run.sh --limit 20 --json`, вернёт мердж `{...audit, git:{branch,dirty,log,by_card}}`.
+- Рендер — читай оба блока:
+  - `totals/lists/overdue/blocked` — как раньше (счётчики по листам + просроченные/заблокированные).
+  - `git.branch` + `git.dirty.has_dirty`/`dirty.porcelain`/`diff_stat` — покажи незакоммиченные изменения (если `has_dirty:true` — перечисли `porcelain`, намекни «нужен коммит 1:1 с Trello-трейлером»).
+  - `git.by_card` vs Trello `Done`: если карточка в `Done` но `by_card[SHORT]` отсутствует или `closes:false` — подсветь «в Done без Closes-коммита» + покажи `last_commit`; если `by_card` есть а карточка ещё в `This Week/Review` — подсветь «код готов, карточка не сдвинута».
+  - `git.log.commits[]` — последние `trello/closes` для линковки (как в «Связь коммитов и Trello»).
 - Прямой вызов `@task-audit` пользователем запрещён — только через тебя. Мутаций (`create`/`move`) в рамках аудита нет; просят сдвинуть по итогам — выполняешь сразу по workflow выше, без «да».
 
 ## Связь коммитов и Trello (быстрый поиск, парсинг)

@@ -84,8 +84,15 @@ fi
   echo "# Сгенерировано scripts/task-manager/init.sh. Без секретов — можно коммитить."
   echo "# BOARD/LIST — дефолтные доска/лист (точные имена); запоминаются через create.sh --save-defaults."
   echo "NAME=$NAME"
-  [[ -n "$OLD_BOARD" ]] && echo "BOARD=$OLD_BOARD"
-  [[ -n "$OLD_LIST" ]] && echo "LIST=$OLD_LIST"
+  if [[ -n "$OLD_BOARD" ]]; then
+    # OLD_BOARD уже может быть с кавычками после source; снимаем внешние кавычки для перезаписи
+    _b="$(printf '%s' "$OLD_BOARD" | sed -e 's/^"//' -e 's/"$//')"
+    printf 'BOARD="%s"\n' "$(printf '%s' "$_b" | sed 's/"/\\"/g')"
+  fi
+  if [[ -n "$OLD_LIST" ]]; then
+    _l="$(printf '%s' "$OLD_LIST" | sed -e 's/^"//' -e 's/"$//')"
+    printf 'LIST="%s"\n' "$(printf '%s' "$_l" | sed 's/"/\\"/g')"
+  fi
 } > "$OUT"
 
 echo "== записано ($OUT) =="

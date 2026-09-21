@@ -71,8 +71,8 @@ if [[ "$SAVE" -eq 1 ]]; then
   grep -v -E '^(BOARD|LIST)=' "$PROJECT_FILE" > "$PROJECT_FILE.tmp"
   {
     cat "$PROJECT_FILE.tmp"
-    echo "BOARD=$BOARD"
-    echo "LIST=$LIST"
+    printf 'BOARD="%s"\n' "$(printf '%s' "$BOARD" | sed 's/"/\\"/g')"
+    printf 'LIST="%s"\n' "$(printf '%s' "$LIST" | sed 's/"/\\"/g')"
   } > "$PROJECT_FILE"
   rm "$PROJECT_FILE.tmp"
   echo "(i) Дефолты записаны в $PROJECT_FILE: BOARD=$BOARD, LIST=$LIST."
