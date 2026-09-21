@@ -1,7 +1,7 @@
 ---
 description: Умный исполнитель сложных задач — интеграция с API, изменение схем, decomposing модулей. Работает по плану evol-plan с high/medium сложностью, с глубокой аналитикой и проверками. Используй для medium/high.
 mode: primary
-model: opencode-go/muse-spark-1.2-contributor
+model: opencode-go/muse-spark-1.3-contributor
 temperature: 0.2
 permission:
   edit: allow

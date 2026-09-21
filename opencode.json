@@ -3,39 +3,39 @@
   "default_agent": "build",
   "agent": {
     "evol-plan": {
-      "model": "opencode/muse-spark-1.3",
+      "model": "opencode-go/muse-spark-1.3-contributor",
       "mode": "all"
     },
     "router": {
-      "model": "opencode-go/muse-spark-1.2-contributor",
+      "model": "opencode-go/muse-spark-1.3-contributor",
       "mode": "all"
     },
     "build-fast": {
-      "model": "opencode/muse-spark-1.3",
+      "model": "opencode-go/muse-spark-1.3-contributor",
       "mode": "primary"
     },
     "build-smart": {
-      "model": "opencode-go/muse-spark-1.2-contributor",
+      "model": "opencode-go/muse-spark-1.3-contributor",
       "mode": "primary"
     },
     "task-manager": {
-      "model": "opencode/muse-spark-1.3",
+      "model": "opencode-go/muse-spark-1.3-contributor",
       "mode": "all"
     },
     "worktree-manager": {
-      "model": "opencode/muse-spark-1.3",
+      "model": "opencode-go/muse-spark-1.3-contributor",
       "mode": "all"
     },
     "planner": {
-      "model": "opencode/muse-spark-1.3",
+      "model": "opencode-go/muse-spark-1.3-contributor",
       "mode": "all"
     },
     "ask": {
-      "model": "opencode/muse-spark-1.3",
+      "model": "opencode-go/muse-spark-1.3-contributor",
       "mode": "all"
     },
     "diagnostics": {
-      "model": "opencode-go/muse-spark-1.2-contributor",
+      "model": "opencode-go/muse-spark-1.3-contributor",
       "mode": "all"
     }
   },

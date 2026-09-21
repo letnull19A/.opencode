@@ -1,7 +1,7 @@
 ---
 description: Быстрый исполнитель простых задач — создать компонент, поправить верстку, мелкий фикс. Работает по готовому плану evol-plan, без глубокой аналитики. Используй для low сложности.
 mode: primary
-model: opencode/muse-spark-1.3
+model: opencode-go/muse-spark-1.3-contributor
 temperature: 0.2
 permission:
   edit: allow

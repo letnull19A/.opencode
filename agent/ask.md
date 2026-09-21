@@ -1,7 +1,7 @@
 ---
 description: Только отвечает на вопросы пользователя — полностью readonly, не правит код и не запускает мутаций. Используй когда нужно объяснить, подсказать, разобрать код или ответить на вопрос без изменений.
 mode: all
-model: opencode/muse-spark-1.3
+model: opencode-go/muse-spark-1.3-contributor
 temperature: 0.2
 permission:
   edit: deny
