@@ -1,0 +1,16 @@
+{
+  "name": "decompose",
+  "description": "Декомпозиция >100 строк → 20-50: pre-commit → бэкап _old → план (hooks/components/types) → реализация → верификация (тесты/статистика) → откат/повтор до 3 циклов.",
+  "trigger": "tool workflow {name:\"decompose\", input:{file:\"src/...\"}} | file >100 LOC",
+  "threshold_lines": 100,
+  "target_lines": "20-50",
+  "max_cycles": 3,
+  "steps": [
+    { "id": "precommit", "run": "workflows/decompose/steps/01-precommit.ts", "needs": [], "guardrails": { "allow_tools": ["git"], "max_writes": 1 } },
+    { "id": "backup", "run": "workflows/decompose/steps/02-backup.ts", "needs": ["precommit"], "guardrails": { "allow_tools": ["fs"], "max_writes": 1, "deny": ["rm -rf"] } },
+    { "id": "plan", "run": "workflows/decompose/steps/03-plan.ts", "needs": ["backup"], "guardrails": { "allow_tools": ["read","grep"], "max_reads": 6 } },
+    { "id": "implement", "run": "workflows/decompose/steps/04-implement.ts", "needs": ["plan"], "guardrails": { "allow_tools": ["edit","write"], "max_writes": 8 } },
+    { "id": "verify", "run": "workflows/decompose/steps/05-verify.ts", "needs": ["implement"], "guardrails": { "allow_tools": ["bash"], "max_reads": 3 } },
+    { "id": "decide", "run": "workflows/decompose/steps/06-decide.ts", "needs": ["verify"], "guardrails": { "allow_tools": ["git","fs"], "max_writes": 2 } }
+  ]
+}
