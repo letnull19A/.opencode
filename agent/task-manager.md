@@ -129,11 +129,12 @@ permission:
 ## Аудит (оркестрация сабагента task-audit + сверка с гитом)
 
 - Триггеры: «аудит», «статус задач», «что выполнено / в работе / не выполнено», «проверь доску». На каждый аудит ты **обязан свериться с гитом** — иначе пропустишь «сделали но не отметили».
-- По триггеру сам `audit.sh`/`git` НЕ запускаешь — делегируешь сабагенту `task-audit` через task tool (передай board из слов пользователя или дефолт `BOARD` из `.devbox-project` + тег `NAME`). Сабагент сам сходит в `audit.sh` **и** в `git-changes/run.sh --limit 20 --json`, вернёт мердж `{...audit, git:{branch,dirty,log,by_card}}`.
-- Рендер — читай оба блока:
+- По триггеру сам `audit.sh`/`git` НЕ запускаешь — делегируешь сабагенту `task-audit` через task tool (передай board из слов пользователя или дефолт `BOARD` из `.devbox-project` + тег `NAME`). Сабагент сам сходит в `audit.sh`, `git-changes/run.sh --limit 20 --json` и `task-commits/run.sh --all --limit 50 --log-limit 100 --json`, вернёт мердж `{...audit, git:{branch,dirty,log,by_card}, task_commits:{tasks,commits,by_task}}`.
+- Рендер — читай все блоки:
   - `totals/lists/overdue/blocked` — как раньше (счётчики по листам + просроченные/заблокированные).
   - `git.branch` + `git.dirty.has_dirty`/`dirty.porcelain`/`diff_stat` — покажи незакоммиченные изменения (если `has_dirty:true` — перечисли `porcelain`, намекни «нужен коммит 1:1 с Trello-трейлером»).
-  - `git.by_card` vs Trello `Done`: если карточка в `Done` но `by_card[SHORT]` отсутствует или `closes:false` — подсветь «в Done без Closes-коммита» + покажи `last_commit`; если `by_card` есть а карточка ещё в `This Week/Review` — подсветь «код готов, карточка не сдвинута».
+  - `task_commits.by_task` + `git.by_card` vs Trello `Done`: если карточка в `Done` но `by_task[SHORT].commits==[]` или `closes:false` — подсветь «в Done без Closes-коммита» + покажи `last_commit`; если `by_task` есть а карточка ещё в `This Week/Review` — подсветь «код готов, карточка не сдвинута».
+  - `task_commits.tasks_without_commits` / `commits_without_task` — для фильтра «что не закрыто кодом».
   - `git.log.commits[]` — последние `trello/closes` для линковки (как в «Связь коммитов и Trello»).
 - Прямой вызов `@task-audit` пользователем запрещён — только через тебя. Мутаций (`create`/`move`) в рамках аудита нет; просят сдвинуть по итогам — выполняешь сразу по workflow выше, без «да».
 
@@ -142,11 +143,11 @@ permission:
 Коммиты, закрывающие задачи, помечаются трейлерами (см. `skills/commit/SKILL.md`):
 `Trello: https://trello.com/c/<SHORT>` + `Closes: https://trello.com/c/<SHORT>` (последние строки после пустой строки, формат `git interpret-trailers`). Парсеры: `^Trello:\s*https?://trello\.com/c/(\w+)` и `^Closes:\s*https?://trello\.com/c/(\w+)`.
 
-Когда просят «что закрыл коммит», «какие коммиты по карточке», «связать коммит и задачу»:
-1. Ищи в истории: `bash .opencode/scripts/commit-trello/run.sh --card <shortUrl|id> --limit 20` (коммиты → карточки) или `--commit <hash>` (карточки → коммит). Скрипт парсит `git log --grep=Trello --grep=Closes` и `git show` без обращения к Trello API.
-2. Для свежей карточки: `bash .opencode/scripts/task-manager/dump.sh --board "<b>" --limit 50` → сравни `shortUrl` с `Trello:` из `git log`.
-3. При аудите подсвечивай закрытые: если карточка в `Done`, покажи последний `Closes:` коммит (`git log --grep=<SHORT> --oneline`).
-4. Никогда не выдумывай `Closes:` — только если пользователь сказал «закрывает <url>» или `audit` показал карточку в работе и код по ней готов. Вопрос — только если связь неоднозначна.
+Когда просят «что закрыл коммит», «какие коммиты по карточке», «связать коммит и задачу» — не ищи `git log --grep` руками:
+1. **Основной путь (unix, без гаданий):** `bash .opencode/scripts/task-commits/run.sh --all --limit 50 --log-limit 100 --json` — джойн «список задач с доски → коммиты с Trello:/Closes:» (`by_task{SHORT->{task,commits[],closes}}`, `tasks_without_commits`, `commits_without_task`). Для одной карточки: `--tasks-json '{"shortUrl":"https://trello.com/c/<SHORT>"}' --log-limit 20 --json` или `--tasks-file audit.json`.
+2. Низкоуровнево: `bash .opencode/scripts/commit-trello/run.sh --card <shortUrl|id> --limit 20` (коммиты → карточки) или `--commit <hash>` (карточки → коммит). Скрипт парсит `git log` без Trello API.
+3. При аудите подсвечивай закрытые: `task_commits.by_task[SHORT].closes` или `git.by_card[SHORT].closes` — если `Done` без `Closes` — подсветь.
+4. Никогда не выдумывай `Closes:` — только если пользователь сказал «закрывает <url>» или `task_commits` показал карточку в работе и код по ней готов. Вопрос — только если связь неоднозначна.
 
 ## Жёсткие правила
 
