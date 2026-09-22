@@ -53,6 +53,16 @@
       "mode": "subagent",
       "hidden": true
     },
+    "react-concept": {
+      "model": "opencode-go/muse-spark-1.3-contributor",
+      "mode": "subagent",
+      "hidden": true
+    },
+    "react-implement": {
+      "model": "opencode-go/muse-spark-1.3-contributor",
+      "mode": "subagent",
+      "hidden": true
+    },
     "ask": {
       "model": "opencode-go/muse-spark-1.3-contributor",
       "mode": "all"

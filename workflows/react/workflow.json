@@ -1,0 +1,19 @@
+{
+  "name": "react",
+  "description": "Двухэтапный пайплайн React: 1) концепт — абстрактная XML-разметка (вложенность/структура, без конкретики), 2) реализация — конкретные компоненты/теги/props/файлы. Guardrails: read-only, без записи файлов.",
+  "trigger": "tool workflow {name:\"react\", title:\"...\"} | plan needs_react",
+  "steps": [
+    {
+      "id": "concept",
+      "run": "workflows/react/steps/01-concept.ts",
+      "needs": [],
+      "guardrails": { "allow_tools": ["none"], "max_reads": 2, "deny": ["edit","write"] }
+    },
+    {
+      "id": "implement",
+      "run": "workflows/react/steps/02-implement.ts",
+      "needs": ["concept"],
+      "guardrails": { "allow_tools": ["none"], "max_reads": 2, "deny": ["edit","write"] }
+    }
+  ]
+}
