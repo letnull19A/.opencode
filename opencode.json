@@ -114,6 +114,8 @@
       "bash .opencode/scripts/check/*": "allow",
       "bash .opencode/scripts/graphify/*": "allow",
       "bash .opencode/scripts/ci/*": "allow",
+      "bash .opencode/workflows/*": "allow",
+      "bun workflows/*": "allow",
       "git status *": "allow",
       "git diff *": "allow",
       "git log *": "allow",

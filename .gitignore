@@ -17,5 +17,7 @@ tmp/opencode/
 scripts/screenshot-report/out/
 scripts/screenshot-report/.env
 
+# workflows runtime
+.workflows/
 # editor/system
 .DS_Store

@@ -1,0 +1,37 @@
+{
+  "name": "new-task",
+  "description": "0→1: от сырой фразы 'новая задача' до карточки в Trello, готовой к работе. Минимально: validate → classify → recon → plan → create (dry-run preview gate).",
+  "trigger": "новая задача | /new-task | tool workflow {name:\"new-task\"}",
+  "steps": [
+    {
+      "id": "validate",
+      "run": "workflows/new-task/steps/01-validate.ts",
+      "needs": [],
+      "guardrails": { "allow_tools": ["none"], "max_reads": 1, "deny": ["edit","write"] }
+    },
+    {
+      "id": "classify",
+      "run": "workflows/new-task/steps/02-classify.ts",
+      "needs": ["validate"],
+      "guardrails": { "allow_tools": ["classify_plan"], "max_reads": 2 }
+    },
+    {
+      "id": "recon",
+      "run": "workflows/new-task/steps/03-recon.ts",
+      "needs": ["validate"],
+      "guardrails": { "allow_tools": ["recon"], "max_reads": 6, "deny": ["edit","write"] }
+    },
+    {
+      "id": "plan",
+      "run": "workflows/new-task/steps/04-plan.ts",
+      "needs": ["classify","recon"],
+      "guardrails": { "allow_tools": ["evol-plan"], "max_reads": 4 }
+    },
+    {
+      "id": "create",
+      "run": "workflows/new-task/steps/05-create.ts",
+      "needs": ["plan"],
+      "guardrails": { "allow_tools": ["task_create","task_checklist","task_label"], "max_writes": 5, "max_cards": 3 }
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "deny": ["git push --force", "rm -rf /", "dokploy.* --force"],
+  "max_steps": 8,
+  "max_cards_per_run": 5,
+  "require_BOARD": true
+}
