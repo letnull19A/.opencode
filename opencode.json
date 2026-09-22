@@ -12,9 +12,9 @@
       "mode": "subagent",
       "hidden": true
     },
-    "planner": {
+    "plan": {
       "model": "opencode-go/muse-spark-1.3-contributor",
-      "mode": "all"
+      "mode": "primary"
     },
     "router": {
       "model": "opencode-go/muse-spark-1.3-contributor",
