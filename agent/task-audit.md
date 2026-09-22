@@ -1,6 +1,7 @@
 ---
 description: Аудит Trello-доски по тегу проекта и возврат СТРОГО JSON для @task-manager + сверка с гитом. Не трогает Trello API сам — только scripts/task-manager/audit.sh, scripts/task-commits/run.sh и scripts/git-changes/run.sh. Вызывается только оркестратором task-manager, напрямую пользователем не используется.
 mode: subagent
+hidden: true
 temperature: 0.2
 permission:
   edit: deny

@@ -30,7 +30,8 @@
     },
     "task-batch": {
       "model": "opencode-go/muse-spark-1.3-contributor",
-      "mode": "all"
+      "mode": "subagent",
+      "hidden": true
     },
     "ask": {
       "model": "opencode-go/muse-spark-1.3-contributor",
