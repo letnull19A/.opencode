@@ -18,37 +18,33 @@ const hasForm = /(форма|form|input|фильтр|filter)/i.test(text)
 const hasCard = /(карточка|card|item)/i.test(text)
 const hasHeader = /(шапка|header|нав|nav)/i.test(text)
 
-// базовая эвристика → абстрактный XML без привязки к UI-киту
-let xml = `<Page>\n`
-if (hasHeader) xml += `  <Header>\n    <Nav />\n    <Actions />\n  </Header>\n`
-xml += `  <Main>\n`
-if (hasForm) xml += `    <Filters>\n      <Field />\n      <Field />\n    </Filters>\n`
+// базовая эвристика → абстрактный XML по слоям app→layout→page→component→shared
+let inner = ""
+if (hasForm) inner += `      <Component name="Filters"><Component name="Field"/><Component name="Field"/></Component>\n`
 if (hasList) {
-  xml += `    <List>\n`
-  xml += `      <ListHeader />\n`
-  xml += `      <Items>\n`
-  xml += `        <Item>\n`
-  xml += `          <Content />\n`
-  xml += `          <Meta />\n`
-  xml += `        </Item>\n`
-  xml += `      </Items>\n`
-  xml += `      <Empty />\n`
-  xml += `      <Pagination />\n`
-  xml += `    </List>\n`
+  inner += `      <Component name="List">\n`
+  inner += `        <Component name="ListHeader"/>\n`
+  inner += `        <Component name="Items"><Component name="Item"><Component name="Content"/><Component name="Meta"/></Component></Component>\n`
+  inner += `        <Component name="Empty"/><Component name="Pagination"/>\n`
+  inner += `      </Component>\n`
 } else if (hasCard) {
-  xml += `    <Card>\n      <CardHeader />\n      <CardBody />\n      <CardFooter />\n    </Card>\n`
+  inner += `      <Component name="Card"><Component name="CardHeader"/><Component name="CardBody"/><Component name="CardFooter"/></Component>\n`
 } else {
-  xml += `    <Section>\n      <Content />\n    </Section>\n`
+  inner += `      <Component name="Section"><Component name="Content"/></Component>\n`
 }
-xml += `    <States>\n      <Loading />\n      <Error />\n    </States>\n`
-xml += `  </Main>\n`
-xml += `</Page>`
+inner += `      <Component name="States"><Component name="Loading"/><Component name="Error"/></Component>\n`
+
+let xml = `<App>\n  <Layout variant="main">\n    <Page>\n${inner}    </Page>\n  </Layout>\n</App>`
+if (hasHeader) {
+  xml = `<App>\n  <Layout variant="main">\n    <Component name="Header"><Component name="Nav"/><Component name="Actions"/></Component>\n    <Page>\n${inner}    </Page>\n  </Layout>\n</App>`
+}
 
 const nodes = (xml.match(/<(\w+)/g) || []).map(s=>s.slice(1))
 
 console.log(JSON.stringify({
   conceptXml: xml,
   nodes,
-  hint: "Абстрактный концепт: только вложенность и ответственность, без тегов/пропсов. Следующий шаг — реализация.",
+  layers: ["app","layout","page","component","shared"],
+  hint: "Слои app→layout→page→component→shared (рекомендательно, стандарты команды выше). Layout без data-логики, app только init-конфиг.",
   _reads: 1
 }))
