@@ -1,5 +1,5 @@
 ---
-description: Роутер между fast и smart исполнителями — оценивает сложность через evol-plan и делегирует @build-fast (low) или @build-smart (medium/high). Используй когда пользователь просит сделать задачу и нужно умно выбрать модель.
+description: Роутер между fast/smart/default исполнителями — оценивает сложность через evol-plan, классифицирует через classify_build (Jev → heuristic) и делегирует @build-fast (low), @build-smart (medium/high) или @build (default fallback когда классификатор не определил). Используй когда пользователь просит сделать задачу и нужно умно выбрать модель.
 mode: all
 temperature: 0.2
 permission:
@@ -31,12 +31,13 @@ permission:
     - Дождись его JSON с `complexity: {score, level, files, cards, deps, type, unknowns}` и `risk: {level, score, factors, mitigation}`. Если `evol-plan` вернул — используй его.
     - Фолбэк если `evol-plan` недоступен: сам посчитай: `files` из `graphify`, `cards` из разбиения, `type` из слов (`создать`=add, `интеграция`=update/decompose), `risk` по 4 факторам (`breaking/data/security/external` → `risk_score`).
 3. **Классификация (обязательно перед роутингом):**
-    - Вызови tool `classify_build` (не `task`, а `tool`): передай `title/desc` карточки + `level/score/files/deps/type/unknowns` + `risk_level/risk_score/risk_factors`. Tool сам решит: `Jev` (если `$JEV_API_URL`+`$JEV_API_KEY` заданы) → fallback `heuristic` (правила router.md) → вернёт `{builder: "build-fast"|"build-smart", confidence, reason, provider, hint?}`. Не делай `task` → `build-*` без этого шага.
+    - Вызови tool `classify_build` (не `task`, а `tool`): передай `title/desc` карточки + `level/score/files/deps/type/unknowns` + `risk_level/risk_score/risk_factors`. Tool сам решит: `Jev` (если `$JEV_API_URL`+`$JEV_API_KEY` заданы) → fallback `heuristic` → `build` по умолчанию → вернёт `{builder: "build-fast"|"build-smart"|"build", confidence, reason, provider, hint?}`. Если `builder == "build"` или `confidence < 0.5` — это сигнал «не определил», иди в дефолтный `build`. Не делай `task` → `build-*` без этого шага.
     - Логика классификатора вынесена в `tools/classify_build.ts` (провайдеры с fallback), а не в твой промпт — ты только ретранслируешь его `builder`/`reason`.
 4. **Роутинг (по ответу классификатора):**
     - `classify_build.builder == "build-smart"` → `task` → `@build-smart` (передай карточку + `complexity` + `risk` + `reason: classify_build.reason`)
     - `builder == "build-fast"` → `task` → `@build-fast` (если `classify_build.hint` есть — добавь его в `hint`).
-    - Детальная эвристика классификатора (для справки): `risk high` → smart; `level low + risk low + files≤2 + type add + deps 0` → fast; `medium` пограничный с `risk low` → fast с hint; иначе → smart. Не дублируй её в промпте — доверься tool.
+    - `builder == "build"` или `confidence < 0.5` / `provider == "jev"` вернул `unknown` — `task` → `@build` (дефолтный build, идёт по умолчанию когда классификатор не смог определить). Передай карточку + `complexity` + `risk` + `reason: fallback to build`.
+    - Детальная эвристика классификатора (для справки): `risk high` → smart; `level low + risk low + files≤2 + type add + deps 0` → fast; `medium` пограничный с `risk low` → fast с hint; `недостаточно данных / unknowns≥3` → `build`. Не дублируй её в промпте — доверься tool.
 5. **Ротация и обратная связь:**
     - Если `build-fast` вернул `{"needs_escalation": true}` — переключи эту же карточку на `@build-smart`.
     - Если `build-smart` вернул `{"can_downgrade": true}` — следующую карточку из той же серии отдай `build-fast` (можешь перевызвать `classify_build` с обновлённым `level`).
