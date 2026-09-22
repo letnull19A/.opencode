@@ -4,6 +4,16 @@
   "agent": {
     "evol-plan": {
       "model": "opencode-go/muse-spark-1.3-contributor",
+      "mode": "subagent",
+      "hidden": true
+    },
+    "react-architect": {
+      "model": "opencode-go/muse-spark-1.3-contributor",
+      "mode": "subagent",
+      "hidden": true
+    },
+    "planner": {
+      "model": "opencode-go/muse-spark-1.3-contributor",
       "mode": "all"
     },
     "router": {
