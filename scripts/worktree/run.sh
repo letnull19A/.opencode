@@ -204,9 +204,9 @@ do_create() {
     git -C "$wt_path" submodule update --init --recursive 2>&1 | head -n 20 >&2 || true
   fi
 
-  # проверяем .trello-project
-  if [[ -f "$wt_path/.trello-project" ]]; then
-    echo "trello-project: $(cat "$wt_path/.trello-project" | head -n 2 | tr '\n' ' ')" >&2
+  # проверяем .devbox-project (ранее .trello-project)
+  if [[ -f "$wt_path/.devbox-project" ]]; then
+    echo "devbox-project: $(cat "$wt_path/.devbox-project" | head -n 2 | tr '\n' ' ')" >&2
   fi
 
   local commit

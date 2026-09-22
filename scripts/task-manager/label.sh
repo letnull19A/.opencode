@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 # label.sh — создаёт (или находит) метку проекта в Trello.
 #
-# Метка проекта — это Trello label с именем NAME из .trello-project
+# Метка проекта — это Trello label с именем NAME из .devbox-project
 # (owner/repo). Используется для фильтрации карточек по проекту
 # (см. audit.sh --tag). Скрипт идемпотентен: если метка уже есть — вернёт её id.
 #
 # Использование (из корня проекта):
 #   bash .opencode/scripts/task-manager/label.sh [--board "<name>"] [--name "<label>"] [--color <color>]
 #
-#   --board  Точное имя доски (см. boards.sh). Если не указан — берётся BOARD из .trello-project.
-#   --name   Имя метки. Если не указано — берётся NAME из .trello-project.
+#   --board  Точное имя доски (см. boards.sh). Если не указан — берётся BOARD из .devbox-project.
+#   --name   Имя метки. Если не указано — берётся NAME из .devbox-project.
 #   --color  Цвет метки. По умолчанию lime_light (как у существующих проектных меток).
 #            Допустимые: green yellow orange red purple blue sky lime pink black
 #            и варианты *_dark / *_light (напр. lime_light, blue_dark).
@@ -30,8 +30,8 @@ BOARD=""; LABEL_NAME=""; COLOR="lime_light"
 
 usage() {
   echo "Usage: label.sh [--board \"<board name>\"] [--name \"<label>\"] [--color <color>]"
-  echo "  --board  Точное имя доски (по умолчанию BOARD из .trello-project)"
-  echo "  --name   Имя метки (по умолчанию NAME из .trello-project)"
+  echo "  --board  Точное имя доски (по умолчанию BOARD из .devbox-project)"
+  echo "  --name   Имя метки (по умолчанию NAME из .devbox-project)"
   echo "  --color  Цвет метки (по умолчанию lime_light)"
 }
 
@@ -55,7 +55,7 @@ esac
 
 require_creds
 
-# Подгружаем .trello-project если есть — для дефолтов BOARD/NAME
+# Подгружаем .devbox-project если есть — для дефолтов BOARD/NAME
 if [[ -f "$PROJECT_FILE" ]]; then
   load_project
 fi
@@ -69,7 +69,7 @@ if [[ -z "$LABEL_NAME" ]]; then
 fi
 
 [[ -n "$BOARD" ]] || die "нет доски: передай --board или настрой дефолт (init.sh / create.sh --save-defaults)"
-[[ -n "$LABEL_NAME" ]] || die "нет имени метки: передай --name или настрой .trello-project (init.sh)"
+[[ -n "$LABEL_NAME" ]] || die "нет имени метки: передай --name или настрой .devbox-project (init.sh)"
 
 BOARD_ID="$(find_board_id "$BOARD")" || exit 1
 LABEL_ID="$(ensure_label_id "$BOARD_ID" "$LABEL_NAME" "$COLOR")"

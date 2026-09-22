@@ -49,9 +49,9 @@ if [[ -z "$THRESHOLD" ]]; then
   if [[ "$ALL" -eq 1 ]]; then THRESHOLD="0.65"; else THRESHOLD="0.5"; fi
 fi
 
-# дефолты из .trello-project
+# дефолты из .devbox-project
 if [[ ! -f "$PROJECT_FILE" ]]; then
-  python3 -c 'import json; print(json.dumps({"error":"no_project","hint":"нет .trello-project"}, ensure_ascii=False))'
+  python3 -c 'import json; print(json.dumps({"error":"no_project","hint":"нет .devbox-project"}, ensure_ascii=False))'
   exit 1
 fi
 set -a

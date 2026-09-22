@@ -27,7 +27,7 @@ permission:
 
 1. **Прими задачу:** `$ARGUMENTS` / последние сообщения. Пусто — спроси `question`, не выдумывай.
 2. **Оценка сложности и риска (обязательно, до делегирования):**
-   - Вызови `@evol-plan` как subagent через `task` tool (передай текст задачи + `board` из `.trello-project` или слов пользователя).
+   - Вызови `@evol-plan` как subagent через `task` tool (передай текст задачи + `board` из `.devbox-project` или слов пользователя).
    - Дождись его JSON с `complexity: {score, level, files, cards, deps, type, unknowns}` и `risk: {level, score, factors, mitigation}`. Если `evol-plan` вернул — используй его.
    - Фолбэк если `evol-plan` недоступен: сам посчитай: `files` из `graphify`, `cards` из разбиения, `type` из слов (`создать`=add, `интеграция`=update/decompose), `risk` по 4 факторам (`breaking/data/security/external` → `risk_score`).
 3. **Роутинг (риск важнее сложности):**

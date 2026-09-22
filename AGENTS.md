@@ -40,7 +40,7 @@ issue_provider: github
   Критерии приёмки/Связи, неполную не создавать);
   подзадачи — чек-листом (`checklist.sh`), зависимости — строкой
   `Blocked by:` (нативного графа в Trello нет);
-  тег проекта — только из `.trello-project` (NAME), имена досок/листов
+  тег проекта — только из `.devbox-project` (NAME), имена досок/листов
   не выдумываются; аудит — чтение с возвратом строго JSON.
 - React-fix pipeline (внутри `/fix` / `@react-fix`): классы в коде ищет
   только `scripts/react-fix/find-class.sh` (сырой grep/rg по классам
@@ -113,7 +113,7 @@ issue_provider: github
   подстрок; read-only; см. `scripts/react-fix/README.md`).
 - `scripts/sync/` — `run.sh` (deterministic `git pull --rebase --autostash`
   of current branch; no `merge`/`--force`; see `scripts/sync/README.md`).
-- `scripts/task-manager/` — `init.sh` (project tag → `.trello-project`) +
+- `scripts/task-manager/` — `init.sh` (project tag → `.devbox-project`) +
   `boards.sh` / `lists.sh` (discovery) + `create.sh` (card with NAME label)
   + `move.sh` (card → target list via PUT `idList`, `--dry-run` без мутаций)
   + `checklist.sh` (подзадачи чек-листом: create/add-item/complete/show JSON)
@@ -182,7 +182,7 @@ bash .opencode/scripts/sync/run.sh [--remote <name>] [--dry-run]
 
 ```bash
 # task-manager (agent runs this ONLY via /new-task or @task-manager; scripts do Trello API):
-bash .opencode/scripts/task-manager/init.sh [--name <tag>] [--force]   # тег проекта → .trello-project (NAME)
+bash .opencode/scripts/task-manager/init.sh [--name <tag>] [--force]   # тег проекта → .devbox-project (NAME)
 bash .opencode/scripts/task-manager/boards.sh                          # мои доски (точные имена)
 bash .opencode/scripts/task-manager/lists.sh --board "<name>"          # листы доски
 bash .opencode/scripts/task-manager/create.sh --title "<t>" [--board "<b>"] [--list "<l>"] [--desc "<d>"] [--save-defaults]

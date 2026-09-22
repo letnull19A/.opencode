@@ -31,7 +31,7 @@ bash .opencode/scripts/worktree/run.sh prune --json
 
 1. `git worktree add [-b <branch>] <path> <base>` — создаёт ветку и worktree
 2. `git -C <path> submodule update --init --recursive` — если есть `.gitmodules` (подтягивает `.opencode`)
-3. Проверяет `.trello-project` (тег проекта наследуется)
+3. Проверяет `.devbox-project` (тег проекта наследуется)
 
 Путь по умолчанию: `../<basename>-<name>` рядом с `ROOT` (не внутри `.opencode/.worktrees`, чтобы не путать с туннелями).
 
@@ -41,7 +41,7 @@ bash .opencode/scripts/worktree/run.sh prune --json
 * `stderr` — human hint: `hint: worktree 'auth' готов — cd ../milesnear-webapp-auth && opencode`
 * Агент запускает `bash` с `workdir: <path>` для работы в конкретном worktree — отдельные сессии не конфликтуют.
 * Туннели (`tunnel/run.sh`) — давай разные `--name` на worktree, т.к. `~/.local/state/opencode-tunnel` общий.
-* Trello: `BOARD/LIST` из `.trello-project` общие, но можно переопределить `--board/--list` в каждом worktree.
+* Trello: `BOARD/LIST` из `.devbox-project` общие, но можно переопределить `--board/--list` в каждом worktree.
 
 ## Ограничения
 

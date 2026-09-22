@@ -6,7 +6,22 @@
 set -euo pipefail
 
 TRELLO_API="https://api.trello.com/1"
-PROJECT_FILE="${PROJECT_FILE:-.trello-project}"
+# Новый тег проекта — .devbox-project (переименовано из .trello-project). Старый файл
+# автоматически мигрируется при первом обращении любого скрипта пайплайна,
+# чтобы сессия начиналась с переименования без ручных действий.
+PROJECT_FILE="${PROJECT_FILE:-.devbox-project}"
+if [[ -f .trello-project && ! -f .devbox-project ]]; then
+  if git rev-parse --is-inside-work-tree >/dev/null 2>&1 && git ls-files --error-unmatch .trello-project >/dev/null 2>&1; then
+    git mv .trello-project .devbox-project 2>/dev/null || mv .trello-project .devbox-project
+  else
+    mv .trello-project .devbox-project
+  fi
+  echo "(i) migrated .trello-project → .devbox-project" >&2
+fi
+# Фолбэк для ручного PROJECT_FILE=.trello-project (обратная совместимость).
+if [[ ! -f "$PROJECT_FILE" && -f .trello-project ]]; then
+  PROJECT_FILE=".trello-project"
+fi
 
 die() { echo "task-manager: $*" >&2; exit 1; }
 
@@ -46,7 +61,8 @@ trello_put() { # trello_put <path> [--data-urlencode k=v ...]
     || die "Trello API PUT ${path} упал (проверь ключи, сеть и права токена read/write)"
 }
 
-# Загружает .trello-project (env-формат) в переменные NAME/BOARD/LIST.
+# Загружает .devbox-project (env-формат, ранее .trello-project) в переменные NAME/BOARD/LIST.
+# При наличии только legacy .trello-project — автоперенос уже выполнен блоком выше.
 load_project() {
   [[ -f "$PROJECT_FILE" ]] || die "нет $PROJECT_FILE — сначала: bash .opencode/scripts/task-manager/init.sh"
   set -a

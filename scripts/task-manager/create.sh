@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
-# create.sh — создаёт Trello-карточку с меткой проекта (NAME из .trello-project).
+# create.sh — создаёт Trello-карточку с меткой проекта (NAME из .devbox-project).
 #
 # Всё детерминированное — в коде: резолв доски/листа по ТОЧНЫМ именам,
 # создание метки проекта при её отсутствии, создание карточки, возврат URL.
 # Агент имена не выдумывает: точные имена брать из boards.sh / lists.sh
-# или спрашивать у пользователя; дефолты BOARD/LIST — из .trello-project.
+# или спрашивать у пользователя; дефолты BOARD/LIST — из .devbox-project.
 #
 # Использование (из корня проекта):
 #   bash .opencode/scripts/task-manager/create.sh --title "<text>" [--board "<name>"] [--list "<name>"]
 #       [--desc "<text>"] [--color <color>] [--save-defaults]
 #
 # Цвета меток Trello: green yellow orange red purple blue sky lime pink black.
-# --save-defaults запоминает BOARD/LIST в .trello-project для следующих задач.
+# --save-defaults запоминает BOARD/LIST в .devbox-project для следующих задач.
 
 set -euo pipefail
 
@@ -23,7 +23,7 @@ BOARD=""; LIST=""; TITLE=""; DESC=""; COLOR="green"; SAVE=0
 
 usage() {
   echo "Usage: create.sh --title \"<text>\" [--board \"<name>\"] [--list \"<name>\"] [--desc \"<text>\"] [--color <color>] [--save-defaults]"
-  echo "  --board/--list можно опустить, если BOARD/LIST уже есть в .trello-project."
+  echo "  --board/--list можно опустить, если BOARD/LIST уже есть в .devbox-project."
 }
 
 while [[ $# -gt 0 ]]; do
@@ -48,7 +48,7 @@ esac
 load_project
 require_creds
 
-# Дефолты из .trello-project, если флаги не переданы.
+# Дефолты из .devbox-project, если флаги не переданы.
 [[ -n "$BOARD" ]] || BOARD="${BOARD:-}"
 [[ -n "$LIST" ]] || LIST="${LIST:-}"
 [[ -n "$BOARD" ]] || die "нет доски: передай --board или запомни дефолт (create.sh --board ... --list ... --save-defaults)"

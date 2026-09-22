@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# init.sh — определяет тег проекта и пишет .trello-project (env-формат).
+# init.sh — определяет тег проекта и пишет .devbox-project (env-формат, ранее .trello-project).
 #
 # Тег по умолчанию выводится из git remote как owner/repo (в нижнем регистре):
 # так однозначно видно, где живёт репозиторий — в организации или у
@@ -28,7 +28,7 @@ OUT="$PROJECT_FILE"
 usage() {
   echo "Usage: init.sh [--name <tag>] [--force] [--remote <name>]"
   echo "  Определяет тег проекта (по умолчанию owner/repo из git remote)"
-  echo "  и пишет .trello-project в env-формате (NAME=..., без секретов)."
+  echo "  и пишет .devbox-project в env-формате (NAME=..., без секретов)."
 }
 
 while [[ $# -gt 0 ]]; do
@@ -80,12 +80,11 @@ fi
 [[ "$NAME" != *$'\n'* && "$NAME" != *"="* ]] || die "тег не должен содержать перевод строки или '=': '$NAME'"
 
 {
-  echo "# .trello-project — тег проекта для Trello-задач (task-manager pipeline)."
+  echo "# .devbox-project — тег проекта для Trello-задач (task-manager pipeline, ранее .trello-project)."
   echo "# Сгенерировано scripts/task-manager/init.sh. Без секретов — можно коммитить."
   echo "# BOARD/LIST — дефолтные доска/лист (точные имена); запоминаются через create.sh --save-defaults."
   echo "NAME=$NAME"
   if [[ -n "$OLD_BOARD" ]]; then
-    # OLD_BOARD уже может быть с кавычками после source; снимаем внешние кавычки для перезаписи
     _b="$(printf '%s' "$OLD_BOARD" | sed -e 's/^"//' -e 's/"$//')"
     printf 'BOARD="%s"\n' "$(printf '%s' "$_b" | sed 's/"/\\"/g')"
   fi

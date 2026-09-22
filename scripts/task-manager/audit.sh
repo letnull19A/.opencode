@@ -9,8 +9,8 @@
 # Использование (из корня проекта):
 #   bash .opencode/scripts/task-manager/audit.sh --board "<name>" [--tag "<tag>" | --all] [--limit <N>]
 #
-#   --board обязателен, если BOARD нет в .trello-project (точное имя, см. boards.sh).
-#   По умолчанию фильтр по NAME из .trello-project; --all — без фильтра;
+#   --board обязателен, если BOARD нет в .devbox-project (точное имя, см. boards.sh).
+#   По умолчанию фильтр по NAME из .devbox-project; --all — без фильтра;
 #   --tag перекрывает NAME. --limit — макс. карточек на лист (по умолчанию 50).
 
 set -euo pipefail

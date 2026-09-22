@@ -5,7 +5,7 @@
 #
 # Использование (из корня проекта):
 #   bash .opencode/scripts/planner/run.sh [--board "<name>"] [--tag "<tag>" | --all] [--limit <N>] [--json]
-#   --board: точное имя доски (по умолчанию BOARD из .trello-project)
+#   --board: точное имя доски (по умолчанию BOARD из .devbox-project)
 #   --tag: метка проекта (по умолчанию NAME), --all — без фильтра
 #   --limit: макс. карточек (по умолчанию 100, 0 = без лимита)
 #   --json: только JSON на stdout
@@ -58,7 +58,7 @@ elif [[ -n "$TAG_OVERRIDE" ]]; then FILTER_TAG="$TAG_OVERRIDE"
 else FILTER_TAG="${NAME:-}"
 fi
 if [[ "$FILTER_MODE" == "tag" && -z "$FILTER_TAG" ]]; then
-  python3 -c 'import json; print(json.dumps({"error":"no_tag","hint":".trello-project без NAME — перезапусти init.sh --force или передай --tag/--all"}, ensure_ascii=False))'
+  python3 -c 'import json; print(json.dumps({"error":"no_tag","hint":".devbox-project без NAME — перезапусти init.sh --force или передай --tag/--all"}, ensure_ascii=False))'
   exit 1
 fi
 
