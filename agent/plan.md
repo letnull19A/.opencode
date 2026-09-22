@@ -23,10 +23,10 @@ permission:
 
 1. **Прими задачу:** `$ARGUMENTS` / последние сообщения. Пусто — спроси `question`.
 2. **Классификация подхода (обязательно):** вызови tool `classify_plan` с `title/desc` задачи и `has_code` (есть ли уже модуль в репо — проверь `glob`/`read`). Tool вернёт `{approach: "new-module"|"update"|"decompose", needs_react: bool, confidence, reason, provider}` (Jev → heuristic). Не гадай подход сам — доверься tool. `approach` — это стратегия `skills/module-develop` (add/update/decompose).
-3. **Разведка (чтение):** `glob`/`read` по коду, `AGENTS.md`, `.plan/`, `audit.sh`/`dump.sh` для доски (как в `evol-plan`).
+3. **Разведка (обязательно, без мусора):** делегируй `task` → `@recon` (скрытый) — передай `title/desc` задачи. Recon сам пройдёт по нарастающей: `.docs|docs|specs|.specs|documentation` (ls/glob/read 2-3 файла), затем `websearch|tavily|context7` (проверив `TAVILY_API_KEY/CONTEXT7_API_KEY` программно), затем `tree|ls|grep|graphify-mcp` по деревьям. Вернёт компактный JSON `{docs,internet,code{tree,graph,key_files},facts,open_questions}` — бери его `facts` как основу для `evol-plan`/`react-architect`, не читай всё сам.
 4. **Делегирование (только через `task` tool, параллельно где можно):**
-   - Всегда: `task` → `@evol-plan` (скрытый) — передай задачу + `approach` + `board` из `.devbox-project` — он вернёт Trello-план `{complexity,risk,cards[]}` с `desc` готовым к `create.sh`.
-   - Если `classify_plan.needs_react == true` или в задаче есть `react/компонент/ui` — параллельно `task` → `@react-architect` (скрытый) — передай ту же задачу — он вернёт дизайн `{дерево, таблица, контракты}` в чат-формате.
+   - Всегда: `task` → `@evol-plan` (скрытый) — передай задачу + `approach` + `facts` из `recon` + `board` из `.devbox-project` — он вернёт Trello-план `{complexity,risk,cards[]}` с `desc` готовым к `create.sh`.
+   - Если `classify_plan.needs_react == true` или `recon.facts` содержит `react/компонент/ui` — параллельно `task` → `@react-architect` (скрытый) — передай та же задача + `facts` — он вернёт дизайн `{дерево, таблица, контракты}` в чат-формате.
    - `approach == "decompose"` — попроси `evol-plan` дробить мельче (1 файл/пункт), `new-module` — крупнее.
 5. **Сборка:** склей `evol-plan` JSON + `react-architect` дизайн (если был) в единый ответ:
    - Блок 1 markdown: `## План → Trello (approach: new-module, needs_react: true, ...)` + карточки + дерево компонентов (если react)
