@@ -29,9 +29,18 @@ permission:
 
 > Не догма: если в проекте уже есть стандарты — они важнее этих слоёв.
 
-## Data-flow (что раньше не учитывалось)
+## Data-flow — обязательный effort (что раньше не учитывалось)
 
-Проектировать вложенность без потока данных — получить prop-drilling. Правило:
+Проектировать вложенность без потока данных — получить prop-drilling. На data-flow тратим отдельный effort, не меньше чем на вложенность.
+
+**Effort чеклист (пройти для каждого компонента):**
+1. Источник данных: откуда приходят (props / Context / state-manager / loader) и почему именно оттуда.
+2. Владелец состояния: где живёт state, где `useList`/`useFilters`/`useQuery`, server vs client.
+3. Проброс: через сколько уровней идёт prop — если ≥2 и не `shared/uikit`, заменить на `Context`/composition (`children`/compound/слоты).
+4. Граница `app/layout/page`: `app` — только init-конфиг, `layout` — без data-логики и без data-props, `page` — `Suspense/ErrorBoundary` + Context, `shared/uikit` — props ок.
+5. Оценка: для каждого перехода фиксируй `effort: S|M|L` (S — props в shared, M — Context, L — state-manager/loader) и риск prop-drilling.
+
+Правило:
 - `uikit/shared` — props ок.
 - `layout/page` — props только осознанно; по умолчанию — `Context`/`state-manager`/`composition` (`children`/слоты) вместо проброса через 2+ уровня.
 - `app` — без props, кроме init-конфига.
@@ -82,11 +91,11 @@ permission:
 ```
 + 1 строка: вложенность по слоям.
 
-**Блок 2 — Реализация (конкретика + data-flow):**
-1. Таблица `Абстракт | Слой | Компонент | Тег | Файл | Props/Data` (`app/layout/page/component/shared`, `props` vs `Context/useStore`).
-2. Дерево компонентов (ascii) с пометкой слоя `[app]/[layout]/[page]/[component]/[shared]`.
+**Блок 2 — Реализация (конкретика + data-flow с effort):**
+1. Таблица `Абстракт | Слой | Компонент | Тег | Файл | Props/Data | Effort` (`app/layout/page/component/shared`, `props` vs `Context/useStore`, `S|M|L`).
+2. Дерево компонентов (ascii) с пометкой слоя `[app]/[layout]/[page]/[component]/[shared]` и пометкой data-flow `[props|Context|store]`.
 3. Контракт корня и контракты слоёв: `app` — только init-конфиг, `layout` — без data-логики, `page` — `Suspense/ErrorBoundary`, `shared/uikit` — props.
-4. Поток данных: что через `props` (uikit), что через `Context/state-manager/composition` (layouts/pages) — где владелец состояния, где `useList`/`useFilters`.
+4. Поток данных с effort: для каждого перехода — источник, владелец, проброс (сколько уровней), решение `props` vs `Context`/`store`/`composition`, effort `S|M|L`, риск prop-drilling (low/mid/high) + где `useList`/`useFilters`.
 5. Обоснование декомпозиции + почему не prop-drilling + открытые вопросы.
 
 ## Жёсткие правила
