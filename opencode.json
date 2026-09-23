@@ -107,6 +107,18 @@
         "Authorization": "Bearer {env:SPEKA_MCP_API_KEY}"
       },
       "enabled": true
+    },
+    "postgres": {
+      "type": "local",
+      "command": ["npx", "-y", "mcp-postgres", "{env:DATABASE_URL}"],
+      "environment": {
+        "DATABASE_URL": "{env:DATABASE_URL}",
+        "POSTGRES_HOST": "{env:POSTGRES_HOST}",
+        "POSTGRES_PORT": "{env:POSTGRES_PORT}",
+        "POSTGRES_USER": "{env:POSTGRES_USER}",
+        "POSTGRES_PASSWORD": "{env:POSTGRES_PASSWORD}"
+      },
+      "enabled": true
     }
   },
   "permission": {
