@@ -43,6 +43,11 @@
       "mode": "subagent",
       "hidden": true
     },
+    "task-explain": {
+      "model": "opencode-go/muse-spark-1.3-contributor",
+      "mode": "subagent",
+      "hidden": true
+    },
     "tunnel-manager": {
       "model": "opencode-go/muse-spark-1.3-contributor",
       "mode": "subagent",
