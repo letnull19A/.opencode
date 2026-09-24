@@ -81,7 +81,7 @@ issue_provider: github
   синтаксис фреймворка — только из Context7 MCP (по памяти запрещено).
 - `skills/tunnel-manager/SKILL.md` — preview-tunnel runner (wraps
   `scripts/tunnel/`).
-- `skills/ci/SKILL.md` — vendor-lock-free GitHub Actions CI/CD: `scripts/ci/scaffold.sh --type ci|docker|all` копирует `scripts/ci/templates/*.yml` → `.github/workflows/`; `scripts/ci/workflows.sh status|logs` — read-only сводка ранов; registry-agnostic (`vars.DOCKER_REGISTRY`/`vars.DOCKER_IMAGE`/`secrets.REGISTRY_*` + `GITHUB_TOKEN` fallback), buildx + gha cache, без cloud-экшенов.
+- `skills/ci/SKILL.md` — vendor-lock-free GitHub Actions CI/CD (требования→исполнение): `@ci` (`mode:all`) опрашивает пользователя (type/registry/image/platforms/cache/deploy) → `task → @ci-runner` (`hidden:subagent`) скаффолдит `scripts/ci/scaffold.sh --type ci|docker|all` из `scripts/ci/templates/*.yml` → `.github/workflows/`; `workflows.sh status|logs` — read-only; registry-agnostic (`vars.DOCKER_REGISTRY`/`vars.DOCKER_IMAGE`/`secrets.REGISTRY_*` + `GITHUB_TOKEN` fallback), buildx + gha cache, без cloud-экшенов.
 - `skills/commit/SKILL.md` — стратегия атомарных коммитов (Conventional
   Commits, группировка по интентам, сразу по явной просьбе без «да», без push).
 - `skills/task-manager/SKILL.md` — качественное использование task-manager
