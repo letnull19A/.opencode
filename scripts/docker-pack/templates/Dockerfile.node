@@ -1,0 +1,48 @@
+# Dockerfile.node — vendor-lock-free, layered, multi-stage for Node.js
+# Источник: .opencode/scripts/docker-pack/templates/Dockerfile.node
+# Генерация: bash .opencode/scripts/docker-pack/scaffold.sh --stack node [--app <name>] [--context <path>]
+# Слои: deps (кэш) → build → runner (минимальный, non-root)
+ARG NODE_VERSION=20
+
+# ---- deps ----
+FROM node:${NODE_VERSION}-alpine AS base
+WORKDIR /app
+# hadolint ignore=DL3018 — apk без кэша
+RUN apk add --no-cache libc6-compat
+
+FROM base AS deps
+# Копируем только манифесты для кэша зависимостей
+COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
+# Выбор менеджера: npm ci (если lock есть) иначе npm install / yarn / pnpm
+RUN \
+  if [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm install --frozen-lockfile; \
+  elif [ -f yarn.lock ]; then yarn install --frozen-lockfile; \
+  elif [ -f package-lock.json ]; then npm ci; \
+  else npm install; fi
+
+# ---- builder ----
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+# Сборка если есть build script (next build / vite build / tsc)
+RUN npm run build --if-present
+
+# ---- runner (минимальный) ----
+FROM node:${NODE_VERSION}-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nodejs
+# Копируем только прод-зависимости + билд-артефакты
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
+# Копируем билд-артефакты если есть (next/dist/build)
+COPY --from=builder /app/.next ./.next 2>/dev/null || true
+COPY --from=builder /app/dist ./dist 2>/dev/null || true
+COPY --from=builder /app/build ./build 2>/dev/null || true
+# Для статики/SSR — public и т.п.
+COPY --from=builder /app/public ./public 2>/dev/null || true
+USER nodejs
+EXPOSE 3000
+# Подстрой CMD под проект: next start / node dist/index.js / npm start
+CMD ["sh", "-c", "if [ -f ./node_modules/.bin/next ]; then npm start; elif [ -f dist/index.js ]; then node dist/index.js; elif [ -f build/index.js ]; then node build/index.js; else npm start; fi"]

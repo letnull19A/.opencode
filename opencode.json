@@ -86,6 +86,11 @@
       "mode": "subagent",
       "hidden": true
     },
+    "docker-pack": {
+      "model": "opencode-go/muse-spark-1.3-contributor",
+      "mode": "subagent",
+      "hidden": true
+    },
     "ask": {
       "model": "opencode-go/muse-spark-1.3-contributor",
       "mode": "all"
@@ -159,6 +164,7 @@
       "bash .opencode/scripts/check/*": "allow",
       "bash .opencode/scripts/graphify/*": "allow",
       "bash .opencode/scripts/ci/*": "allow",
+      "bash .opencode/scripts/docker-pack/*": "allow",
       "bash .opencode/workflows/*": "allow",
       "bun workflows/*": "allow",
       "git status *": "allow",
