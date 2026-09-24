@@ -81,6 +81,7 @@ issue_provider: github
   синтаксис фреймворка — только из Context7 MCP (по памяти запрещено).
 - `skills/tunnel-manager/SKILL.md` — preview-tunnel runner (wraps
   `scripts/tunnel/`).
+- `skills/ci/SKILL.md` — vendor-lock-free GitHub Actions CI/CD: `scripts/ci/scaffold.sh --type ci|docker|all` копирует `scripts/ci/templates/*.yml` → `.github/workflows/`; `scripts/ci/workflows.sh status|logs` — read-only сводка ранов; registry-agnostic (`vars.DOCKER_REGISTRY`/`vars.DOCKER_IMAGE`/`secrets.REGISTRY_*` + `GITHUB_TOKEN` fallback), buildx + gha cache, без cloud-экшенов.
 - `skills/commit/SKILL.md` — стратегия атомарных коммитов (Conventional
   Commits, группировка по интентам, сразу по явной просьбе без «да», без push).
 - `skills/task-manager/SKILL.md` — качественное использование task-manager
@@ -125,6 +126,7 @@ issue_provider: github
   `bash .opencode/scripts/tunnel/run.sh*` +
   `bash .opencode/scripts/push/run.sh*` +
   `bash .opencode/scripts/sync/run.sh*` +
+  `bash .opencode/scripts/ci/*` + `bun workflows/*` +
   `bash .opencode/scripts/react-fix/*` (read-only class search); `mcp.trello` (`npx -y
   @delorenj/mcp-server-trello`, ключи только через `{env:TRELLO_API_KEY}` /
   `{env:TRELLO_TOKEN}`) + `mcp.context7` (remote `https://mcp.context7.com/mcp`,

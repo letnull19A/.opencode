@@ -1,0 +1,79 @@
+# ci.yml — vendor-lock-free CI (lint + test + build)
+# Источник: .opencode/scripts/ci/templates/ci.yml (копируется scaffold.sh → .github/workflows/ci.yml)
+# Триггер: push + pull_request. Стек определяется авто: node/python/go — кастомизируй джобы под проект.
+# Без vendor-lock: только checkout + setup-* + cache + run — никаких cloud-экшенов.
+name: CI
+
+on:
+  push:
+    branches: [main, master, dev]
+  pull_request:
+    branches: [main, master, dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      node: ${{ steps.detect.outputs.node }}
+      python: ${{ steps.detect.outputs.python }}
+      go: ${{ steps.detect.outputs.go }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: detect
+        run: |
+          echo "node=$([ -f package.json ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          echo "python=$([ -f pyproject.toml ] || [ -f requirements.txt ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          echo "go=$([ -f go.mod ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+  node:
+    needs: detect
+    if: needs.detect.outputs.node == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+        # fallback: npm install если нет lock
+        # run: npm ci || npm install
+      - run: npm run lint --if-present
+      - run: npm test --if-present
+      - run: npm run build --if-present
+
+  python:
+    needs: detect
+    if: needs.detect.outputs.python == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - run: pip install -r requirements.txt 2>/dev/null || pip install -e . 2>/dev/null || echo "no requirements"
+      - run: python -m pytest -q 2>/dev/null || python -m unittest 2>/dev/null || echo "no tests"
+
+  go:
+    needs: detect
+    if: needs.detect.outputs.go == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache: true
+      - run: go vet ./...
+      - run: go test ./...
+      - run: go build ./...

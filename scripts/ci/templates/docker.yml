@@ -1,0 +1,128 @@
+# docker.yml — vendor-lock-free build & push OCI image to any registry
+# Источник: .opencode/scripts/ci/templates/docker.yml (копируется scaffold.sh → .github/workflows/docker.yml)
+# Registry-agnostic: REGISTRY/IMAGE через inputs || vars || fallback (не хардкодь ghcr.io/docker.io).
+# Работает с GHCR, Docker Hub, Gitea Registry, Harbor, ECR (без aws-actions), любым OCI-совместимым.
+# Публикация: на push в default-ветку + теги; на PR — только build (push:false).
+name: Docker
+
+on:
+  push:
+    branches: [main, master]
+    tags: ['v*.*.*']
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+    inputs:
+      registry:
+        description: 'OCI registry (e.g. ghcr.io, docker.io, registry.example.com)'
+        required: false
+        default: ''
+      image:
+        description: 'Full image name without tag (e.g. ghcr.io/owner/repo or docker.io/user/repo)'
+        required: false
+        default: ''
+      push:
+        description: 'Push image (true/false)'
+        required: false
+        default: 'true'
+      platforms:
+        description: 'Build platforms (e.g. linux/amd64 or linux/amd64,linux/arm64)'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+  packages: write   # для GHCR; для других registry не мешает (используется generic login)
+
+env:
+  # Fallback-цепочки: inputs → vars → default. Позволяют один workflow для любого registry.
+  REGISTRY: ${{ inputs.registry || vars.DOCKER_REGISTRY || 'ghcr.io' }}
+  IMAGE: ${{ inputs.image || vars.DOCKER_IMAGE || format('ghcr.io/{0}', github.repository) }}
+  # Для Docker Hub IMAGE должен быть docker.io/USER/REPO — задай vars.DOCKER_IMAGE соответственно.
+  PLATFORMS: ${{ inputs.platforms || vars.DOCKER_PLATFORMS || 'linux/amd64' }}
+
+jobs:
+  meta:
+    runs-on: ubuntu-latest
+    outputs:
+      tags: ${{ steps.meta.outputs.tags }}
+      labels: ${{ steps.meta.outputs.labels }}
+      version: ${{ steps.meta.outputs.version }}
+    steps:
+      - uses: docker/metadata-action@v5
+        id: meta
+        with:
+          images: ${{ env.IMAGE }}
+          # Теги vendor-lock-free: branch, pr, semver, sha, latest только на default branch
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+  build:
+    needs: meta
+    runs-on: ubuntu-latest
+    # Не запускать сборку без Dockerfile (позволяет держать workflow в репо без Docker)
+    # Убери if, если Dockerfile гарантирован.
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check Dockerfile
+        id: dockerfile
+        run: |
+          if [ -f Dockerfile ] || [ -f docker/Dockerfile ]; then echo "exists=true" >> "$GITHUB_OUTPUT"; else echo "exists=false" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Skip — no Dockerfile
+        if: steps.dockerfile.outputs.exists == 'false'
+        run: echo "No Dockerfile found — skipping build (remove this check if build is required)"
+
+      - uses: docker/setup-qemu-action@v3
+        if: steps.dockerfile.outputs.exists == 'true'
+
+      - uses: docker/setup-buildx-action@v3
+        if: steps.dockerfile.outputs.exists == 'true'
+
+      - name: Login to registry
+        if: steps.dockerfile.outputs.exists == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          # GHCR: GITHUB_TOKEN достаточно; Docker Hub/private: задай REGISTRY_USERNAME/PASSWORD
+          username: ${{ secrets.REGISTRY_USERNAME || github.actor }}
+          password: ${{ secrets.REGISTRY_PASSWORD || secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        if: steps.dockerfile.outputs.exists == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: ${{ env.PLATFORMS }}
+          push: ${{ inputs.push != 'false' && github.event_name != 'pull_request' }}
+          tags: ${{ needs.meta.outputs.tags }}
+          labels: ${{ needs.meta.outputs.labels }}
+          # Кэш GHA (vendor-free); опционально registry-кэш включи vars.DOCKER_CACHE_REGISTRY=true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          # Для registry-кэша раскомментируй и задай vars.DOCKER_CACHE_REGISTRY=true:
+          # cache-from: type=registry,ref=${{ env.IMAGE }}:buildcache
+          # cache-to: type=registry,ref=${{ env.IMAGE }}:buildcache,mode=max
+
+  # Опциональный деплой — раскомментируй только если нужен generic деплой без vendor-lock
+  # deploy:
+  #   needs: build
+  #   if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Deploy via SSH (generic)
+  #       uses: appleboy/ssh-action@v1
+  #       with:
+  #         host: ${{ secrets.DEPLOY_HOST }}
+  #         username: ${{ secrets.DEPLOY_USER }}
+  #         key: ${{ secrets.DEPLOY_SSH_KEY }}
+  #         script: |
+  #           docker pull ${{ env.IMAGE }}:latest
+  #           docker compose up -d
