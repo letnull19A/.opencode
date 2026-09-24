@@ -29,17 +29,32 @@ on:
         description: 'Build platforms (e.g. linux/amd64 or linux/amd64,linux/arm64)'
         required: false
         default: ''
+      app:
+        description: 'Monorepo app name (subfolder in apps/) — empty for single repo'
+        required: false
+        default: ''
+      context:
+        description: 'Build context (default . for single, apps/<app> for monorepo)'
+        required: false
+        default: ''
+      dockerfile:
+        description: 'Dockerfile path (default ./Dockerfile, monorepo apps/<app>/Dockerfile)'
+        required: false
+        default: ''
 
 permissions:
   contents: read
   packages: write   # для GHCR; для других registry не мешает (используется generic login)
 
 env:
-  # Fallback-цепочки: inputs → vars → default. Позволяют один workflow для любого registry.
+  # Fallback-цепочки: inputs → vars → default. Позволяют один workflow для любого registry + монорепо.
   REGISTRY: ${{ inputs.registry || vars.DOCKER_REGISTRY || 'ghcr.io' }}
   IMAGE: ${{ inputs.image || vars.DOCKER_IMAGE || format('ghcr.io/{0}', github.repository) }}
-  # Для Docker Hub IMAGE должен быть docker.io/USER/REPO — задай vars.DOCKER_IMAGE соответственно.
+  # Для монорепо IMAGE обычно ghcr.io/owner/repo/<app> — задай vars.DOCKER_IMAGE=ghcr.io/owner/repo/app или передай inputs.image
   PLATFORMS: ${{ inputs.platforms || vars.DOCKER_PLATFORMS || 'linux/amd64' }}
+  APP: ${{ inputs.app || vars.DOCKER_APP || '' }}
+  CONTEXT: ${{ inputs.context || vars.DOCKER_CONTEXT || '.' }}
+  DOCKERFILE: ${{ inputs.dockerfile || vars.DOCKERFILE || './Dockerfile' }}
 
 jobs:
   meta:
@@ -73,7 +88,7 @@ jobs:
       - name: Check Dockerfile
         id: dockerfile
         run: |
-          if [ -f Dockerfile ] || [ -f docker/Dockerfile ]; then echo "exists=true" >> "$GITHUB_OUTPUT"; else echo "exists=false" >> "$GITHUB_OUTPUT"; fi
+          if [ -f "${{ env.DOCKERFILE }}" ] || [ -f Dockerfile ] || [ -f docker/Dockerfile ]; then echo "exists=true" >> "$GITHUB_OUTPUT"; else echo "exists=false" >> "$GITHUB_OUTPUT"; fi
 
       - name: Skip — no Dockerfile
         if: steps.dockerfile.outputs.exists == 'false'
@@ -98,8 +113,8 @@ jobs:
         if: steps.dockerfile.outputs.exists == 'true'
         uses: docker/build-push-action@v6
         with:
-          context: .
-          file: ./Dockerfile
+          context: ${{ env.CONTEXT }}
+          file: ${{ env.DOCKERFILE }}
           platforms: ${{ env.PLATFORMS }}
           push: ${{ inputs.push != 'false' && github.event_name != 'pull_request' }}
           tags: ${{ needs.meta.outputs.tags }}
