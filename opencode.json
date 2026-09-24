@@ -77,6 +77,15 @@
       "mode": "subagent",
       "hidden": true
     },
+    "init": {
+      "model": "opencode-go/muse-spark-1.3-contributor",
+      "mode": "all"
+    },
+    "init-runner": {
+      "model": "opencode-go/muse-spark-1.3-contributor",
+      "mode": "subagent",
+      "hidden": true
+    },
     "ask": {
       "model": "opencode-go/muse-spark-1.3-contributor",
       "mode": "all"
