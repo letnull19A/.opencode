@@ -7,7 +7,7 @@
 
 ```
 [/new-task "текст"] → @task-manager (subagent)
-  1. init.sh            → .devbox-project (NAME=owner/repo из git remote)
+  1. init.sh            → .devbox (NAME=owner/repo из git remote)
   2. boards.sh/lists.sh → точные имена доски/листа (агент не выдумывает)
   3. create.sh          → карточка по строгому формату → URL (сразу, без «да»)
   4. checklist.sh       → подзадачи чек-листом (если 2+ шагов одного результата)
@@ -35,14 +35,23 @@
 - `.opencode/scripts/task-manager/_common.sh` — общий код (не запускать):
   ключи только из env, curl-обёртки, резолв доски/листа по точным именам,
   создание метки проекта. Требует `curl`, `python3` (stdlib).
-- `.opencode/scripts/task-manager/init.sh` — тег проекта → `.devbox-project`
+- `.opencode/scripts/task-manager/init.sh` — тег проекта → `.devbox`
   (env-формат, без секретов, можно коммитить). По умолчанию
   `owner/repo` из git remote нижним регистром; `--name` перекрывает;
   без remote просит спросить тег у пользователя явно.
+  `--comments-details 0..9` — детальность комментариев в коде
+  (0 — не писать вообще, сильнее промптов/AGENTS.md; 9 — на каждую строку);
+  невалидное значение = exit 1. При `--force` без флагов старые
+  `BOARD/LIST/PROFILE_*/COMMENTS_DETAILS` сохраняются.
+- `.opencode/scripts/task-manager/migrate.sh` — явная миграция
+  legacy `.devbox-project` / `.trello-project` → `.devbox`
+  (авто-миграция также происходит в `_common.sh` при первом обращении;
+  `--dry-run` — только план, `--force` — перезапись каноники из legacy).
+  Валидирует `COMMENTS_DETAILS=0..9`, при ошибке — exit 1.
 - `.opencode/scripts/task-manager/boards.sh` — мои открытые доски (id + имя).
 - `.opencode/scripts/task-manager/lists.sh --board "<name>"` — листы доски.
 - `.opencode/scripts/task-manager/create.sh` — карточка с меткой NAME.
-  `--board/--list` можно опустить, если BOARD/LIST уже в `.devbox-project`;
+  `--board/--list` можно опустить, если BOARD/LIST уже в `.devbox`;
   `--save-defaults` их туда записывает.
 - `.opencode/scripts/task-manager/move.sh` — перемещение карточки в другой
   лист (той же или другой доски): `--id | --url | --card` (+ `--from-board`
@@ -85,14 +94,19 @@
   в репозиторий не коммитить.
 - Скрипты намеренно НЕ в allowlist `opencode.json`: создание внешних
   карточек — side effect, первый запуск спросит подтверждение сам opencode.
-- `.devbox-project` живёт в корне consumer-репозитория (CWD), формат:
-  `NAME=owner/repo`, опционально `BOARD=<точное имя>`, `LIST=<точное имя>`.
+- `.devbox` живёт в корне consumer-репозитория (CWD), формат:
+  `NAME=owner/repo`, опционально `BOARD=<точное имя>`, `LIST=<точное имя>`,
+  `PROFILE_*` (onboarding), `COMMENTS_DETAILS=0..9` (0 — без комментариев
+  вообще, 9 — на каждую строку; невалидное = exit 1).
 
 ## Быстрый прогон вручную (без opencode)
 
 ```bash
-bash .opencode/scripts/task-manager/init.sh            # тег из git remote → .devbox-project
+bash .opencode/scripts/task-manager/migrate.sh --dry-run   # план миграции legacy → .devbox
+bash .opencode/scripts/task-manager/migrate.sh             # миграция + валидация COMMENTS_DETAILS
+bash .opencode/scripts/task-manager/init.sh            # тег из git remote → .devbox
 bash .opencode/scripts/task-manager/init.sh --name myproj --force
+bash .opencode/scripts/task-manager/init.sh --comments-details 5 --force  # детальность комментариев
 export TRELLO_API_KEY=... TRELLO_TOKEN=...
 bash .opencode/scripts/task-manager/boards.sh
 bash .opencode/scripts/task-manager/lists.sh --board "My board"

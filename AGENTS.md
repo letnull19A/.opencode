@@ -40,8 +40,11 @@ issue_provider: github
   Критерии приёмки/Связи, неполную не создавать);
   подзадачи — чек-листом (`checklist.sh`), зависимости — строкой
   `Blocked by:` (нативного графа в Trello нет);
-  тег проекта — только из `.devbox-project` (NAME), имена досок/листов
+  тег проекта — только из `.devbox` (NAME), имена досок/листов
   не выдумываются; аудит — чтение с возвратом строго JSON.
+  Конфиг-миграция: legacy `.devbox-project` / `.trello-project` → `.devbox`
+  первым шагом (`bash .opencode/scripts/task-manager/migrate.sh`,
+  авто-миграция также в `_common.sh`); `COMMENTS_DETAILS` вне `0..9` = стоп.
 - React-fix pipeline (внутри `/fix` / `@react-fix`): классы в коде ищет
   только `scripts/react-fix/find-class.sh` (сырой grep/rg по классам
   запрещён); пока точно не выяснено «что менять + где» — никаких `edit`,
@@ -82,7 +85,7 @@ issue_provider: github
 - `skills/tunnel-manager/SKILL.md` — preview-tunnel runner (wraps
   `scripts/tunnel/`).
 - `skills/ci/SKILL.md` — vendor-lock-free GitHub Actions CI/CD (требования→исполнение): `@ci` (`mode:all`) опрашивает пользователя (type/registry/image/platforms/cache/deploy + монорепо `apps/<app>`) → `task → @ci-runner` (`hidden:subagent`) скаффолдит `scripts/ci/scaffold.sh --type ci|docker|all [--monorepo --app]` из `scripts/ci/templates/*.yml` → `.github/workflows/`; `workflows.sh status|logs` — read-only; registry-agnostic (`vars.DOCKER_REGISTRY`/`vars.DOCKER_IMAGE`/`secrets.REGISTRY_*` + `GITHUB_TOKEN` fallback), buildx + gha cache, `paths: apps/<app>/**` для монорепо, без cloud-экшенов.
-- `skills/init/SKILL.md` — onboarding инициализации `.devbox-project` (требования→исполнение): `@init` (`mode:all`) опрашивает пользователя (remote, монорепо, микросервисы, frontend/backend/database, тип draft/mvp, коммиты all/batch) → `task → @init-runner` (`hidden:subagent`) пишет `.devbox-project` через `scripts/task-manager/init.sh` с `PROFILE_*` (можно коммитить), без секретов.
+- `skills/init/SKILL.md` — onboarding инициализации `.devbox` (требования→исполнение): `@init` (`mode:all`) опрашивает пользователя (remote, монорепо, микросервисы, frontend/backend/database, тип draft/mvp, коммиты all/batch, комментарии `COMMENTS_DETAILS 0..9`) → `task → @init-runner` (`hidden:subagent`) пишет `.devbox` через `scripts/task-manager/init.sh` с `PROFILE_*` + `COMMENTS_DETAILS` (можно коммитить), без секретов. Миграция legacy — `migrate.sh` первым шагом.
 - `skills/docker-pack/SKILL.md` — упаковка Docker по слоям (требования→исполнение): любой агент `task → @docker-pack` (`hidden:subagent`) → `task → @recon` (stack/зависимости) → `scripts/docker-pack/scaffold.sh --stack node|python|go [--app --context --dockerfile]` из `scripts/docker-pack/templates/Dockerfile.*` + `.dockerignore` (deps кэш отдельно от `COPY .`, multi-stage, non-root runner); монорепо `apps/<app>` контекст изолирован.
 - `skills/commit/SKILL.md` — стратегия атомарных коммитов (Conventional
   Commits, группировка по интентам, сразу по явной просьбе без «да», без push).
@@ -116,7 +119,8 @@ issue_provider: github
   подстрок; read-only; см. `scripts/react-fix/README.md`).
 - `scripts/sync/` — `run.sh` (deterministic `git pull --rebase --autostash`
   of current branch; no `merge`/`--force`; see `scripts/sync/README.md`).
-- `scripts/task-manager/` — `init.sh` (project tag → `.devbox-project`) +
+- `scripts/task-manager/` — `init.sh` (project tag → `.devbox`) +
+  `migrate.sh` (legacy `.devbox-project` / `.trello-project` → `.devbox`, валидация `COMMENTS_DETAILS=0..9`) +
   `boards.sh` / `lists.sh` (discovery) + `create.sh` (card with NAME label)
   + `move.sh` (card → target list via PUT `idList`, `--dry-run` без мутаций)
   + `checklist.sh` (подзадачи чек-листом: create/add-item/complete/show JSON)
@@ -137,6 +141,13 @@ issue_provider: github
   `{env:...}`, пресет `minimal` против 508 инструментов; секреты
   в репозиторий не коммитить). Root `package.json`
   has only `@opencode-ai/plugin`, no scripts.
+
+## Code comments (`COMMENTS_DETAILS` in `.devbox`)
+
+- `COMMENTS_DETAILS=0..9` — детальность комментариев в коде; хранится в `.devbox`, валидируется скриптами (`init.sh`/`migrate.sh`/`_common.sh`), невалидное = `exit 1`, работа прекращается.
+- `0` — не писать комментарии вообще, даже если требуется; этот параметр сильнее любых промптов и `AGENTS.md`.
+- `9` — подробные комментарии на каждую строку; `1..8` — линейно между крайностями.
+- Отсутствует — поведение по умолчанию агента; спрашивать через `@init` (вопрос 9), писать только через `init.sh --comments-details N`.
 
 ## Commands (run from consumer repo root)
 
@@ -186,7 +197,8 @@ bash .opencode/scripts/sync/run.sh [--remote <name>] [--dry-run]
 
 ```bash
 # task-manager (agent runs this ONLY via /new-task or @task-manager; scripts do Trello API):
-bash .opencode/scripts/task-manager/init.sh [--name <tag>] [--force]   # тег проекта → .devbox-project (NAME)
+bash .opencode/scripts/task-manager/migrate.sh            # legacy .devbox-project/.trello-project → .devbox (первым шагом)
+bash .opencode/scripts/task-manager/init.sh [--name <tag>] [--force] [--comments-details <0-9>]   # конфиг → .devbox (NAME + COMMENTS_DETAILS)
 bash .opencode/scripts/task-manager/boards.sh                          # мои доски (точные имена)
 bash .opencode/scripts/task-manager/lists.sh --board "<name>"          # листы доски
 bash .opencode/scripts/task-manager/create.sh --title "<t>" [--board "<b>"] [--list "<l>"] [--desc "<d>"] [--save-defaults]
