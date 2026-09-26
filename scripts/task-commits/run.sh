@@ -5,13 +5,13 @@
 # stdout — только JSON для ИИ, stderr — hint. Требует git, без сети к Trello
 # кроме audit-части (если берёт задачи с доски).
 #
-# Использование (из корня consumer-репо, где лежит .git и .devbox-project):
+# Использование (из корня consumer-репо, где лежит .git и .devbox):
 #   bash .opencode/scripts/task-commits/run.sh [--board "<name>"] [--tag "<tag>" | --all] [--limit N] [--log-limit M] [--json]
 #   bash .opencode/scripts/task-commits/run.sh --tasks-file <audit.json|dump.json> [--log-limit M] [--json]
 #   bash .opencode/scripts/task-commits/run.sh --tasks-json '<json>' [--log-limit M] --json  (или stdin)
 #
-#   --board — точное имя доски (по умолчанию BOARD из .devbox-project)
-#   --tag/--all — фильтр метки (по умолчанию NAME из .devbox-project, --all — все карточки доски)
+#   --board — точное имя доски (по умолчанию BOARD из .devbox)
+#   --tag/--all — фильтр метки (по умолчанию NAME из .devbox, --all — все карточки доски)
 #   --limit — макс. карточек на лист для audit (по умолчанию 50, для задач без лимита 0 не нужен — audit пагинирует)
 #   --log-limit — сколько последних коммитов сканировать на трейлеры (по умолчанию 100, кап 500)
 #   --tasks-file — готовый JSON с задачами (audit.json, dump.json или массив cards) вместо запроса к Trello
@@ -69,7 +69,7 @@ else
   fi
 fi
 
-# Если задачи не переданы явно — тянем audit с доски (как audit.sh, BOARD дефолт из .devbox-project)
+# Если задачи не переданы явно — тянем audit с доски (как audit.sh, BOARD дефолт из .devbox)
 if [[ -z "$AUDIT_JSON" ]]; then
   _audit_args=()
   [[ -n "$BOARD" ]] && _audit_args+=(--board "$BOARD")
@@ -82,7 +82,7 @@ if [[ -z "$AUDIT_JSON" ]]; then
     :
   else
     echo "$AUDIT_JSON"
-    if [[ $JSON_ONLY -eq 0 ]]; then echo "hint: audit вернул error — проверь BOARD/.devbox-project" >&2; fi
+    if [[ $JSON_ONLY -eq 0 ]]; then echo "hint: audit вернул error — проверь BOARD/.devbox" >&2; fi
     exit 1
   fi
   TASKS_SOURCE="audit:board=${BOARD:-$PROJECT_FILE}"

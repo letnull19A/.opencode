@@ -9,8 +9,8 @@
 # Использование (из корня проекта):
 #   bash .opencode/scripts/task-manager/dump.sh [--board "<name>"] [--tag "<tag>" | --all] [--limit <N>]
 #
-#   --board  Точное имя доски (см. boards.sh). Если не указан — берётся BOARD из .devbox-project.
-#   --tag    Фильтр по метке (по умолчанию NAME из .devbox-project). --all — без фильтра.
+#   --board  Точное имя доски (см. boards.sh). Если не указан — берётся BOARD из .devbox.
+#   --tag    Фильтр по метке (по умолчанию NAME из .devbox). --all — без фильтра.
 #   --limit  Макс. карточек в выдаче (по умолчанию 100, 0 = без лимита).
 #   Примеры:
 #     bash .opencode/scripts/task-manager/dump.sh

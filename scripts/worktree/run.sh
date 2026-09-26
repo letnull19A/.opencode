@@ -204,9 +204,11 @@ do_create() {
     git -C "$wt_path" submodule update --init --recursive 2>&1 | head -n 20 >&2 || true
   fi
 
-  # проверяем .devbox-project (ранее .trello-project)
-  if [[ -f "$wt_path/.devbox-project" ]]; then
-    echo "devbox-project: $(cat "$wt_path/.devbox-project" | head -n 2 | tr '\n' ' ')" >&2
+  # проверяем .devbox (ранее .devbox-project / .trello-project)
+  if [[ -f "$wt_path/.devbox" ]]; then
+    echo "devbox: $(cat "$wt_path/.devbox" | head -n 2 | tr '\n' ' ')" >&2
+  elif [[ -f "$wt_path/.devbox-project" ]]; then
+    echo "devbox: legacy .devbox-project найден — мигрируй: bash .opencode/scripts/task-manager/migrate.sh" >&2
   fi
 
   local commit

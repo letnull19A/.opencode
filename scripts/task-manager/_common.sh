@@ -6,22 +6,48 @@
 set -euo pipefail
 
 TRELLO_API="https://api.trello.com/1"
-# Новый тег проекта — .devbox-project (переименовано из .trello-project). Старый файл
-# автоматически мигрируется при первом обращении любого скрипта пайплайна,
-# чтобы сессия начиналась с переименования без ручных действий.
-PROJECT_FILE="${PROJECT_FILE:-.devbox-project}"
-if [[ -f .trello-project && ! -f .devbox-project ]]; then
-  if git rev-parse --is-inside-work-tree >/dev/null 2>&1 && git ls-files --error-unmatch .trello-project >/dev/null 2>&1; then
-    git mv .trello-project .devbox-project 2>/dev/null || mv .trello-project .devbox-project
-  else
-    mv .trello-project .devbox-project
-  fi
-  echo "(i) migrated .trello-project → .devbox-project" >&2
+# Канонический конфиг проекта — `.devbox` (env-формат, без секретов, можно коммитить).
+# Legacy-цепочка: `.trello-project` → `.devbox-project` → `.devbox`.
+# Старые файлы автоматически мигрируются при первом обращении любого скрипта
+# пайплайна (git mv если в индексе, иначе mv), чтобы сессия начиналась
+# с правильного имени. Явная миграция: bash .opencode/scripts/task-manager/migrate.sh
+PROJECT_FILE="${PROJECT_FILE:-.devbox}"
+if [[ ! -f "$PROJECT_FILE" ]]; then
+  for _legacy in .devbox-project .trello-project; do
+    if [[ "$_legacy" != "$PROJECT_FILE" && -f "$_legacy" ]]; then
+      if git rev-parse --is-inside-work-tree >/dev/null 2>&1 && git ls-files --error-unmatch "$_legacy" >/dev/null 2>&1; then
+        git mv "$_legacy" "$PROJECT_FILE" 2>/dev/null || mv "$_legacy" "$PROJECT_FILE"
+      else
+        mv "$_legacy" "$PROJECT_FILE"
+      fi
+      echo "(i) migrated $_legacy → $PROJECT_FILE" >&2
+      break
+    fi
+  done
 fi
-# Фолбэк для ручного PROJECT_FILE=.trello-project (обратная совместимость).
-if [[ ! -f "$PROJECT_FILE" && -f .trello-project ]]; then
-  PROJECT_FILE=".trello-project"
+# Фолбэк для ручного PROJECT_FILE=*.trello-project / .devbox-project (обратная совместимость).
+if [[ ! -f "$PROJECT_FILE" ]]; then
+  for _fb in .devbox-project .trello-project .devbox; do
+    if [[ "$_fb" != "$PROJECT_FILE" && -f "$_fb" ]]; then PROJECT_FILE="$_fb"; break; fi
+  done
 fi
+
+# COMMENTS_DETAILS — детальность комментариев в коде, целое 0..9:
+#   0 — не писать комментарии вообще (сильнее любых промптов и AGENTS.md);
+#   9 — подробные комментарии на каждую строку.
+# Невалидное значение = жёсткая ошибка (работа прекращается).
+validate_comments_details() {
+  local raw val
+  raw="$(grep -E '^COMMENTS_DETAILS=' "$PROJECT_FILE" 2>/dev/null || true)"
+  [[ -z "$raw" ]] && return 0
+  raw="$(printf '%s\n' "$raw" | tail -n 1)"
+  val="${raw#COMMENTS_DETAILS=}"
+  val="$(printf '%s' "$val" | sed -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'\$//" -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+  case "$val" in
+    [0-9]) ;;
+    *) echo "task-manager: $PROJECT_FILE: COMMENTS_DETAILS='$val' — нужно целое 0..9 (0 — без комментариев, 9 — на каждую строку). Работа прекращена." >&2; exit 1 ;;
+  esac
+}
 
 die() { echo "task-manager: $*" >&2; exit 1; }
 
@@ -61,8 +87,8 @@ trello_put() { # trello_put <path> [--data-urlencode k=v ...]
     || die "Trello API PUT ${path} упал (проверь ключи, сеть и права токена read/write)"
 }
 
-# Загружает .devbox-project (env-формат, ранее .trello-project) в переменные NAME/BOARD/LIST.
-# При наличии только legacy .trello-project — автоперенос уже выполнен блоком выше.
+# Загружает `.devbox` (env-формат, ранее .devbox-project / .trello-project)
+# в переменные NAME/BOARD/LIST. Валидирует COMMENTS_DETAILS=0..9 (иначе exit 1).
 load_project() {
   [[ -f "$PROJECT_FILE" ]] || die "нет $PROJECT_FILE — сначала: bash .opencode/scripts/task-manager/init.sh"
   set -a
@@ -70,6 +96,7 @@ load_project() {
   . "./$PROJECT_FILE"
   set +a
   [[ -n "${NAME:-}" ]] || die "$PROJECT_FILE без NAME — перезапусти: bash .opencode/scripts/task-manager/init.sh --force"
+  validate_comments_details
 }
 
 # Находит id доски по ТОЧНОМУ имени. Печатает id; exit 1 + подсказка иначе.
