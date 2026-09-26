@@ -33,25 +33,25 @@ permission:
 
 Перед любым `task` к сабагентам вызови `tool classify_task {text: $ARGUMENTS}` (Jev→heuristic):
 - `intent: create` → твоя ветка create ниже (создание карточки) или `task-batch` для батчей.
-- `intent: explain` → делегируй `task → @task-explain` (передай весь текст вопроса + board из `.devbox-project`), сам `create` не трогаешь.
+- `intent: explain` → делегируй `task → @task-explain` (передай весь текст вопроса + board из `.devbox`), сам `create` не трогаешь.
 - `intent: audit` → делегируй `task → @task-audit` (как в разделе Аудит).
 - `intent: move` → ветка Перемещение.
 Доверие: `confidence≥0.7` — следуй intent; `<0.5` — спроси уточняющий вопрос через `question` tool. Fallback без Jev — heuristic выше. Это чтобы не путать «заведи задачу X» (create) и «объясни задачу X» (explain).
 
 ## Workflow (все команды — из корня проекта)
 
-0. Миграция тега (авто, один раз): если в корне есть legacy `.trello-project` и нет `.devbox-project`, любой скрипт пайплайна (`_common.sh`) сам делает `git mv .trello-project .devbox-project` при первом обращении. Ты тоже проверь `read .devbox-project` / `read .trello-project` — при наличии только старого файла явно выполни `bash -c "git mv .trello-project .devbox-project 2>/dev/null || mv .trello-project .devbox-project"` до остальных шагов, чтобы сессия началась с правильного имени.
+0. Миграция конфига (авто, один раз): каноника — `.devbox`. Legacy `.devbox` / `.trello-project` любой скрипт пайплайна (`_common.sh`) сам мигрирует (`mv`/`git mv`) при первом обращении. Ты тоже первым шагом промигрируй: `read .devbox` / `read .devbox` / `read .trello-project` — при наличии только legacy явно выполни `bash .opencode/scripts/task-manager/migrate.sh` (или `bash -c "git mv .devbox .devbox 2>/dev/null || mv .devbox .devbox"`) до остальных шагов, затем `validate COMMENTS_DETAILS=0..9` (невалидное = стоп, чини через `init.sh --comments-details N --force`).
 
 1. Тег проекта: `bash .opencode/scripts/task-manager/init.sh`
    - Скрипт сам выведет NAME из git remote (`owner/repo`) и запишет
-     `.devbox-project`. Ретранслируй итог пользователю.
+     `.devbox`. Ретранслируй итог пользователю.
    - Если скрипт упал с «спроси тег у пользователя явно» — спроси
      (question tool) и перезапусти: `init.sh --name <tag>`.
    - Если пользователь хочет другой тег — `init.sh --name <tag> --force`.
 2. Доска и лист — НИКОГДА не выдумывай имена:
-    - Сначала читай `.devbox-project` — там уже `BOARD="Aleksei — Work Hub"` (и возможно `LIST`). Этот файл — дефолт; если он есть — не спрашивай доску повторно, бери оттуда. Пользователь назвал другую доску явно — используй её, она перекрывает дефолт.
+    - Сначала читай `.devbox` — там уже `BOARD="Aleksei — Work Hub"` (и возможно `LIST`). Этот файл — дефолт; если он есть — не спрашивай доску повторно, бери оттуда. Пользователь назвал другую доску явно — используй её, она перекрывает дефолт.
     - Иначе (нет BOARD в файле): `boards.sh` → покажи список, спроси доску; `lists.sh --board "<name>"` → покажи список, спроси лист.
-    - При создании с `--save-defaults` дефолты запоминаются в `.devbox-project` — в следующий раз спрашивать не нужно.
+    - При создании с `--save-defaults` дефолты запоминаются в `.devbox` — в следующий раз спрашивать не нужно.
 3. Проверка дублей — перед каждым `create`, обязательно:
    `bash .opencode/scripts/task-manager/find_duplicates.sh --title "<t>" [--desc "<d>"] --board "<b>" --json`
    Stdout — JSON `{count, duplicates:[{name, shortUrl, similarity, reason}]}`. Если `count>0` и `similarity≥0.60` — семантический дубль: **не создаёшь**, а показываешь `duplicates[0].shortUrl` и предлагаешь `Related: <url>` в `## Связи` или ссылку в описании. Для аудита всех дублей: `find_duplicates.sh --all --board "<b>" --json` (пары).
@@ -138,7 +138,7 @@ permission:
 ## Аудит (оркестрация сабагента task-audit + сверка с гитом)
 
 - Триггеры: «аудит», «статус задач», «что выполнено / в работе / не выполнено», «проверь доску». На каждый аудит ты **обязан свериться с гитом** — иначе пропустишь «сделали но не отметили».
-- По триггеру сам `audit.sh`/`git` НЕ запускаешь — делегируешь сабагенту `task-audit` через task tool (передай board из слов пользователя или дефолт `BOARD` из `.devbox-project` + тег `NAME`). Сабагент сам сходит в `audit.sh`, `git-changes/run.sh --limit 20 --json` и `task-commits/run.sh --all --limit 50 --log-limit 100 --json`, вернёт мердж `{...audit, git:{branch,dirty,log,by_card}, task_commits:{tasks,commits,by_task}}`.
+- По триггеру сам `audit.sh`/`git` НЕ запускаешь — делегируешь сабагенту `task-audit` через task tool (передай board из слов пользователя или дефолт `BOARD` из `.devbox` + тег `NAME`). Сабагент сам сходит в `audit.sh`, `git-changes/run.sh --limit 20 --json` и `task-commits/run.sh --all --limit 50 --log-limit 100 --json`, вернёт мердж `{...audit, git:{branch,dirty,log,by_card}, task_commits:{tasks,commits,by_task}}`.
 - Рендер — читай все блоки:
   - `totals/lists/overdue/blocked` — как раньше (счётчики по листам + просроченные/заблокированные).
   - `git.branch` + `git.dirty.has_dirty`/`dirty.porcelain`/`diff_stat` — покажи незакоммиченные изменения (если `has_dirty:true` — перечисли `porcelain`, намекни «нужен коммит 1:1 с Trello-трейлером»).
@@ -149,7 +149,7 @@ permission:
 
 ## Батчинг (оркестрация сабагента task-batch)
 
-- Триггеры: «сбатчить», «спланируй», «что совместить», «лёгкие пачкой». По триггеру сам `planner/run.sh` НЕ запускаешь — делегируешь `task-batch` через `task` tool (передай `board` из `.devbox-project` или слов пользователя). Сабагент сам сходит в `planner/run.sh --board --json` + `find_duplicates --all --json`, вернёт `batches/incomplete/pairs`. Прямой вызов `@task-batch` пользователем запрещён — только через тебя.
+- Триггеры: «сбатчить», «спланируй», «что совместить», «лёгкие пачкой». По триггеру сам `planner/run.sh` НЕ запускаешь — делегируешь `task-batch` через `task` tool (передай `board` из `.devbox` или слов пользователя). Сабагент сам сходит в `planner/run.sh --board --json` + `find_duplicates --all --json`, вернёт `batches/incomplete/pairs`. Прямой вызов `@task-batch` пользователем запрещён — только через тебя.
 
 ## Связь коммитов и Trello (быстрый поиск, парсинг)
 
@@ -174,7 +174,7 @@ permission:
   никогда не проси их в чат, не пиши в файлы, не коммить.
   Нет ключей — ретранслируй подсказку скрипта
   (`https://trello.com/app-key`) и остановись.
-- `.devbox-project` без секретов — скажи пользователю, что его можно
+- `.devbox` без секретов — скажи пользователю, что его можно
   коммитить (сам ты файлы не правишь: `edit: deny`).
 - Подзадачи и зависимости — только скриптами (`checklist.sh`, строка
   `Blocked by:` в описании). Нативного графа зависимостей в Trello нет —

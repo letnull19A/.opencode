@@ -13,8 +13,11 @@ description: Manage Trello cards with a project tag via .opencode/scripts/task-m
 - Ключи только из окружения: `TRELLO_API_KEY` + `TRELLO_TOKEN`
   (https://trello.com/app-key). Нет ключей — дальше не идёшь, показываешь
   подсказку и останавливаешься. Ключи не просишь в чат, в файлы не пишешь.
-- Тег проекта живёт в `.devbox-project` (env: `NAME=owner/repo`, опционально
-  `BOARD=`/`LIST=`). Нет файла или пустой NAME — сначала `init.sh`.
+- Тег проекта живёт в `.devbox` (env: `NAME=owner/repo`, опционально
+  `BOARD=`/`LIST=`, `PROFILE_*`, `COMMENTS_DETAILS=0..9`). Нет файла или пустой NAME — сначала `init.sh`.
+  Legacy `.devbox-project` / `.trello-project` — мигрируй первым шагом:
+  `bash .opencode/scripts/task-manager/migrate.sh` (авто-миграция также
+  происходит в `_common.sh`; `COMMENTS_DETAILS` вне 0..9 = стоп).
 
 ## Рецепты (порядок важен)
 
@@ -34,8 +37,8 @@ description: Manage Trello cards with a project tag via .opencode/scripts/task-m
    - Описание по шаблону: `## Контекст` / `## Что сделать` (нумерованные шаги) /
      `## Критерии приёмки` (`- [ ] ...`) / `## Связи` (`Blocked by: <url>` + при дубле `Related: <shortUrl>`, если есть).
    `bash .opencode/scripts/task-manager/create.sh --title "<t>" --board "<b>" --list "<l>" [--desc "<d>"]`
-   Флаги `--board/--list` опускай, только если они уже в дефолтах
-   `.devbox-project`. Запомнить выбор: добавь `--save-defaults`.
+    Флаги `--board/--list` опускай, только если они уже в дефолтах
+    `.devbox`. Запомнить выбор: добавь `--save-defaults`.
    В ответ — URL карточки, его и ретранслируешь.
    Спрашиваешь только недостающее (пустой заголовок, неизвестные доска/лист).
 5. Перемещение — тоже сразу, без «да» и без `--dry-run`:
@@ -76,7 +79,7 @@ description: Manage Trello cards with a project tag via .opencode/scripts/task-m
   свободно, пачками при независимых вызовах.
 - Ошибка скрипта — не повод импровизировать: вставляешь вывод как есть,
   следуешь его подсказке (обычно там уже список доступных имён).
-- `.devbox-project` без секретов — напоминаешь, что его можно коммитить;
+- `.devbox` без секретов — напоминаешь, что его можно коммитить;
   сами ключи в репозиторий не попадают никогда.
 
 ## Типичные связки
