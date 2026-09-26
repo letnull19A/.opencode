@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# init.sh — определяет тег проекта и пишет .devbox-project (env-формат, ранее .trello-project).
+# init.sh — определяет тег проекта и пишет `.devbox` (env-формат, ранее .devbox-project / .trello-project).
 #
 # Тег по умолчанию выводится из git remote как owner/repo (в нижнем регистре):
 # так однозначно видно, где живёт репозиторий — в организации или у
@@ -7,8 +7,13 @@
 # Без remote или при непарсящемся URL скрипт ничего не пишет и просит
 # спросить тег у пользователя явно.
 #
+# COMMENTS_DETAILS — детальность комментариев в коде, целое 0..9:
+#   0 — не писать комментарии вообще (сильнее любых промптов и AGENTS.md);
+#   9 — подробные комментарии на каждую строку.
+# Невалидное значение = жёсткая ошибка, работа прекращается (exit 1).
+#
 # Использование (из корня проекта):
-#   bash .opencode/scripts/task-manager/init.sh [--name <tag>] [--force] [--remote <name>]
+#   bash .opencode/scripts/task-manager/init.sh [--name <tag>] [--force] [--remote <name>] [--comments-details <0-9>]
 #
 # Файл без секретов — можно коммитить.
 
@@ -24,7 +29,7 @@ NAME_ARG=""
 FORCE=0
 REMOTE="origin"
 OUT="$PROJECT_FILE"
-# onboarding profile (опц., пишутся как PROFILE_* в .devbox-project)
+# onboarding profile (опц., пишутся как PROFILE_* в `.devbox`)
 PROFILE_MONOREPO=""
 PROFILE_MICROSERVICES=""
 PROFILE_FRONTEND=""
@@ -33,12 +38,14 @@ PROFILE_DATABASE=""
 PROFILE_TYPE=""
 PROFILE_COMMIT_MODE=""
 PROFILE_APPS_DIR=""
+COMMENTS_DETAILS_ARG=""
 
 usage() {
-  echo "Usage: init.sh [--name <tag>] [--force] [--remote <name>] [--monorepo <yes|no>] [--microservices <yes|no>] [--frontend <stack|none>] [--backend <stack|none>] [--database <type|none>] [--project-type <draft|mvp>] [--commit-mode <all|batch>] [--apps-dir <dir>]"
+  echo "Usage: init.sh [--name <tag>] [--force] [--remote <name>] [--monorepo <yes|no>] [--microservices <yes|no>] [--frontend <stack|none>] [--backend <stack|none>] [--database <type|none>] [--project-type <draft|mvp>] [--commit-mode <all|batch>] [--apps-dir <dir>] [--comments-details <0-9>]"
   echo "  Определяет тег проекта (по умолчанию owner/repo из git remote)"
-  echo "  и пишет .devbox-project в env-формате (NAME=..., без секретов)."
+  echo "  и пишет .devbox в env-формате (NAME=..., без секретов)."
   echo "  Onboarding-флаги PROFILE_* опциональны; их задаёт @init/@onboarding через question tool."
+  echo "  --comments-details 0..9: 0 — без комментариев вообще (сильнее промптов/AGENTS.md), 9 — на каждую строку."
 }
 
 while [[ $# -gt 0 ]]; do
@@ -54,25 +61,39 @@ while [[ $# -gt 0 ]]; do
     --project-type) PROFILE_TYPE="${2:?--project-type draft|mvp}"; shift 2 ;;
     --commit-mode) PROFILE_COMMIT_MODE="${2:?--commit-mode all|batch}"; shift 2 ;;
     --apps-dir) PROFILE_APPS_DIR="${2:?--apps-dir dir}"; shift 2 ;;
+    --comments-details|--comments_details|--comments) COMMENTS_DETAILS_ARG="${2:?--comments-details требует 0..9}"; shift 2 ;;
     -h|--help) usage; exit 0 ;;
     *) echo "task-manager: неизвестный аргумент '$1'" >&2; usage >&2; exit 1 ;;
   esac
 done
 
+# Строгая валидация COMMENTS_DETAILS: ровно одна цифра 0..9, иначе — стоп.
+if [[ -n "$COMMENTS_DETAILS_ARG" ]]; then
+  [[ "$COMMENTS_DETAILS_ARG" =~ ^[0-9]$ ]] || die "--comments-details='$COMMENTS_DETAILS_ARG' — нужно целое 0..9 (0 — без комментариев, 9 — на каждую строку). Работа прекращена."
+fi
+
 if [[ -f "$OUT" && "$FORCE" -eq 0 ]]; then
+  # даже в read-only ветке невалидный COMMENTS_DETAILS — жёсткая ошибка
+  validate_comments_details
   echo "== уже инициализировано ($OUT) =="
   cat "$OUT"
   echo "Перезаписать: добавь --force (BOARD/LIST сохранятся, NAME обновится)."
   exit 0
 fi
 
-# Сохраняем дефолты доски/листа и PROFILE_* при --force, чтобы не потерять.
+# Сохраняем дефолты доски/листа, PROFILE_* и COMMENTS_DETAILS при --force, чтобы не потерять.
 OLD_BOARD=""; OLD_LIST=""
 OLD_PROFILE=""
+OLD_COMMENTS=""
 if [[ -f "$OUT" ]]; then
   OLD_BOARD="$(grep -E '^BOARD=' "$OUT" | cut -d= -f2- || true)"
   OLD_LIST="$(grep -E '^LIST=' "$OUT" | cut -d= -f2- || true)"
   OLD_PROFILE="$(grep -E '^PROFILE_' "$OUT" || true)"
+  OLD_COMMENTS="$(grep -E '^COMMENTS_DETAILS=' "$OUT" | tail -n 1 || true)"
+  # старый файл с битым COMMENTS_DETAILS — сразу стоп, даже при --force без нового значения
+  if [[ -n "$OLD_COMMENTS" && -z "$COMMENTS_DETAILS_ARG" ]]; then
+    validate_comments_details
+  fi
 fi
 
 NAME="$NAME_ARG"
@@ -100,9 +121,10 @@ fi
 [[ "$NAME" != *$'\n'* && "$NAME" != *"="* ]] || die "тег не должен содержать перевод строки или '=': '$NAME'"
 
 {
-  echo "# .devbox-project — тег проекта для Trello-задач (task-manager pipeline, ранее .trello-project)."
+  echo "# .devbox — конфиг проекта (task-manager pipeline; ранее .devbox-project / .trello-project)."
   echo "# Сгенерировано scripts/task-manager/init.sh. Без секретов — можно коммитить."
   echo "# BOARD/LIST — дефолтные доска/лист (точные имена); запоминаются через create.sh --save-defaults."
+  echo "# COMMENTS_DETAILS=0..9 — детальность комментариев в коде: 0 — не писать вообще (сильнее любых промптов и AGENTS.md), 9 — подробно на каждую строку."
   echo "NAME=$NAME"
   if [[ -n "$OLD_BOARD" ]]; then
     _b="$(printf '%s' "$OLD_BOARD" | sed -e 's/^"//' -e 's/"$//')"
@@ -118,7 +140,6 @@ fi
     printf '%s\n' "$OLD_PROFILE"
   else
     # есть новые флаги — мерджим: сначала старые, затем перезаписываем переданными
-    # собираем ассоциативно через временный файл
     if [[ -n "$OLD_PROFILE" ]]; then
       # выводим старые кроме тех, что перезаписываются
       printf '%s\n' "$OLD_PROFILE" | while IFS= read -r line; do
@@ -144,6 +165,12 @@ fi
     [[ -z "$PROFILE_TYPE" ]] || echo "PROFILE_TYPE=$PROFILE_TYPE"
     [[ -z "$PROFILE_COMMIT_MODE" ]] || echo "PROFILE_COMMIT_MODE=$PROFILE_COMMIT_MODE"
     [[ -z "$PROFILE_APPS_DIR" ]] || echo "PROFILE_APPS_DIR=$PROFILE_APPS_DIR"
+  fi
+  # COMMENTS_DETAILS — новый флаг перекрывает старое значение; без флага старое сохраняется
+  if [[ -n "$COMMENTS_DETAILS_ARG" ]]; then
+    echo "COMMENTS_DETAILS=$COMMENTS_DETAILS_ARG"
+  elif [[ -n "$OLD_COMMENTS" ]]; then
+    printf '%s\n' "$OLD_COMMENTS"
   fi
 } > "$OUT"
 
