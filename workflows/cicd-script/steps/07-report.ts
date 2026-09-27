@@ -17,6 +17,7 @@ const classify = data.classify || {}
 const plan = data.plan || {}
 const tRaw = data.target || {}
 const gaps: any[] = tRaw.gaps || data.gaps || []
+const orchestrator = tRaw.spec?.orchestrator || tRaw.orchestrator || tRaw.target?.orchestrator || data.spec?.orchestrator || "unknown"
 const dryRun = !!data.dryRun
 
 const gaps_open = gaps.map((g: any) => ({
@@ -36,6 +37,7 @@ if (dryRun) next.push("dry-run preview — для реальных записе�
 console.log(JSON.stringify({
   script: scaffold.script || null,
   pipeline_type: classify.pipeline_type || null,
+  orchestrator,
   stages: scaffold.stages || (plan.stages || []).map((s: any) => s.id),
   blocked: scaffold.blocked || [],
   verify_ok: verify.ok ?? false,

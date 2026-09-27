@@ -16,6 +16,8 @@ let data: any = {}
 try { data = JSON.parse(readFileSync(p!, "utf-8")) } catch { }
 const stages: any[] = data.plan?.stages || []
 const pipeline_type = data.classify?.pipeline_type || "ci-gate"
+const tRaw5 = data.target || {}
+const orchestrator5 = tRaw5.spec?.orchestrator || tRaw5.orchestrator || tRaw5.target?.orchestrator || data.spec?.orchestrator || "unknown"
 const title = data.input?.title || "pipeline"
 const root = process.cwd()
 
@@ -36,7 +38,7 @@ const chain = stages.map((s) => `stage_${s.id}`).join(" && ") || "true"
 
 const lines = [
   "#!/usr/bin/env bash",
-  `# ${slug}.sh — ${pipeline_type} pipeline (workflow cicd-script).`,
+  `# ${slug}.sh — ${pipeline_type} pipeline, orchestrator ${orchestrator5} (workflow cicd-script).`,
   "# UNIX-way: одна функция — одна задача, композиция через &&, idempotent, --dry-run.",
   "# Секреты только из окружения, никогда литералами.",
   "set -euo pipefail",

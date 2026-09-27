@@ -2,7 +2,7 @@
 // @ts-nocheck
 // 03-classify — тип пайплайна + сложность + каких агентов задействовать + UNIX-профиль.
 // Jev primary (classify:"cicd"), fallback — эвристика от target.pipeline + gaps.
-// Вход: {survey:{...}, target:{target:{...}, gaps:[...]}, input:{title,desc}}
+// Вход: {survey:{...}, target:{target:{...orchestrator}, gaps:[...]}, input:{title,desc}}
 // Выход: {pipeline_type, complexity:{score,level}, agents:[{agent,why}], unix_style, confidence, reason, provider, _reads}
 
 import { readFileSync } from "fs"
@@ -50,7 +50,7 @@ const heuristic = {
   complexity: { score, level },
   agents, unix_style,
   confidence: gaps.length ? 0.7 : 0.85,
-  reason: `pipeline=${pipeline_type}, gaps=${gaps.length}, deploy=${target.deploy || "none"}`,
+  reason: `pipeline=${pipeline_type}, orchestrator=${target.orchestrator || "unknown"}, gaps=${gaps.length}, deploy=${target.deploy || "none"}`,
   provider: "heuristic", _reads: 1,
 }
 

@@ -40,7 +40,7 @@ export default tool({
     // Инфра/деплои → devops: docker-образы, dev/prod окружения, сети/порты/volumes, cgroups-лимиты, restart-политики
     const combinedText = `${input.title} ${input.desc}`
     const strongDevopsPattern =
-      /(dockerfile|docker-compose|docker\s+compose|докер|контейнер|docker\s+(image|образ|build|run|push)|compose\.ya?ml|\.env\.(dev|prod|example)|dev\s*\/\s*prod|cgroup|unless-stopped|always\s*:\s*true)/i
+      /(dockerfile|docker-compose|docker\s+compose|докер|контейнер|docker\s+(image|образ|build|run|push)|compose\.ya?ml|\.env\.(dev|prod|example)|dev\s*\/\s*prod|cgroup|unless-stopped|always\s*:\s*true|swarm|kubernetes|\bk8s\b|kubectl|helm)/i
     const hasEnvWord = /(окружени|environment|\.env)/i.test(combinedText)
     const hasInfraCtx = /(dev|prod|docker|compose|контейнер|config|деплой|deploy)/i.test(combinedText)
     const hasNetWord =
