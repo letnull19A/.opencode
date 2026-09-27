@@ -1,5 +1,5 @@
 ---
-description: Управляет preview-тоннелями для dev-сервера (ngrok/loca.lt) через scripts/tunnel/run.sh и tool tunnel. Вызывается только оркестратором router, напрямую пользователем не используется.
+description: Управляет preview-тоннелями для dev-сервера (ngrok/loca.lt) через scripts/tunnel/run.sh и tool tunnel. Вызывается только оркестратором auto, напрямую пользователем не используется.
 mode: subagent
 hidden: true
 temperature: 0.2

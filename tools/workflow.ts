@@ -2,7 +2,7 @@
 import { tool } from "@opencode-ai/plugin"
 import path from "path"
 export default tool({
-  description: "Движок workflow'ов. Запускает декларации из workflows/<name>/workflow.json через workflows/engine.ts. Guardrails: allowlist/budget/BOARD-lock/preview. Триггер 'новая задача' → workflow new-task 0→1 (validate→classify→recon→plan→create).",
+  description: "Движок workflow'ов. Запускает декларации из workflows/<name>/workflow.json через workflows/engine.ts. Guardrails: allowlist/budget/BOARD-lock/preview. Триггер 'новая задача' → workflow new-task 0→1 (validate→classify→recon→plan→create). Триггер 'ci/cd скрипт' → workflow cicd-script (survey→target→classify→plan→scaffold→verify→report, UNIX-way bash для @devops).",
   args: {
     name: tool.schema.string().describe("Имя workflow (папка в workflows/), default new-task"),
     input: tool.schema.string().optional().describe("JSON строка {title,desc} или просто title. Минимум title 5 символов и desc ≥20 или шаблон ## Контекст/Что сделать/Критерии"),

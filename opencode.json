@@ -16,7 +16,7 @@
       "model": "opencode-go/muse-spark-1.3-contributor",
       "mode": "primary"
     },
-    "router": {
+    "auto": {
       "model": "opencode-go/muse-spark-1.3-contributor",
       "mode": "all"
     },
@@ -26,6 +26,11 @@
       "hidden": true
     },
     "build-smart": {
+      "model": "opencode-go/muse-spark-1.3-contributor",
+      "mode": "subagent",
+      "hidden": true
+    },
+    "devops": {
       "model": "opencode-go/muse-spark-1.3-contributor",
       "mode": "subagent",
       "hidden": true
@@ -96,6 +101,37 @@
       "mode": "all"
     },
     "diagnostics": {
+      "model": "opencode-go/muse-spark-1.3-contributor",
+      "mode": "all"
+    },
+    "commit-writer": {
+      "model": "opencode-go/muse-spark-1.3-contributor",
+      "mode": "subagent",
+      "hidden": true
+    },
+    "issue-writer": {
+      "model": "opencode-go/muse-spark-1.3-contributor",
+      "mode": "subagent",
+      "hidden": true
+    },
+    "react-fix": {
+      "model": "opencode-go/muse-spark-1.3-contributor",
+      "mode": "all"
+    },
+    "refactor": {
+      "model": "opencode-go/muse-spark-1.3-contributor",
+      "mode": "primary"
+    },
+    "screenshot-report": {
+      "model": "opencode-go/muse-spark-1.3-contributor",
+      "mode": "primary"
+    },
+    "task-audit": {
+      "model": "opencode-go/muse-spark-1.3-contributor",
+      "mode": "subagent",
+      "hidden": true
+    },
+    "unit-test": {
       "model": "opencode-go/muse-spark-1.3-contributor",
       "mode": "all"
     }
@@ -172,7 +208,12 @@
       "git log *": "allow",
       "git show *": "allow",
       "git add *": "allow",
-      "git commit *": "allow"
+      "git commit *": "allow",
+      "git rev-parse *": "allow",
+      "git branch *": "allow",
+      "git worktree *": "allow",
+      "git reset *": "allow",
+      "git rev-list *": "allow"
     }
   }
 }
