@@ -1,0 +1,58 @@
+{
+  "name": "cicd-script",
+  "description": "Bash-скрипт CI/CD пайплайна в UNIX-философии: survey (что есть) → target (к чему идём) → classify (тип пайплайна + агенты) → plan (стадии) → scaffold (скелет scripts/cicd/*.sh) → verify (bash -n, запреты, секреты) → report (делегации).",
+  "trigger": "tool workflow {name:\"cicd-script\", input:{title,desc,target:{pipeline,registry,deploy}}} | просьба про bash/sh скрипт пайплайна/деплоя",
+  "unix": {
+    "one_job_per_function": true,
+    "composition": "pipes (stage_a && stage_b)",
+    "idempotent": true,
+    "dry_run": true,
+    "text_streams": "stdout — данные, stderr — логи",
+    "no_secrets_in_code": true,
+    "max_lines_per_script": 120
+  },
+  "steps": [
+    {
+      "id": "survey",
+      "run": "workflows/cicd-script/steps/01-survey.ts",
+      "needs": [],
+      "guardrails": { "allow_tools": ["read", "glob", "recon"], "max_reads": 10, "deny": ["edit", "write"] }
+    },
+    {
+      "id": "target",
+      "run": "workflows/cicd-script/steps/02-target.ts",
+      "needs": ["survey"],
+      "guardrails": { "allow_tools": ["question"], "max_reads": 14, "deny": ["edit", "write"] }
+    },
+    {
+      "id": "classify",
+      "run": "workflows/cicd-script/steps/03-classify.ts",
+      "needs": ["survey", "target"],
+      "guardrails": { "allow_tools": ["classify"], "max_reads": 16, "deny": ["edit", "write"] }
+    },
+    {
+      "id": "plan",
+      "run": "workflows/cicd-script/steps/04-plan.ts",
+      "needs": ["survey", "target", "classify"],
+      "guardrails": { "allow_tools": ["evol-plan"], "max_reads": 20, "deny": ["edit", "write"] }
+    },
+    {
+      "id": "scaffold",
+      "run": "workflows/cicd-script/steps/05-scaffold.ts",
+      "needs": ["plan"],
+      "guardrails": { "allow_tools": ["edit", "write"], "max_writes": 2, "deny": ["rm -rf", "--force", "push --force"] }
+    },
+    {
+      "id": "verify",
+      "run": "workflows/cicd-script/steps/06-verify.ts",
+      "needs": ["scaffold"],
+      "guardrails": { "allow_tools": ["bash", "check"], "max_reads": 26, "deny": ["edit", "write"] }
+    },
+    {
+      "id": "report",
+      "run": "workflows/cicd-script/steps/07-report.ts",
+      "needs": ["survey", "target", "classify", "plan", "scaffold", "verify"],
+      "guardrails": { "allow_tools": ["none"], "max_reads": 28, "deny": ["edit", "write"] }
+    }
+  ]
+}
