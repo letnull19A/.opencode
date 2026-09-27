@@ -54,11 +54,17 @@ description: Manage Trello cards with a project tag via .opencode/scripts/task-m
    через `--list` (точное имя; при единственном можно опустить).
    Независимые куски ценности — отдельные карточки по формату п.4, связанные
    через `## Связи` / `Blocked by`, а не чек-лист.
-7. Зависимости — строка `Blocked by: <url>` в секции `## Связи` описания
+7. Комментарии = обсуждение задачи текстом (веб-карточка требует JS — читаешь только скриптом):
+   `bash .opencode/scripts/task-manager/comments.sh --id <shortLink|id> --show` (stdout — только JSON
+   `card/count/comments[]` с автором/датой/текстом; `--limit N` для длинных тредов).
+   Карточка — через `--id | --url | --card` (+ `--from-board` при дублях имён), как в `checklist.sh`/`move.sh`.
+   Добавить: `--add "<текст>"`; поправить: `--edit <actionId> --text "<новый>"`; удалить: `--delete <actionId>`.
+   Обсуждения/уточнения по задаче пишешь только указанным текстом через `--add`, чужие комментарии не правишь и не удаляешь.
+8. Зависимости — строка `Blocked by: <url>` в секции `## Связи` описания
    (нативного графа в Trello нет; `audit.sh` парсит её в `blocked_by`).
    Пишешь только указанную пользователем зависимость, URL — только точный.
    Заблокированную задачу выполняешь как обычно, но помечаешь в отчёте.
-8. Аудит (только чтение, AI-first JSON для `@task-manager`):
+9. Аудит (только чтение, AI-first JSON для `@task-manager`):
    `bash .opencode/scripts/task-manager/audit.sh --board "<name>" [--tag "<t>" | --all]`
    Stdout — только JSON по `schema/audit.schema.json` (`totals/lists/overdue/blocked`).
    Прямо из чата не зовёшь — это делает сабагент `task-audit` по оркестрации `@task-manager`.
@@ -103,6 +109,10 @@ bash .opencode/scripts/task-manager/move.sh --card "Fix login" --list "Doing"
 # Подзадачи чек-листом + отметка выполнения:
 bash .opencode/scripts/task-manager/checklist.sh --card "Fix login" --create "Подзадачи" --items "Повторить баг;Починить;Покрыть тестом"
 bash .opencode/scripts/task-manager/checklist.sh --card "Fix login" --complete "Повторить баг"
+
+# Комментарии задачи текстом (без JS-веба):
+bash .opencode/scripts/task-manager/comments.sh --id "<shortLink>" --show
+bash .opencode/scripts/task-manager/comments.sh --card "Fix login" --add "Взял в работу"
 
 # Аудит доски (читает task-audit по оркестрации @task-manager, stdout — JSON):
 bash .opencode/scripts/task-manager/audit.sh --board "My board"

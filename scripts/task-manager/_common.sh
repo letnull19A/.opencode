@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # _common.sh — общие функции task-manager пайплайна. Не запускать напрямую:
-# его source'ят остальные скрипты (init/boards/lists/create/move/audit).
+# его source'ят остальные скрипты (init/boards/lists/create/move/audit/checklist/comments).
 # Требует: curl, python3. Секреты — только из окружения, никогда из файлов.
 
 set -euo pipefail
@@ -85,6 +85,14 @@ trello_put() { # trello_put <path> [--data-urlencode k=v ...]
     --data-urlencode "key=${TRELLO_API_KEY}" \
     --data-urlencode "token=${TRELLO_TOKEN}" "$@" \
     || die "Trello API PUT ${path} упал (проверь ключи, сеть и права токена read/write)"
+}
+
+trello_delete() { # trello_delete <path> [--data-urlencode k=v ...]
+  local path="$1"; shift
+  curl -fsSL -X DELETE "${TRELLO_API}${path}" \
+    --data-urlencode "key=${TRELLO_API_KEY}" \
+    --data-urlencode "token=${TRELLO_TOKEN}" "$@" \
+    || die "Trello API DELETE ${path} упал (проверь ключи, сеть и права токена read/write)"
 }
 
 # Загружает `.devbox` (env-формат, ранее .devbox-project / .trello-project)

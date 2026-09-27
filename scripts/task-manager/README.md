@@ -67,11 +67,12 @@
   `--all` — без фильтра) + `--limit N` (карточек на лист, по умолчанию 50).
   Просрочки (`due < now && !dueComplete`) и зависимости (`Blocked by:` в описании)
   считает скрипт, агент даты не сравнивает и зависимости не выдумывает.
-- `.opencode/scripts/task-manager/audit.sh` — read-only аудит доски, stdout —
-  ТОЛЬКО JSON (AI-first для `task-audit`): `--board "<name>"` (точное имя
-  или дефолт BOARD) + фильтр по метке (`NAME` по умолчанию, `--tag` перекрывает,
-  `--all` — без фильтра) + `--limit N` (карточек на лист, по умолчанию 50).
-  Просрочки (`due < now && !dueComplete`) считает скрипт, агент даты не сравнивает.
+- `.opencode/scripts/task-manager/comments.sh` — комментарии карточки:
+  `--show` (stdout — только JSON `card/count/comments[]` с автором/датой/текстом,
+  AI-first для разбора обсуждений без JS) + `--add "<текст>"` /
+  `--edit <actionId> --text "<новый>"` / `--delete <actionId>` /
+  `--limit N`. Карточка — `--id | --url | --card` (+ `--from-board`),
+  `--id` принимает и короткий shortLink.
 - `.opencode/scripts/task-manager/schema/audit.schema.json` — контракт
   `task-audit → task-manager` (`board/tag/filter/fetched_at/totals/lists/overdue/blocked`).
 - Зависимости — соглашение пайплайна (нативного графа в Trello нет): строка
@@ -114,5 +115,7 @@ bash .opencode/scripts/task-manager/create.sh --title "Test" --board "My board" 
 bash .opencode/scripts/task-manager/create.sh --title "Next"   # доска/лист уже из дефолтов
 bash .opencode/scripts/task-manager/move.sh --card "Next" --list "Doing"   # сразу, без «да» (--dry-run только по просьбе «покажи план»)
 bash .opencode/scripts/task-manager/checklist.sh --card "Next" --create "Подзадачи" --items "Шаг 1;Шаг 2"
+bash .opencode/scripts/task-manager/comments.sh --id "<shortLink>" --show | python3 -m json.tool  # комментарии задачи текстом (JSON)
+bash .opencode/scripts/task-manager/comments.sh --card "Next" --add "Взял в работу"
 bash .opencode/scripts/task-manager/audit.sh --board "My board" | python3 -m json.tool  # JSON для task-audit
 ```

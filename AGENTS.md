@@ -124,6 +124,7 @@ issue_provider: github
   `boards.sh` / `lists.sh` (discovery) + `create.sh` (card with NAME label)
   + `move.sh` (card → target list via PUT `idList`, `--dry-run` без мутаций)
   + `checklist.sh` (подзадачи чек-листом: create/add-item/complete/show JSON)
+  + `comments.sh` (комментарии карточки: `--show` JSON + add/edit/delete)
   + `audit.sh` (read-only board audit → JSON для `task-audit`, парсит
   `Blocked by:` в `blocked_by`) + `schema/audit.schema.json` (AI-контракт),
   всё via Trello REST; агент думает, скрипты исполняют; see
@@ -204,6 +205,7 @@ bash .opencode/scripts/task-manager/lists.sh --board "<name>"          # лис�
 bash .opencode/scripts/task-manager/create.sh --title "<t>" [--board "<b>"] [--list "<l>"] [--desc "<d>"] [--save-defaults]
 bash .opencode/scripts/task-manager/move.sh (--id <id> | --url <url> | --card "<name>") --list "<target>" [--to-board "<b>"] [--dry-run]
 bash .opencode/scripts/task-manager/checklist.sh --card "<name>" --create "Подзадачи" --items "Шаг 1;Шаг 2"
+bash .opencode/scripts/task-manager/comments.sh --id "<shortLink>" --show  # комментарии задачи текстом (JSON)
 bash .opencode/scripts/task-manager/audit.sh --board "<name>" [--tag "<t>" | --all]  # JSON для task-audit
 # карточка — сразу по просьбе пользователя, без «да»; нужны TRELLO_API_KEY/TRELLO_TOKEN в env.
 ```
