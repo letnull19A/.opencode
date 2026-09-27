@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # run.sh — проверки только для незакоммиченных файлов (экономия памяти).
-# Запускает typecheck / eslint (oxlint) / prettier только на изменённых файлах
-# и выводит результат в JSON, понятном ИИ-агенту.
+# Запускает typecheck / eslint (oxlint) / prettier для кода + программные
+# env (синтаксис KEY=VALUE, запрет #-комментариев, дубликаты) и
+# yaml (парсинг PyYAML если есть, иначе stdlib-эвристики; compose → services:)
+# только на изменённых файлах и выводит результат в JSON, понятном ИИ-агенту.
 #
 # Использование (из корня репо):
 #   bash .opencode/scripts/check/run.sh [--typecheck] [--lint] [--format] [--all]
@@ -12,6 +14,7 @@
 #   --lint       только lint (oxlint/eslint)
 #   --format     только prettier/oxfmt
 #   --all        то же что без флагов — все проверки
+# env (.env*) и yaml (*.yml/*.yaml) проверяются всегда, флагами не отключаются.
 #   --json       только JSON на stdout (по умолчанию JSON + human summary на stderr)
 #   --staged     только staged (git diff --cached), по умолчанию все незакоммиченные (staged+unstaged+untracked)
 #
@@ -82,7 +85,7 @@ if [[ -s "$TMPDIR/changed_raw.txt" ]]; then
 fi
 
 if [[ ! -s "$TMPDIR/changed.txt" ]]; then
-  JSON='{"files":[],"totals":{"typecheck":{"passed":true,"errors":0},"lint":{"passed":true,"errors":0},"format":{"passed":true,"errors":0}},"typecheck":[],"lint":[],"format":[],"summary":"no changed files"}'
+  JSON='{"files":[],"totals":{"typecheck":{"passed":true,"errors":0},"lint":{"passed":true,"errors":0},"format":{"passed":true,"errors":0},"env":{"passed":true,"errors":0},"yaml":{"passed":true,"errors":0}},"typecheck":[],"lint":[],"format":[],"env":[],"yaml":[],"summary":"no changed files"}'
   echo "$JSON"
   [[ $JSON_ONLY -eq 0 ]] && echo "check: нет изменённых файлов" >&2
   exit 0
@@ -315,19 +318,250 @@ else
   FMT_PASSED=true
 fi
 
+# ---------- env (программная валидация .env*) ----------
+# Правило: .env* содержит только KEY=VALUE (допустим `export KEY=VALUE` и пустые строки).
+# Любые пояснения — в README.md ## Окружение, а не в .env.
+# Ловит программно: #-комментарии (полные и инлайн `пробел+#`), строки без `=`,
+# невалидные имена, дубликаты ключей.
+ENV_ERRORS="$TMPDIR/env.json"
+echo "[]" > "$ENV_ERRORS"
+ENV_PASSED=true
+ENV_COUNT=0
+grep -E '(^|/)\.env(\..+)?$' "$TMPDIR/changed.txt" > "$TMPDIR/env.txt" || true
+if [[ -s "$TMPDIR/env.txt" ]]; then
+  python3 - "$TMPDIR/env.txt" "$ENV_ERRORS" << 'PY'
+import json, sys, re
+list_path, out_path = sys.argv[1], sys.argv[2]
+files = [l.strip() for l in open(list_path, encoding='utf-8', errors='ignore') if l.strip()]
+re_full = re.compile(r'^\s*#')
+re_kv = re.compile(r'^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=(.*)$')
+errs = []
+for f in files:
+    try:
+        seen = {}
+        with open(f, encoding='utf-8', errors='ignore') as fh:
+            for i, raw in enumerate(fh, 1):
+                line = raw.rstrip('\n')
+                if not line.strip():
+                    continue
+                if re_full.match(line):
+                    errs.append({"file": f, "line": i, "message": "комментарий в .env запрещён — перенеси в README.md ## Окружение (переменная | назначение)", "raw": line.strip()[:200]})
+                    continue
+                m = re_kv.match(line)
+                if not m:
+                    if '=' in line:
+                        errs.append({"file": f, "line": i, "message": "невалидное имя переменной в .env (латиница/цифры/_, с буквы/_, формат KEY=VALUE)", "raw": line.strip()[:200]})
+                    else:
+                        errs.append({"file": f, "line": i, "message": "строка без '=' в .env — только KEY=VALUE, пояснения в README.md ## Окружение", "raw": line.strip()[:200]})
+                    continue
+                key = m.group(1)
+                if key in seen:
+                    errs.append({"file": f, "line": i, "message": f"дубликат {key} в .env (первое на строке {seen[key]}) — оставь одно значение", "raw": line.strip()[:200]})
+                else:
+                    seen[key] = i
+                if re.search(r'\s#', line):
+                    errs.append({"file": f, "line": i, "message": "инлайн-комментарий в .env запрещён — перенеси в README.md ## Окружение", "raw": line.strip()[:200]})
+    except FileNotFoundError:
+        continue
+with open(out_path, 'w', encoding='utf-8') as o:
+    json.dump(errs, o, ensure_ascii=False)
+PY
+  ENV_COUNT="$(python3 -c 'import json; print(len(json.load(open("'"$ENV_ERRORS"'",encoding="utf-8"))))' 2>/dev/null || echo 0)"
+  [[ "$ENV_COUNT" -eq 0 ]] && ENV_PASSED=true || ENV_PASSED=false
+else
+  echo "[]" > "$ENV_ERRORS"
+  ENV_PASSED=true
+fi
+
+# ---------- yaml (программная валидация *.yml/*.yaml) ----------
+# Слои: 1) PyYAML safe_load если модуль доступен — полный парсинг;
+# 2) иначе stdlib-эвристики: табы (YAML их запрещает), дубли ключей маппинга
+# с учётом sequence-скоупов (`- ` элементы), баланс скобок/кавычек вне `#`-комментариев.
+# Для compose-файлов (имя содержит `compose`): обязательный top-level `services:`.
+YAML_ERRORS="$TMPDIR/yaml.json"
+echo "[]" > "$YAML_ERRORS"
+YAML_PASSED=true
+YAML_COUNT=0
+grep -E '\.(yaml|yml)$' "$TMPDIR/changed.txt" > "$TMPDIR/yaml.txt" || true
+if [[ -s "$TMPDIR/yaml.txt" ]]; then
+  python3 - "$TMPDIR/yaml.txt" "$YAML_ERRORS" << 'PY'
+import json, sys, re, os
+list_path, out_path = sys.argv[1], sys.argv[2]
+files = [l.strip() for l in open(list_path, encoding='utf-8', errors='ignore') if l.strip()]
+try:
+    import yaml as _yaml
+    HAVE_YAML = True
+except ImportError:
+    HAVE_YAML = False
+errs = []
+re_keyline = re.compile(r"^(\s*)([^:#'\"\s?!*&%|>\-][^:]*?)\s*:(?:\s|$)")
+re_dash = re.compile(r"^(\s*)-\s+(.*)$")
+
+def strip_comment(s):
+    q = None
+    esc = False
+    for idx, ch in enumerate(s):
+        if esc:
+            esc = False
+            continue
+        if ch == '\\' and q:
+            esc = True
+            continue
+        if q:
+            if ch == q:
+                q = None
+            continue
+        if ch in ('"', "'"):
+            q = ch
+            continue
+        if ch == '#' and (idx == 0 or s[idx - 1] in (' ', '\t')):
+            return s[:idx]
+    return s
+
+def balanced(s):
+    # баланс []{} и кавычек; `'`/`"` открывают только после начала/пробела/скобок —
+    # апостроф внутри слова (it's) не кавычка
+    stack = []
+    pairs = {']': '[', '}': '{'}
+    q = None
+    esc = False
+    opener_before = set(' \t:,([{,')
+    closer_after = set(' \t:,]})')
+    for idx, ch in enumerate(s):
+        if esc:
+            esc = False
+            continue
+        if ch == '\\' and q:
+            esc = True
+            continue
+        if q:
+            if ch == q and (idx + 1 >= len(s) or s[idx + 1] in closer_after or s[idx + 1] == ''):
+                q = None
+            continue
+        if ch in ('"', "'"):
+            prev = s[idx - 1] if idx > 0 else ' '
+            if prev in opener_before or prev == ' ':
+                q = ch
+            continue
+        if ch in '[{':
+            stack.append(ch)
+        elif ch in ']}':
+            if not stack or stack[-1] != pairs[ch]:
+                return False
+            stack.pop()
+    return not stack and q is None
+
+def heur_check(lines, fname):
+    out = []
+    # стек [indent, keys(set), seq_item?]
+    stack = []
+    for i, raw in enumerate(lines, 1):
+        line = raw.rstrip('\n').rstrip('\r')
+        if not line.strip():
+            continue
+        if '\t' in line:
+            out.append({"file": fname, "line": i, "message": "таб в YAML запрещён — только пробелы", "raw": line.strip()[:200]})
+            continue
+        code = strip_comment(line)
+        if not code.strip():
+            continue
+        if not balanced(code):
+            out.append({"file": fname, "line": i, "message": "дисбаланс скобок/кавычек в YAML-строке", "raw": line.strip()[:200]})
+        m_dash = re_dash.match(code)
+        key = None
+        if m_dash:
+            base = len(m_dash.group(1))
+            rest = m_dash.group(2)
+            if rest[:1] in ('{', '['):
+                continue  # flow-маппинг/список в строке — ключи не разбираем
+            eff = base + 2  # `- ` открывает скоуп элемента последовательности
+            m = re_keyline.match(rest)
+            if not m:
+                continue
+            key = m.group(2).strip()
+            while stack and stack[-1][0] > base:
+                stack.pop()
+            if stack and stack[-1][0] == eff and stack[-1][2]:
+                stack.pop()  # прошлый `- ` элемент того же родителя — свежий скоуп
+            if stack and stack[-1][0] == eff:
+                level = stack[-1][1]
+            else:
+                level = set()
+                stack.append([eff, level, True])
+        else:
+            m = re_keyline.match(code)
+            if not m:
+                continue
+            indent = len(m.group(1))
+            key = m.group(2).strip()
+            while stack and stack[-1][0] > indent:
+                stack.pop()
+            if stack and stack[-1][0] == indent:
+                level = stack[-1][1]
+            else:
+                level = set()
+                stack.append([indent, level, False])
+        if key == '<<':
+            continue  # merge-ключи легальны повторно
+        if key in level:
+            out.append({"file": fname, "line": i, "message": f"дубликат ключа '{key}' в YAML-маппинге", "raw": line.strip()[:200]})
+        else:
+            level.add(key)
+    return out
+
+for f in files:
+    try:
+        with open(f, encoding='utf-8', errors='ignore') as fh:
+            text = fh.read()
+    except FileNotFoundError:
+        continue
+    lines = text.splitlines()
+    is_compose = 'compose' in os.path.basename(f).lower()
+    if HAVE_YAML:
+        try:
+            doc = _yaml.safe_load(text)
+        except _yaml.YAMLError as e:
+            mark = getattr(e, 'problem_mark', None)
+            ln = (mark.line + 1) if mark is not None else 0
+            col = (mark.column + 1) if mark is not None else 0
+            raw = lines[ln - 1].strip()[:200] if mark is not None and 0 < ln <= len(lines) else ""
+            msg = str(e).splitlines()[0][:300] if str(e) else "YAML syntax error"
+            errs.append({"file": f, "line": ln, "column": col, "message": f"YAML-синтаксис: {msg}", "raw": raw})
+            continue
+        if is_compose:
+            if not isinstance(doc, dict) or 'services' not in doc:
+                errs.append({"file": f, "line": 1, "message": "compose-файл без top-level services: — сломанная структура", "raw": (lines[0].strip()[:200] if lines else "")})
+    else:
+        errs.extend(heur_check(lines, f))
+        if is_compose and not any(re.match(r'^services\s*:', strip_comment(l)) for l in lines):
+            errs.append({"file": f, "line": 1, "message": "compose-файл без top-level services: — сломанная структура", "raw": (lines[0].strip()[:200] if lines else "")})
+with open(out_path, 'w', encoding='utf-8') as o:
+    json.dump(errs, o, ensure_ascii=False)
+PY
+  YAML_COUNT="$(python3 -c 'import json; print(len(json.load(open("'"$YAML_ERRORS"'",encoding="utf-8"))))' 2>/dev/null || echo 0)"
+  [[ "$YAML_COUNT" -eq 0 ]] && YAML_PASSED=true || YAML_PASSED=false
+else
+  echo "[]" > "$YAML_ERRORS"
+  YAML_PASSED=true
+fi
+
 # ---------- итоговый JSON ----------
 FILES_JSON="$(python3 -c 'import json; print(json.dumps([l.strip() for l in open("'"$TMPDIR/changed.txt"'",encoding="utf-8") if l.strip()], ensure_ascii=False))' 2>/dev/null || echo '[]')"
 
-JSON_OUT="$(python3 - "$FILES_JSON" "$TC_ERRORS" "$LINT_ERRORS" "$FMT_ERRORS" << 'PY'
+JSON_OUT="$(python3 - "$FILES_JSON" "$TC_ERRORS" "$LINT_ERRORS" "$FMT_ERRORS" "$ENV_ERRORS" "$YAML_ERRORS" << 'PY'
 import json, sys
 files=json.loads(sys.argv[1])
 tc=json.load(open(sys.argv[2],encoding='utf-8'))
 lint=json.load(open(sys.argv[3],encoding='utf-8'))
 fmt=json.load(open(sys.argv[4],encoding='utf-8'))
+env=json.load(open(sys.argv[5],encoding='utf-8'))
+yml=json.load(open(sys.argv[6],encoding='utf-8'))
 tc_pass=len(tc)==0
 lint_pass=len(lint)==0
 fmt_pass=len(fmt)==0
-all_pass=tc_pass and lint_pass and fmt_pass
+env_pass=len(env)==0
+yml_pass=len(yml)==0
+all_pass=tc_pass and lint_pass and fmt_pass and env_pass and yml_pass
 if not files:
     summary="no changed files"
 elif all_pass:
@@ -337,6 +571,8 @@ else:
     if not tc_pass: parts.append(f"typecheck: {len(tc)} errors")
     if not lint_pass: parts.append(f"lint: {len(lint)} errors")
     if not fmt_pass: parts.append(f"format: {len(fmt)} files")
+    if not env_pass: parts.append(f"env: {len(env)} errors")
+    if not yml_pass: parts.append(f"yaml: {len(yml)} errors")
     summary=", ".join(parts) + f" in {len(files)} changed files"
 out={
     "files": files,
@@ -344,13 +580,17 @@ out={
         "typecheck": {"passed": tc_pass, "errors": len(tc)},
         "lint": {"passed": lint_pass, "errors": len(lint)},
         "format": {"passed": fmt_pass, "errors": len(fmt)},
+        "env": {"passed": env_pass, "errors": len(env)},
+        "yaml": {"passed": yml_pass, "errors": len(yml)},
         "all_passed": all_pass
     },
     "typecheck": tc,
     "lint": lint,
     "format": fmt,
+    "env": env,
+    "yaml": yml,
     "summary": summary,
-    "hint": "typecheck/lint/format — массивы ошибок; files — проверенные незакоммиченные файлы; totals — сводка. Запускай только на changed файлах, экономит память."
+    "hint": "typecheck/lint/format/env/yaml — массивы ошибок; files — проверенные незакоммиченные файлы; totals — сводка. Запускай только на changed файлах, экономит память."
 }
 print(json.dumps(out, ensure_ascii=False, indent=2))
 PY
@@ -363,6 +603,8 @@ if [[ $JSON_ONLY -eq 0 ]]; then
 if j["typecheck"]: print(f"typecheck errors: {len(j[\"typecheck\"])}", file=sys.stderr)
 if j["lint"]: print(f"lint errors: {len(j[\"lint\"])}", file=sys.stderr)
 if j["format"]: print(f"format errors: {len(j[\"format\"])}", file=sys.stderr)
+if j.get("env"): print(f"env errors: {len(j[\"env\"])}", file=sys.stderr)
+if j.get("yaml"): print(f"yaml errors: {len(j[\"yaml\"])}", file=sys.stderr)
 ' "$JSON_OUT" 2>/dev/null || echo "summary: $(echo "$JSON_OUT" | python3 -c 'import json,sys; print(json.load(sys.stdin)["summary"])')" >&2
 fi
 
