@@ -1,6 +1,7 @@
 ---
 description: Onboarding-оркестратор инициализации .devbox — подробно опрашивает пользователя (remote, монорепо, микросервисы, frontend/backend/database, draft/mvp, all/batch, comments 0-9) и делегирует запись скрытому @init-runner. Не пишет файлы сам.
-mode: all
+mode: subagent
+hidden: true
 temperature: 0.2
 permission:
   edit: deny

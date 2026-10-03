@@ -1,6 +1,7 @@
 ---
 description: Управляет git worktree для параллельной работы — создаёт, листает, проверяет и удаляет worktrees через scripts/worktree/run.sh. Используй когда просят параллельную ветку, второй инстанс opencode или изолированную копию репо.
-mode: all
+mode: subagent
+hidden: true
 temperature: 0.2
 permission:
   edit: deny

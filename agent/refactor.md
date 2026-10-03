@@ -1,6 +1,7 @@
 ---
 description: Universal refactoring agent. Performs deterministic, architecture-compliant refactoring in any project by first discovering its conventions.
-mode: primary
+mode: subagent
+hidden: true
 temperature: 0.2
 permission:
   edit: allow

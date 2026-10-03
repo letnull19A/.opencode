@@ -105,8 +105,8 @@ issue_provider: github
   верификация — реальным раннером, возвраты по `PIPELINE_MAX_RETRIES`;
   git агент не трогает (коммиты — `/commit`, пуш — `/push`).
 - Component-design pipeline (при планировании/проектировании React-компонента):
-  дизайн думает только `@component-builder` (read-only, `mode: all`) —
-  primary-агент, включая Plan, компонент сам не проектирует, а делегирует
+  дизайн думает только `@component-builder` (read-only hidden subagent) —
+  включая Plan, компонент сам не проектирует, а делегирует
   дизайн ему; агент возвращает в чат дерево компонентов, ответственности,
   props-контракты и разбиение большого компонента на мелкие; UI-кит не
   навязывает; код не пишет — реализация остаётся за `build`/`@refactor`,
@@ -116,23 +116,25 @@ issue_provider: github
 
 - `agent/` — opencode subagents (`issue-writer`, `screenshot-report`,
   `component-builder`, `refactor`, `task-manager`, `task-audit`, `react-fix`, `unit-test`).
-  `component-builder` — `mode: all`, read-only проектировщик React-компонентов
+  `component-builder` — hidden subagent, read-only проектировщик React-компонентов
   (edit/bash запрещены): выдаёт в чат дерево компонентов, ответственности,
   props-контракты и декомпозицию большого компонента на мелкие, UI-кит
   не навязывает, код не пишет.
-  `task-manager` — `mode: all` (и primary, и subagent), думает за весь
+  `task-manager` — hidden subagent (вызов только через `/new-task`, `@auto`
+  или `task`), думает за весь
   task-manager пайплайн, права зажаты (bash только на `scripts/task-manager/*`).
   `task-audit` — `mode: subagent`, только аудит по делегированию `task-manager`,
   возврат строго JSON по `scripts/task-manager/schema/audit.schema.json`.
-  `react-fix` — тоже `mode: all`; думает за весь react-fix пайплайн
+  `react-fix` — hidden subagent (вызов только через `/fix`, `@auto`
+  или `task`); думает за весь react-fix пайплайн
   (поиск классов — только скриптом, правки — только после выясненного
   «что менять», см. `scripts/react-fix/README.md`).
-  `unit-test` — тоже `mode: all`; пишет юнит-тесты под любой фреймворк,
+  `unit-test` — hidden subagent; пишет юнит-тесты под любой фреймворк,
   синтаксис фреймворка — только из Context7 MCP (по памяти запрещено).
 - `skills/tunnel-manager/SKILL.md` — preview-tunnel runner (wraps
   `scripts/tunnel/`).
-- `skills/ci/SKILL.md` — vendor-lock-free GitHub Actions CI/CD (требования→исполнение): `@ci` (`mode:all`) опрашивает пользователя (type/registry/image/platforms/cache/deploy + монорепо `apps/<app>`) → `task → @ci-runner` (`hidden:subagent`) скаффолдит `scripts/ci/scaffold.sh --type ci|docker|all [--monorepo --app]` из `scripts/ci/templates/*.yml` → `.github/workflows/`; `workflows.sh status|logs` — read-only; registry-agnostic (`vars.DOCKER_REGISTRY`/`vars.DOCKER_IMAGE`/`secrets.REGISTRY_*` + `GITHUB_TOKEN` fallback), buildx + gha cache, `paths: apps/<app>/**` для монорепо, без cloud-экшенов.
-- `skills/init/SKILL.md` — onboarding инициализации `.devbox` (требования→исполнение): `@init` (`mode:all`) опрашивает пользователя (remote, монорепо, микросервисы, frontend/backend/database, тип draft/mvp, коммиты all/batch, комментарии `COMMENTS_DETAILS 0..9`) → `task → @init-runner` (`hidden:subagent`) пишет `.devbox` через `scripts/task-manager/init.sh` с `PROFILE_*` + `COMMENTS_DETAILS` (можно коммитить), без секретов. Миграция legacy — `migrate.sh` первым шагом.
+- `skills/ci/SKILL.md` — vendor-lock-free GitHub Actions CI/CD (требования→исполнение): `@ci` (hidden subagent) опрашивает пользователя (type/registry/image/platforms/cache/deploy + монорепо `apps/<app>`) → `task → @ci-runner` (`hidden:subagent`) скаффолдит `scripts/ci/scaffold.sh --type ci|docker|all [--monorepo --app]` из `scripts/ci/templates/*.yml` → `.github/workflows/`; `workflows.sh status|logs` — read-only; registry-agnostic (`vars.DOCKER_REGISTRY`/`vars.DOCKER_IMAGE`/`secrets.REGISTRY_*` + `GITHUB_TOKEN` fallback), buildx + gha cache, `paths: apps/<app>/**` для монорепо, без cloud-экшенов.
+- `skills/init/SKILL.md` — onboarding инициализации `.devbox` (требования→исполнение): `@init` (hidden subagent) опрашивает пользователя (remote, монорепо, микросервисы, frontend/backend/database, тип draft/mvp, коммиты all/batch, комментарии `COMMENTS_DETAILS 0..9`) → `task → @init-runner` (`hidden:subagent`) пишет `.devbox` через `scripts/task-manager/init.sh` с `PROFILE_*` + `COMMENTS_DETAILS` (можно коммитить), без секретов. Миграция legacy — `migrate.sh` первым шагом.
 - `skills/docker-pack/SKILL.md` — упаковка Docker по слоям (требования→исполнение): любой агент `task → @docker-pack` (`hidden:subagent`) → `task → @recon` (stack/зависимости) → `scripts/docker-pack/scaffold.sh --stack node|python|go [--app --context --dockerfile]` из `scripts/docker-pack/templates/Dockerfile.*` + `.dockerignore` (deps кэш отдельно от `COPY .`, multi-stage, non-root runner); монорепо `apps/<app>` контекст изолирован.
 - `skills/commit/SKILL.md` — стратегия атомарных коммитов (Conventional
   Commits, группировка по интентам, сразу по явной просьбе без «да», без push).
@@ -211,7 +213,12 @@ issue_provider: github
 ## Departments (отделы)
 
 Агенты поделены на отделы по стадиям пайплайна — отдел определяет зону
-ответственности. Владелец `DESIGN.md` — человек; агентам всех отделов файл
+ответственности. Точка входа — только `@auto` + slash-команды (тонкие
+раннеры на builtin `build` с делегированием через `task`); все остальные
+кастомные агенты — hidden subagents за workflows/классификатором, напрямую
+пользователем не вызываются. Вектор — workflow-модель и программное
+управление моделями/агентами.
+Владелец `DESIGN.md` — человек; агентам всех отделов файл
 только для чтения, правки вносит только владелец по точным предложениям
 агентов (патч в чат → вносит человек → approve → коммит). Запрет правок
 привязан к UI-ядру (`react-*` + любой агент за UI-задачей), а не к отделу.

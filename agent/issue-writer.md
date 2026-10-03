@@ -1,6 +1,7 @@
 ---
 description: Собирает контекст проблемы и выдаёт СТРОГО валидный JSON по .opencode/scripts/issue-writer/schema/issue.schema.json. Не пишет markdown, не создаёт issue, не выбирает провайдера — этим занимаются скрипты.
 mode: subagent
+hidden: true
 # model: не задаём намеренно — наследует модель текущей сессии/агента,
 #        конкретную модель выбирает программист через `opencode.json` или флаг --model.
 temperature: 0.2

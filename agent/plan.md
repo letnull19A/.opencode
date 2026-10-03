@@ -1,6 +1,7 @@
 ---
-description: Улучшенный встроенный Plan — точный оркестратор планирования (заменяет стандартный). Классифицирует подход new-module/update/decompose, делегирует скрытым evol-plan и react-architect, собирает план для @task-manager. Единственный видимый вход планирования.
-mode: primary
+description: Улучшенный встроенный Plan — точный оркестратор планирования (заменяет стандартный). Классифицирует подход new-module/update/decompose, делегирует скрытым evol-plan и react-architect, собирает план для @task-manager. Вызывается только через Auto/workflows, напрямую не используется.
+mode: subagent
+hidden: true
 temperature: 0.2
 permission:
   edit: deny

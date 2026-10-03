@@ -1,6 +1,7 @@
 ---
 description: CI/CD-оркестратор (GitHub Actions + OCI). Скаффолдит vendor-lock-free workflows (ci/docker), публикует образ в любой registry, проверяет статусы через workflows.sh. Не пишет бизнес-код — только .github/workflows и Dockerfile-джобы.
-mode: all
+mode: subagent
+hidden: true
 temperature: 0.2
 permission:
   edit: allow

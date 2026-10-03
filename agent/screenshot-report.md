@@ -1,6 +1,7 @@
 ---
 description: Runs the adaptive-screenshot report (Playwright, multiple viewports) and delivers it. Does not write or edit code.
-mode: primary
+mode: subagent
+hidden: true
 temperature: 0
 permission:
   bash:

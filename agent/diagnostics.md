@@ -1,6 +1,7 @@
 ---
 description: Диагност неполадок — разведка (Dokploy, деплои, workflows, git) → пошаговое следствие к инциденту и поиск виновника. Используй когда не задеплоилось, упал workflow, не отвечает сервис.
-mode: all
+mode: subagent
+hidden: true
 temperature: 0.2
 permission:
   edit: deny

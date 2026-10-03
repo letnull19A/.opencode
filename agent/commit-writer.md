@@ -1,6 +1,7 @@
 ---
 description: Пишет правильные Conventional Commits — получает список изменений, делает очень краткое summary и разбивает на атомарные коммиты. Только коммиты, без пуша.
 mode: subagent
+hidden: true
 temperature: 0.2
 permission:
   edit: deny

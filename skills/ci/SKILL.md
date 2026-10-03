@@ -9,7 +9,7 @@ description: Scaffold and maintain vendor-lock-free GitHub Actions CI/CD that bu
 
 ## Зоны ответственности
 
-- **`@ci` (requirements, `mode:all`):** разведка (`workflows.sh status` + `glob .github/workflows` + `ls apps`/`glob apps/*/package.json apps/*/Dockerfile`) → подробный опрос через `question` tool (тип пайплайна, монорепо `apps/<app>` vs single, registry, image, context/dockerfile, platforms, cache, триггеры+paths, деплой, `--force`) → делегирует `task → @ci-runner` с JSON требований. Сам `scaffold.sh`/`edit` не зовёт.
+- **`@ci` (requirements, hidden subagent):** разведка (`workflows.sh status` + `glob .github/workflows` + `ls apps`/`glob apps/*/package.json apps/*/Dockerfile`) → подробный опрос через `question` tool (тип пайплайна, монорепо `apps/<app>` vs single, registry, image, context/dockerfile, platforms, cache, триггеры+paths, деплой, `--force`) → делегирует `task → @ci-runner` с JSON требований. Сам `scaffold.sh`/`edit` не зовёт.
 - **`@ci-runner` (execution, `mode:subagent hidden:true`):** принимает JSON от `@ci`, валидирует, зовёт `scaffold.sh --type ... [--registry] [--image] [--monorepo --app --apps-dir --context --dockerfile] [--force]`, точечно правит `PLATFORMS`/`cache`/`deploy`/`paths` если нужно, проверяет `git status/diff`, возвращает `{created, vars_hint}`. Пользователя не опрашивает.
 
 ## Workflow (из корня consumer-репо, где лежит `.opencode/`)
