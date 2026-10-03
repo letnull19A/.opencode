@@ -54,6 +54,19 @@ git rev-parse --is-inside-work-tree >/dev/null 2>&1 \
 
 TOP="$(git rev-parse --show-toplevel)"
 BRANCH="$(git branch --show-current || true)"
+SYNC_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+print_pr_url() {
+  local pr_out="" pr_link=""
+  if [[ -x "$SYNC_SCRIPT_DIR/../pr/get-pr-url.sh" ]]; then
+    pr_out="$(bash "$SYNC_SCRIPT_DIR/../pr/get-pr-url.sh" --branch "$BRANCH" || true)"
+    echo "$pr_out"
+    pr_link="$(echo "$pr_out" | grep -E '^PR_URL: ' | awk '{print $2}' || true)"
+  fi
+  # Контекст PR обновляется сам: если PR есть — сразу показываем живую стадию.
+  if [[ -n "$pr_link" && "$pr_link" != "none" && -x "$SYNC_SCRIPT_DIR/../pr/status-pr.sh" ]]; then
+    bash "$SYNC_SCRIPT_DIR/../pr/status-pr.sh" --branch "$BRANCH" --short || true
+  fi
+}
 if [[ -z "$BRANCH" ]]; then
   echo "sync: detached HEAD — не синкаю. Переключись на ветку: git switch <branch>" >&2
   exit 1
@@ -91,6 +104,8 @@ if [[ -z "$UPSTREAM" ]] || ! git rev-parse --verify --quiet '@{u}' >/dev/null; t
     echo "upstream: $UPSTREAM (привязан только что)"
   else
     echo "Нечего подтягивать: ветки '$BRANCH' на '$REMOTE' нет (возможно, её ещё не пушили — см. /push)."
+    echo "== PR =="
+    print_pr_url
     exit 0
   fi
 fi
@@ -104,6 +119,8 @@ BEHIND="$(git rev-list --count 'HEAD..@{u}')"
 echo "upstream: $UPSTREAM (ahead $AHEAD, behind $BEHIND)"
 if [[ "$BEHIND" -eq 0 ]]; then
   echo "Нечего подтягивать: локальная ветка уже актуальна."
+  echo "== PR =="
+  print_pr_url
   exit 0
 fi
 echo "== входящие коммиты (HEAD..$UPSTREAM, $BEHIND) =="
@@ -115,6 +132,8 @@ fi
 if [[ "$DRY_RUN" -eq 1 ]]; then
   echo "== dry-run: ничего не меняю =="
   echo "dry-run OK: выше — то, что приехало бы через pull --rebase --autostash."
+  echo "== PR =="
+  print_pr_url
   exit 0
 fi
 
@@ -138,3 +157,5 @@ git status --short --branch
 echo "== новые коммиты сверху (верхние 10) =="
 git log --oneline -10
 echo "Готово: ветка '$BRANCH' подтянута с '$REMOTE' через rebase, без merge-коммитов."
+echo "== PR =="
+print_pr_url

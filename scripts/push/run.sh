@@ -53,6 +53,19 @@ git rev-parse --is-inside-work-tree >/dev/null 2>&1 \
 
 TOP="$(git rev-parse --show-toplevel)"
 BRANCH="$(git branch --show-current || true)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+print_pr_url() {
+  local pr_out="" pr_link=""
+  if [[ -x "$SCRIPT_DIR/../pr/get-pr-url.sh" ]]; then
+    pr_out="$(bash "$SCRIPT_DIR/../pr/get-pr-url.sh" --branch "$BRANCH" || true)"
+    echo "$pr_out"
+    pr_link="$(echo "$pr_out" | grep -E '^PR_URL: ' | awk '{print $2}' || true)"
+  fi
+  # Контекст PR обновляется сам: если PR есть — сразу показываем живую стадию.
+  if [[ -n "$pr_link" && "$pr_link" != "none" && -x "$SCRIPT_DIR/../pr/status-pr.sh" ]]; then
+    bash "$SCRIPT_DIR/../pr/status-pr.sh" --branch "$BRANCH" --short || true
+  fi
+}
 if [[ -z "$BRANCH" ]]; then
   echo "push: detached HEAD — не отправляю. Переключись на ветку: git switch <branch>" >&2
   exit 1
@@ -89,6 +102,8 @@ if [[ -n "$UPSTREAM" ]] && git rev-parse --verify --quiet '@{u}' >/dev/null; the
   echo "upstream: $UPSTREAM (ahead $AHEAD, behind $BEHIND)"
   if [[ "$AHEAD" -eq 0 ]]; then
     echo "Нечего отправлять: локальная ветка не опережает $UPSTREAM."
+    echo "== PR =="
+    print_pr_url
     exit 0
   fi
   echo "== коммиты к отправке ($UPSTREAM..HEAD) =="
@@ -106,6 +121,8 @@ if [[ "$DRY_RUN" -eq 1 ]]; then
   echo "== dry-run: ничего не отправляю =="
   git push --dry-run "${PUSH_ARGS[@]:1}"
   echo "dry-run OK: коммиты готовы к отправке (см. выше)."
+  echo "== PR =="
+  print_pr_url
   exit 0
 fi
 
@@ -115,3 +132,5 @@ git "${PUSH_ARGS[@]}"
 echo "== итог =="
 git status --short --branch
 echo "Готово: зафиксированные коммиты ветки '$BRANCH' отправлены в '$REMOTE'."
+echo "== PR =="
+print_pr_url

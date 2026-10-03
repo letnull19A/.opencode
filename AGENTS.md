@@ -17,6 +17,32 @@ issue_provider: github
 - Issue pipeline: never call `create-issue.sh` directly, never run `create`
   without `preview` + explicit user "yes". Only `@issue-writer` thinks (LLM);
   everything after it is deterministic scripts.
+- PR URL rule (все git-операции): агент гарантированно отдаёт кликабельную
+  ссылку на PR. При создании — только через
+  `bash .opencode/scripts/pr/create-pr.sh --title "<title>" --json /tmp/pr.json --base <base>`
+  и ретрансляция строки `PR_URL: <url>` из stdout. При любом упоминании PR
+  и после `/push` / `/sync` / `/commit` — обязательно
+  `bash .opencode/scripts/pr/get-pr-url.sh` и ретрансляция `PR_URL:`
+  (или `PR_URL: none` + как создать). Ссылку не выдумывать, ответ про PR
+  без вызова скрипта запрещён.
+- PR body rule: агент НЕ пишет текст PR свободной формой. Только JSON по
+  `scripts/pr/schema/pr.schema.json` → `validate-pr-data.py` →
+  `create-pr.sh --json` (скрипт сам рендерит через `render-pr.py`:
+  `Summary` → `Changes` → `How to verify` → `Notes`). `--body` —
+  только для исключений.
+- PR status rule: перед ЛЮБЫМ ответом о состоянии PR (конфликты, checks,
+  reviews, готов ли к мержу) агент выполняет
+  `bash .opencode/scripts/pr/status-pr.sh [--branch <name>]` и отвечает
+  СТРОГО по его выводу, а не по памяти. `CONFLICTS: unknown` означает
+  «не знаю», а не «конфликтов нет» — отсутствие конфликтов утверждать
+  только при `CONFLICTS: no`. Если скрипт упал или вернул unknown —
+  честно сказать и показать команду проверки, а не выдумывать статус.
+- PR merge rule: агент НИКОГДА сам не принимает/не мержит PR — ни через
+  `gh pr merge`, `glab mr merge`, `tea * merge`, REST `/merge`, ни через
+  `--auto` и `gh api .../merge`. PR принимает только человек (в UI или
+  своим CLI). Механически запрещено в `opencode.json` (`deny`, работает
+  даже в auto-режиме). Если просят «замержи» — не мержить, а отдать
+  человеку `PR_URL:` + свежий `status-pr.sh` и команду для ручного мержа.
 - Push pipeline (внутри `/push`): never `git add` / `git commit` / manual
   `git push` / `--force`. Only `bash .opencode/scripts/push/run.sh` — it pushes
   committed commits only, uncommitted files always stay local.
@@ -114,6 +140,14 @@ issue_provider: github
   orchestrated by `build` (делегирует `@unit-test`/`@refactor`).
 - `scripts/push/` — `run.sh` (deterministic `git push` of committed commits
   only; no `add`/`commit`/`--force`; see `scripts/push/README.md`).
+- `scripts/pr/` — `schema/pr.schema.json` (LLM contract) +
+  `validate-pr-data.py` → `render-pr.py` → `create-pr.sh` (`gh`/`glab`/`tea`/
+  REST bitbucket, контракт: последняя строка stdout всегда `PR_URL: <url>`) +
+  `get-pr-url.sh` (read-only поиск PR текущей ветки: `PR_URL:` или
+  `PR_URL: none`; вызывается после любых git-операций и при любом
+  упоминании PR) + `status-pr.sh` (ЕДИНСТВЕННЫЙ источник правды о статусе:
+  конфликты/checks/reviews/lifecycle; агент сверяется с ним перед любым
+  ответом про PR, а не гадает; see `scripts/pr/README.md`).
 - `scripts/react-fix/` — `find-class.sh` (поиск CSS-класса в tsx/css →
   таблица `FILE|LINE|KIND|TEXT` для ИИ; точное имя + BEM-дети, без
   подстрок; read-only; см. `scripts/react-fix/README.md`).
@@ -133,6 +167,7 @@ issue_provider: github
   `bash .opencode/scripts/tunnel/run.sh*` +
   `bash .opencode/scripts/push/run.sh*` +
   `bash .opencode/scripts/sync/run.sh*` +
+  `bash .opencode/scripts/pr/*` +
   `bash .opencode/scripts/ci/*` + `bun workflows/*` +
   `bash .opencode/scripts/react-fix/*` (read-only class search); `mcp.trello` (`npx -y
   @delorenj/mcp-server-trello`, ключи только через `{env:TRELLO_API_KEY}` /
@@ -181,6 +216,17 @@ bash .opencode/scripts/tunnel/run.sh kill [--name <n> | --all]
 # push (agent runs this ONLY via /push; pushes committed commits only, never add/commit/--force):
 bash .opencode/scripts/push/run.sh [--remote <name>] [--dry-run]
 # dirty tree is a warning, not a blocker: uncommitted files stay local, only commits are pushed.
+```
+
+```bash
+# pr (создание + гарантированная ссылка; чтение ссылки после любых git-операций):
+echo '<json>' | python3 .opencode/scripts/pr/validate-pr-data.py > /tmp/pr.json  # needs pip install jsonschema
+python3 .opencode/scripts/pr/render-pr.py github --json /tmp/pr.json  # preview body
+bash .opencode/scripts/pr/get-pr-url.sh [--branch <name>]
+bash .opencode/scripts/pr/create-pr.sh --title "<title>" --json /tmp/pr.json --base main [--draft] [--dry-run]
+# create-pr.sh всегда печатает `PR_URL: <url>` — агент ретранслирует её пользователю.
+# get-pr-url.sh печатает `PR_URL: <url>` или `PR_URL: none` — вызывать после /push / /sync / /commit.
+# status-pr.sh — сверка перед ЛЮБЫМ ответом про состояние PR; отвечать только по его выводу.
 ```
 
 ```bash

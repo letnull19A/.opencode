@@ -190,6 +190,7 @@
       "bash .opencode/scripts/tunnel/run.sh*": "allow",
       "bash .opencode/scripts/push/run.sh*": "allow",
       "bash .opencode/scripts/sync/run.sh*": "allow",
+      "bash .opencode/scripts/pr/*": "allow",
       "bash .opencode/scripts/react-fix/*": "allow",
       "bash .opencode/scripts/task-manager/*": "allow",
       "bash .opencode/scripts/commit-trello/*": "allow",
@@ -213,7 +214,12 @@
       "git branch *": "allow",
       "git worktree *": "allow",
       "git reset *": "allow",
-      "git rev-list *": "allow"
+      "git rev-list *": "allow",
+      "gh pr merge*": "deny",
+      "glab mr merge*": "deny",
+      "tea * merge*": "deny",
+      "*pullrequests*/merge*": "deny",
+      "*pulls/*/merge*": "deny"
     }
   }
 }
