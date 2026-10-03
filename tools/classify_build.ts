@@ -150,9 +150,23 @@ export default tool({
     if (isHighRisk) {
       return JSON.stringify({ builder: "build-smart", confidence: 0.92, reason: "risk high → spec-first", provider: "heuristic", needs_tunnel: needsTunnelHeuristic.needs, tunnel_reason: needsTunnelHeuristic.reason, input }, null, 2)
     }
-    const isLow = input.level === "low" && input.risk_level === "low" && (input.files ?? 0) <= 2 && input.type === "add" && (input.deps ?? 0) === 0
-    if (isLow) {
-      return JSON.stringify({ builder: "build-fast", confidence: 0.88, reason: "low complexity, low risk, ≤2 files, type add, no deps", provider: "heuristic", needs_tunnel: needsTunnelHeuristic.needs, tunnel_reason: needsTunnelHeuristic.reason, input }, null, 2)
+    // trivial gate: мелочь любого типа (add/update/delete) — не только создание.
+    // Раньше требовался строго type=add, поэтому «поменяй строку» (update) всегда
+    // уходило в smart. Безопасно: build-fast сам эскалирует (>3 файлов, deps, инфра).
+    const isTrivial =
+      input.level === "low" &&
+      input.risk_level === "low" &&
+      (input.files ?? 0) <= 2 &&
+      (input.deps ?? 0) === 0 &&
+      (input.unknowns ?? 0) <= 1 &&
+      ["add", "update", "delete"].includes(input.type)
+    if (isTrivial) {
+      return JSON.stringify({ builder: "build-fast", confidence: 0.9, reason: "trivial: low/low, ≤2 files, add/update/delete, no deps, certain", provider: "heuristic", needs_tunnel: needsTunnelHeuristic.needs, tunnel_reason: needsTunnelHeuristic.reason, input }, null, 2)
+    }
+    // borderline: low на 3 файлах — в пределах допуска fast (он сам эскалирует при >3),
+    // но с hint проверить скоуп; medium как раньше.
+    if (input.level === "low" && input.risk_level === "low" && (input.files ?? 0) === 3 && (input.deps ?? 0) === 0 && (input.unknowns ?? 0) <= 1) {
+      return JSON.stringify({ builder: "build-fast", confidence: 0.65, reason: "borderline low on 3 files → fast with hint check scope", provider: "heuristic", needs_tunnel: needsTunnelHeuristic.needs, tunnel_reason: needsTunnelHeuristic.reason, input, hint: "быстро, но проверь что затронуто ровно 3 файла" }, null, 2)
     }
     if (input.level === "medium" && input.risk_level === "low" && (input.files ?? 0) <= 2) {
       if ((input.unknowns ?? 0) >= 2) {
