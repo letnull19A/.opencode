@@ -57,6 +57,7 @@ REPO_SLUG="$(printf '%s' "$REMOTE_URL" | sed -E -e 's#^[A-Za-z0-9+.-]+@[^:]+:##'
 if [[ -z "$REPO_SLUG" || "$REPO_SLUG" != */* ]]; then
   REPO_SLUG="$(git -C "$ROOT" remote get-url origin 2>/dev/null | sed -E 's#.*github\.com[:/]([^/]+/[^/]+).*#\1#' | cut -d'/' -f1-2 | tr -d '\n' || true)"
 fi
+export REPO_SLUG
 
 need_gh() {
   if ! command -v gh >/dev/null 2>&1; then
@@ -147,7 +148,6 @@ else:
 out={"repo": os.environ.get("REPO_SLUG",""), "branch": branch or None, "workflow": workflow or None, "runs": enriched, "summary": summary}
 print(json.dumps(out, ensure_ascii=False, indent=2))
 PY
-  rm -f "$tmp_info" "$tmp_log"
 }
 
 # ---------- logs ----------
