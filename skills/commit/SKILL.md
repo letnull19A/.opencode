@@ -27,8 +27,8 @@ description: Create atomic Conventional Commits from a dirty git tree — split 
    `bash .opencode/scripts/design/guard.sh`. Вышел 1 (error-нарушения:
    магические цвета, незарегистрированные компоненты, необновлённый
    `DESIGN.md`) — стоп: покажи нарушения + точные предлагаемые правки
-   `DESIGN.md` (правит их только человек-владелец, отдел frontend —
-   read-only) и жди явного approve; без approve не коммитишь.
+   `DESIGN.md` (правит их только человек-владелец, UI-ядро — read-only)
+   и жди явного approve; без approve не коммитишь.
    Вышел 0 — идёшь дальше. Вышел 2 (нет `DESIGN.md`) — сначала
    `design/init.sh` + заполнение, потом guard.
    Дальше иди строго по группам, по очереди:

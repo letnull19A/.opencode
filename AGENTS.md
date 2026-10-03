@@ -45,7 +45,7 @@ issue_provider: github
   человеку `PR_URL:` + свежий `status-pr.sh` и команду для ручного мержа.
 - DESIGN.md rule (только UI: веб и мобилки): `DESIGN.md` в корне проекта,
   владелец — человек; агентам всех отделов файл — только для чтения
-  (отдел frontend — строгий read-only, см. Departments). Агент за
+  (UI-ядро `react-*` — строгий read-only, см. Departments). Агент за
   UI-задачей перед работой делает `init.sh --check`, если файла нет —
   `init.sh` + первичное заполнение разделов по коду/опросу; контекст
   правил берёт программно через
@@ -210,19 +210,20 @@ issue_provider: github
 
 ## Departments (отделы)
 
-Агенты поделены на отделы — отдел определяет зону ответственности и права
-на `DESIGN.md`. Владелец `DESIGN.md` — человек; агентам всех отделов файл
+Агенты поделены на отделы по стадиям пайплайна — отдел определяет зону
+ответственности. Владелец `DESIGN.md` — человек; агентам всех отделов файл
 только для чтения, правки вносит только владелец по точным предложениям
-агентов (патч в чат → вносит человек → approve → коммит).
+агентов (патч в чат → вносит человек → approve → коммит). Запрет правок
+привязан к UI-ядру (`react-*` + любой агент за UI-задачей), а не к отделу.
 
-| Отдел | Агенты | `DESIGN.md` |
-| ----- | ------ | ----------- |
-| frontend (UI: веб и мобилки) | `react-architect`, `react-concept`, `react-implement`, `react-fix` | read-only, правки строго запрещены |
-| engineering (код) | `build-fast`, `build-smart`, `refactor`, `unit-test` | read-only; на UI-задачах — как frontend |
-| backend (инфра/образы) | `devops`, `docker-pack`, `ci`, `ci-runner` | не их зона — read-only |
-| quality (проверки) | `diagnostics`, `screenshot-report` | read-only |
-| delivery (git/превью) | `commit-writer`, `worktree-manager`, `tunnel-manager` | read-only |
-| management (планирование/задачи) | `plan`, `auto`, `evol-plan`, `task-manager`, `task-audit`, `task-batch`, `task-explain`, `init`, `init-runner`, `issue-writer`, `recon`, `ask` | read-only |
+| Отдел (стадия) | Агенты | `DESIGN.md` |
+| -------------- | ------ | ----------- |
+| разведка | `recon`, `ask` | read-only |
+| планирование | `plan`, `auto`, `evol-plan` | read-only |
+| задачи | `task-manager`, `task-audit`, `task-batch`, `task-explain`, `issue-writer`, `init`, `init-runner` | read-only |
+| исполнение | `build-fast`, `build-smart`, `react-architect`, `react-concept`, `react-implement`, `react-fix`, `refactor`, `devops`, `docker-pack`, `ci`, `ci-runner`, `unit-test` | read-only; UI-ядро (`react-*`) — правки строго запрещены |
+| проверка | `diagnostics`, `screenshot-report` | read-only |
+| доставка | `commit-writer`, `worktree-manager`, `tunnel-manager` | read-only |
 
 ## Code comments (`COMMENTS_DETAILS` in `.devbox`)
 

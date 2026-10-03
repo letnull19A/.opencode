@@ -17,7 +17,7 @@ agent: build
 4. После «да» — сначала дизайн-guardrail, если в изменениях есть
    UI-файлы: `bash .opencode/scripts/design/guard.sh`. Нарушения уровня
    error — стоп: покажи их пользователю + точные предлагаемые правки
-   `DESIGN.md` (правит только человек-владелец, frontend — read-only)
+   `DESIGN.md` (правит только человек-владелец, UI-ядро — read-only)
    и жди явного approve, без approve дальше не идёшь (это и есть
    проверяльщик: проверка до коммита).
    Guard чист — точечный `git add <paths>` + `git commit` по группам,
