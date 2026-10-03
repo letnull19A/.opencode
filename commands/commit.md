@@ -20,6 +20,9 @@ agent: build
    `DESIGN.md` (правит только человек-владелец, UI-ядро — read-only)
    и жди явного approve, без approve дальше не идёшь (это и есть
    проверяльщик: проверка до коммита).
+   Затем всегда (фронт и бэк): `bash .opencode/scripts/security/guard.sh`.
+   Error — стоп + approve человека (разбор — `task` → `@security`); 0 —
+   идёшь дальше.
    Guard чист — точечный `git add <paths>` + `git commit` по группам,
    затем `git status --short --branch` и `git log --oneline` для проверки.
 5. После коммита обязательно выполни

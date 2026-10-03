@@ -106,6 +106,11 @@
       "mode": "subagent",
       "hidden": true
     },
+    "security": {
+      "model": "opencode-go/muse-spark-1.3-contributor",
+      "mode": "subagent",
+      "hidden": true
+    },
     "diagnostics": {
       "model": "opencode-go/muse-spark-1.3-contributor",
       "mode": "subagent",
@@ -214,6 +219,7 @@
       "bash .opencode/scripts/ci/*": "allow",
       "bash .opencode/scripts/docker-pack/*": "allow",
       "bash .opencode/scripts/design/*": "allow",
+      "bash .opencode/scripts/security/*": "allow",
       "bash .opencode/workflows/*": "allow",
       "bun workflows/*": "allow",
       "git status *": "allow",

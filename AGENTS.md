@@ -64,6 +64,14 @@ issue_provider: github
   без approve коммита нет. На `design-not-updated` агент отдаёт точные
   предлагаемые правки `DESIGN.md`; вносит их человек, затем approve →
   коммит. Проверяльщик здесь — человек.
+- Security rule (все коммиты, фронт + бэк): вход валидируется на границе
+  (API — schema до логики, формы — тем же schemas), выход сериализуется
+  через schemas, sinks (`innerHTML`/`eval`/`shell=True`) и конкатенация
+  в SQL — запрет. Перед `git add` каждого коммита — обязательно
+  `bash .opencode/scripts/security/guard.sh` (только незакоммиченные
+  изменения). Error — стоп + approve человека; разбор нарушений можно
+  делегировать `@security` через `task` (он предложит validator-патчи,
+  код не правит). Конвенция — `scripts/security/README.md`.
 - Push pipeline (внутри `/push`): never `git add` / `git commit` / manual
   `git push` / `--force`. Only `bash .opencode/scripts/push/run.sh` — it pushes
   committed commits only, uncommitted files always stay local.
@@ -182,6 +190,11 @@ issue_provider: github
   против `DESIGN.md`; error — стоп + approve человека; см.
   `scripts/design/README.md`). Сам `DESIGN.md` живёт в корне
   consumer-проекта, не в `.opencode/`; читают/обновляют только UI-агенты.
+- `scripts/security/` — `guard.sh` (guardrail I/O перед КАЖДЫМ коммитом:
+  только незакоммиченные изменения; error `dangerous-sink`, warn
+  `sql-concat`/`unvalidated-input`/`unvalidated-form`; error — стоп +
+  approve человека; разбор — `@security` через `task`; см.
+  `scripts/security/README.md`).
 - `scripts/sync/` — `run.sh` (deterministic `git pull --rebase --autostash`
   of current branch; no `merge`/`--force`; see `scripts/sync/README.md`).
 - `scripts/task-manager/` — `init.sh` (project tag → `.devbox`) +
@@ -231,6 +244,7 @@ issue_provider: github
 | исполнение | `build-fast`, `build-smart`, `react-architect`, `react-concept`, `react-implement`, `react-fix`, `refactor`, `devops`, `docker-pack`, `ci`, `ci-runner`, `unit-test` | read-only; UI-ядро (`react-*`) — правки строго запрещены |
 | проверка | `diagnostics`, `screenshot-report` | read-only |
 | доставка | `commit-writer`, `worktree-manager`, `tunnel-manager` | read-only |
+| безопасность (сквозной) | `security` (hidden subagent-аудитор I/O) | читает guard-нарушения, предлагает validator-патчи, код не правит |
 
 ## Code comments (`COMMENTS_DETAILS` in `.devbox`)
 

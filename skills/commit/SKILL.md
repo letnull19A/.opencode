@@ -31,6 +31,11 @@ description: Create atomic Conventional Commits from a dirty git tree — split 
    и жди явного approve; без approve не коммитишь.
    Вышел 0 — идёшь дальше. Вышел 2 (нет `DESIGN.md`) — сначала
    `design/init.sh` + заполнение, потом guard.
+   Затем всегда (фронт и бэк) — security-guardrail:
+   `bash .opencode/scripts/security/guard.sh` (sinks + валидация входа
+   по незакоммиченным изменениям). Вышел 1 — стоп: покажи нарушения,
+   разбор сложных мест делегируй `@security` через `task` (validator-патчи),
+   дальше только после явного approve человека. Вышел 0 — идёшь дальше.
    Дальше иди строго по группам, по очереди:
    `git add <paths группы>` → `git commit -m "<message>"` →
    проверь `git status --short`. Никогда не стейджишь всё дерево одним
