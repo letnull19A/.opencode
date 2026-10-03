@@ -43,6 +43,27 @@ issue_provider: github
   своим CLI). Механически запрещено в `opencode.json` (`deny`, работает
   даже в auto-режиме). Если просят «замержи» — не мержить, а отдать
   человеку `PR_URL:` + свежий `status-pr.sh` и команду для ручного мержа.
+- DESIGN.md rule (только UI: веб и мобилки): `DESIGN.md` в корне проекта,
+  владелец — человек; агентам всех отделов файл — только для чтения
+  (отдел frontend — строгий read-only, см. Departments). Агент за
+  UI-задачей перед работой делает `init.sh --check`, если файла нет —
+  `init.sh` + первичное заполнение разделов по коду/опросу; контекст
+  правил берёт программно через
+  `bash .opencode/scripts/design/context.sh` (исполняющий агент;
+  read-only сабагенты без bash читают `DESIGN.md` напрямую) и работает
+  строго по нему (токены/компоненты/конвенции); противоречие — вопрос
+  пользователю, а не тихий отход. Нужны изменения (токен/компонент/
+  конвенция) — агент показывает человеку точный патч (секция → строки);
+  вносит только владелец, затем approve → коммит. Обновление разделов
+  и журнала после задачи — тоже за владельцем, по предложению агента.
+  Backend/infra-агенты файл игнорируют.
+- Design-guard rule (коммиты UI): ничто UI не попадает в коммит без
+  проверки — перед `git add` исполняющий агент прогоняет
+  `bash .opencode/scripts/design/guard.sh` (только незакоммиченные
+  изменения). Error-нарушения — стоп и явный approve человека;
+  без approve коммита нет. На `design-not-updated` агент отдаёт точные
+  предлагаемые правки `DESIGN.md`; вносит их человек, затем approve →
+  коммит. Проверяльщик здесь — человек.
 - Push pipeline (внутри `/push`): never `git add` / `git commit` / manual
   `git push` / `--force`. Only `bash .opencode/scripts/push/run.sh` — it pushes
   committed commits only, uncommitted files always stay local.
@@ -151,6 +172,14 @@ issue_provider: github
 - `scripts/react-fix/` — `find-class.sh` (поиск CSS-класса в tsx/css →
   таблица `FILE|LINE|KIND|TEXT` для ИИ; точное имя + BEM-дети, без
   подстрок; read-only; см. `scripts/react-fix/README.md`).
+- `scripts/design/` — `template.md` (скелет `DESIGN.md`: платформы, стек,
+  токены, компоненты, конвенции, журнал решений) + `init.sh`
+  (создать файл из шаблона если нет; `--check`/`--force`) + `context.sh`
+  (программный автоинжект правил в контекст: компактный блок/JSON) +
+  `guard.sh` (guardrail перед коммитом: только незакоммиченные UI-изменения
+  против `DESIGN.md`; error — стоп + approve человека; см.
+  `scripts/design/README.md`). Сам `DESIGN.md` живёт в корне
+  consumer-проекта, не в `.opencode/`; читают/обновляют только UI-агенты.
 - `scripts/sync/` — `run.sh` (deterministic `git pull --rebase --autostash`
   of current branch; no `merge`/`--force`; see `scripts/sync/README.md`).
 - `scripts/task-manager/` — `init.sh` (project tag → `.devbox`) +
@@ -168,6 +197,7 @@ issue_provider: github
   `bash .opencode/scripts/push/run.sh*` +
   `bash .opencode/scripts/sync/run.sh*` +
   `bash .opencode/scripts/pr/*` +
+  `bash .opencode/scripts/design/*` +
   `bash .opencode/scripts/ci/*` + `bun workflows/*` +
   `bash .opencode/scripts/react-fix/*` (read-only class search); `mcp.trello` (`npx -y
   @delorenj/mcp-server-trello`, ключи только через `{env:TRELLO_API_KEY}` /
@@ -177,6 +207,22 @@ issue_provider: github
   `{env:...}`, пресет `minimal` против 508 инструментов; секреты
   в репозиторий не коммитить). Root `package.json`
   has only `@opencode-ai/plugin`, no scripts.
+
+## Departments (отделы)
+
+Агенты поделены на отделы — отдел определяет зону ответственности и права
+на `DESIGN.md`. Владелец `DESIGN.md` — человек; агентам всех отделов файл
+только для чтения, правки вносит только владелец по точным предложениям
+агентов (патч в чат → вносит человек → approve → коммит).
+
+| Отдел | Агенты | `DESIGN.md` |
+| ----- | ------ | ----------- |
+| frontend (UI: веб и мобилки) | `react-architect`, `react-concept`, `react-implement`, `react-fix` | read-only, правки строго запрещены |
+| engineering (код) | `build-fast`, `build-smart`, `refactor`, `unit-test` | read-only; на UI-задачах — как frontend |
+| backend (инфра/образы) | `devops`, `docker-pack`, `ci`, `ci-runner` | не их зона — read-only |
+| quality (проверки) | `diagnostics`, `screenshot-report` | read-only |
+| delivery (git/превью) | `commit-writer`, `worktree-manager`, `tunnel-manager` | read-only |
+| management (планирование/задачи) | `plan`, `auto`, `evol-plan`, `task-manager`, `task-audit`, `task-batch`, `task-explain`, `init`, `init-runner`, `issue-writer`, `recon`, `ask` | read-only |
 
 ## Code comments (`COMMENTS_DETAILS` in `.devbox`)
 
@@ -261,6 +307,17 @@ bash .opencode/scripts/task-manager/audit.sh --board "<name>" [--tag "<t>" | --a
 bash .opencode/scripts/react-fix/find-class.sh --class journal [--class header] [--root src]
 # → таблица FILE|LINE|KIND|TEXT → если неясно что/где править — вопрос пользователю (без edit!) →
 # → точечная правка только подтверждённого → проверка командами consumer-проекта.
+```
+
+```bash
+# design (только UI-агенты; DESIGN.md в корне проекта, не в .opencode/):
+bash .opencode/scripts/design/init.sh --check   # есть — exit 0, нет — exit 1
+bash .opencode/scripts/design/init.sh           # создать из шаблона если нет (есть — no-op)
+bash .opencode/scripts/design/context.sh        # автоинжект правил в контекст задачи
+bash .opencode/scripts/design/guard.sh          # guardrail незакоммиченного перед add/commit
+# дальше агент заполняет разделы по коду/опросу и работает строго по файлу;
+# после UI-задачи — обновить разделы + строка в журнале решений с датой.
+# guard error — стоп и явный approve человека, без approve коммита нет.
 ```
 
 ## Version / env gotchas

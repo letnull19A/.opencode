@@ -202,6 +202,7 @@
       "bash .opencode/scripts/graphify/*": "allow",
       "bash .opencode/scripts/ci/*": "allow",
       "bash .opencode/scripts/docker-pack/*": "allow",
+      "bash .opencode/scripts/design/*": "allow",
       "bash .opencode/workflows/*": "allow",
       "bun workflows/*": "allow",
       "git status *": "allow",
