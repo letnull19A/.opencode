@@ -23,6 +23,7 @@ permission:
 ## Воркфлоу
 
 1. **Прими задачу:** `$ARGUMENTS` / последние сообщения. Пусто — спроси `question`.
+   Fallback: если вход пришёл мимо `Auto` (сырой, без секций Контекст/Что сделать/Критерии) — сначала `task` → `@structurer`, покажи `structured_md` + `open_questions` через `question`, дальше работай только с подтверждённым текстом.
 2. **Классификация подхода (обязательно):** вызови tool `classify_plan` с `title/desc` задачи и `has_code` (есть ли уже модуль в репо — проверь `glob`/`read`). Tool вернёт `{approach: "new-module"|"update"|"decompose", needs_react: bool, confidence, reason, provider}` (Jev → heuristic). Не гадай подход сам — доверься tool. `approach` — это стратегия `skills/module-develop` (add/update/decompose).
 3. **Разведка (обязательно, без мусора):** делегируй `task` → `@recon` (скрытый) — передай `title/desc` задачи. Recon сам пройдёт по нарастающей: `.docs|docs|specs|.specs|documentation` (ls/glob/read 2-3 файла), затем `websearch|tavily|context7` (проверив `TAVILY_API_KEY/CONTEXT7_API_KEY` программно), затем `tree|ls|grep|graphify-mcp` по деревьям. Вернёт компактный JSON `{docs,internet,code{tree,graph,key_files},facts,open_questions}` — бери его `facts` как основу для `evol-plan`/`react-architect`, не читай всё сам.
 4. **Делегирование (только через `task` tool, параллельно где можно):**

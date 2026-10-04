@@ -150,6 +150,11 @@
       "model": "opencode-go/muse-spark-1.3-contributor",
       "mode": "subagent",
       "hidden": true
+    },
+    "structurer": {
+      "model": "opencode-go/muse-spark-1.3-contributor",
+      "mode": "subagent",
+      "hidden": true
     }
   },
   "mcp": {

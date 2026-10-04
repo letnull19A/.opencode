@@ -123,7 +123,8 @@ issue_provider: github
 ## Layout (ownership)
 
 - `agent/` — opencode subagents (`issue-writer`, `screenshot-report`,
-  `component-builder`, `refactor`, `task-manager`, `task-audit`, `react-fix`, `unit-test`).
+  `component-builder`, `refactor`, `task-manager`, `task-audit`, `react-fix`, `unit-test`,
+  `structurer`).
   `component-builder` — hidden subagent, read-only проектировщик React-компонентов
   (edit/bash запрещены): выдаёт в чат дерево компонентов, ответственности,
   props-контракты и декомпозицию большого компонента на мелкие, UI-кит
@@ -139,6 +140,13 @@ issue_provider: github
   «что менять», см. `scripts/react-fix/README.md`).
   `unit-test` — hidden subagent; пишет юнит-тесты под любой фреймворк,
   синтаксис фреймворка — только из Context7 MCP (по памяти запрещено).
+  `structurer` — hidden subagent-предобработчик ввода (вызов только через `@auto`/`@plan`,
+  `task` → `@structurer`): фаза 1 score 0..6 (`goal/sections/lists/acceptance/context/single_intent` →
+  `unstructured 0..2 / partial 3..4 / structured 5..6`), фаза 2 нормализация в md
+  (Заголовок + Контекст/Что сделать/Критерии приёмки/Ограничения/Открытые вопросы,
+  `[???]` вместо выдумок, N интентов → N блоков); возврат md + JSON
+  `{score,level,intents,structured_md,open_questions,needs_confirmation}`; сам `question`
+  не задаёт — спрашивает caller.
 - `skills/tunnel-manager/SKILL.md` — preview-tunnel runner (wraps
   `scripts/tunnel/`).
 - `skills/ci/SKILL.md` — vendor-lock-free GitHub Actions CI/CD (требования→исполнение): `@ci` (hidden subagent) опрашивает пользователя (type/registry/image/platforms/cache/deploy + монорепо `apps/<app>`) → `task → @ci-runner` (`hidden:subagent`) скаффолдит `scripts/ci/scaffold.sh --type ci|docker|all [--monorepo --app]` из `scripts/ci/templates/*.yml` → `.github/workflows/`; `workflows.sh status|logs` — read-only; registry-agnostic (`vars.DOCKER_REGISTRY`/`vars.DOCKER_IMAGE`/`secrets.REGISTRY_*` + `GITHUB_TOKEN` fallback), buildx + gha cache, `paths: apps/<app>/**` для монорепо, без cloud-экшенов.
@@ -238,7 +246,7 @@ issue_provider: github
 
 | Отдел (стадия) | Агенты | `DESIGN.md` |
 | -------------- | ------ | ----------- |
-| разведка | `recon`, `ask` | read-only |
+| разведка | `recon`, `ask`, `structurer` | read-only |
 | планирование | `plan`, `auto`, `evol-plan` | read-only |
 | задачи | `task-manager`, `task-audit`, `task-batch`, `task-explain`, `issue-writer`, `init`, `init-runner` | read-only |
 | исполнение | `build-fast`, `build-smart`, `react-architect`, `react-concept`, `react-implement`, `react-fix`, `refactor`, `devops`, `docker-pack`, `ci`, `ci-runner`, `unit-test` | read-only; UI-ядро (`react-*`) — правки строго запрещены |
