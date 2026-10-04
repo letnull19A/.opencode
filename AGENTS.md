@@ -11,6 +11,9 @@ issue_provider: github
 - Do NOT add `*.md` at repo root (e.g. `README.md`). Opencode registers root
   `*.md` as agents (see git log `0e60eb1`). Only `AGENTS.md` lives at root;
   docs go under `scripts/<name>/README.md` or `AGENTS.md.snippet`.
+  Единственное исключение — grandfathered `README.md` (витрина для GitHub,
+  агентом не является и не должен им становиться; других `*.md` в корень
+  не добавлять).
 - Runner agents/skills (`screenshot-report`, `tunnel-manager`) never edit code
   or their own scripts. On non-zero exit paste last ~15 lines + relevant log,
   do not fix the script.
@@ -67,9 +70,8 @@ issue_provider: github
 - Security rule (все коммиты, фронт + бэк): вход валидируется на границе
   (API — schema до логики, формы — тем же schemas), выход сериализуется
   через schemas, sinks (`innerHTML`/`eval`/`shell=True`) и конкатенация
-  в SQL — запрет. Перед `git add` каждого коммита — обязательно
-  `bash .opencode/scripts/security/guard.sh` (только незакоммиченные
-  изменения). Error — стоп + approve человека; разбор нарушений можно
+  в SQL — запрет. После `git add` каждой группы — обязательно
+  `bash .opencode/scripts/security/guard.sh --staged` (ровно стейдж, не всё дерево). Error — стоп + approve человека; разбор нарушений можно
   делегировать `@security` через `task` (он предложит validator-патчи,
   код не правит). Конвенция — `scripts/security/README.md`.
 - Push pipeline (внутри `/push`): never `git add` / `git commit` / manual
@@ -126,7 +128,7 @@ issue_provider: github
   `component-builder`, `refactor`, `task-manager`, `task-audit`, `react-fix`, `unit-test`,
   `structurer`, `review`).
   `component-builder` — hidden subagent, read-only проектировщик React-компонентов
-  (edit/bash запрещены): выдаёт в чат дерево компонентов, ответственности,
+  (`agent/component-builder.md`; edit/bash запрещены): выдаёт в чат дерево компонентов, ответственности,
   props-контракты и декомпозицию большого компонента на мелкие, UI-кит
   не навязывает, код не пишет.
   `task-manager` — hidden subagent (вызов только через `/new-task`, `@auto`
@@ -222,19 +224,34 @@ issue_provider: github
   `Blocked by:` в `blocked_by`) + `schema/audit.schema.json` (AI-контракт),
   всё via Trello REST; агент думает, скрипты исполняют; see
   `scripts/task-manager/README.md`).
-- `opencode.json` — `default_agent: build`, only pre-approved bash is
-  `bash .opencode/scripts/tunnel/run.sh*` +
-  `bash .opencode/scripts/push/run.sh*` +
-  `bash .opencode/scripts/sync/run.sh*` +
-  `bash .opencode/scripts/pr/*` +
-  `bash .opencode/scripts/design/*` +
-  `bash .opencode/scripts/ci/*` + `bun workflows/*` +
-  `bash .opencode/scripts/react-fix/*` (read-only class search); `mcp.trello` (`npx -y
+- `opencode.json` — `default_agent: build`, bash-политика построена как deny-first:
+  catch-all `"*": "ask"` первым, затем точечные `allow` (скрипты/ read-only git / раннеры),
+  затем неснимаемые `deny` последним (last-match-wins: merge/PR-мержи, `git merge*`,
+  `push --force/-f`, `reset --hard` с целью, `clean -fd`, `rm -rf`, `npm/pnpm publish`).
+  Точный `git reset --hard HEAD` (сброс незакоммиченного) разрешён, `git revert *` разрешён
+  (откат только вперёд). Критические `deny` продублированы в правах исполнителей
+  (`build-fast`/`build-smart`/`devops`/`react-fix`/`refactor` — у них свой ask-by-default),
+  потому что per-agent права имеют приоритет над глобальными (`docs/permissions#agents`):
+  глобальный deny без дубля съедается blanket-allow агента. Дефолт OpenCode — permissive
+  (без catch-all всё разрешено), поэтому allowlist без `"*"` запретом не является.
+  `mcp.trello` (`npx -y
   @delorenj/mcp-server-trello`, ключи только через `{env:TRELLO_API_KEY}` /
   `{env:TRELLO_TOKEN}`) + `mcp.context7` (remote `https://mcp.context7.com/mcp`,
   ключ опционален через `{env:CONTEXT7_API_KEY}`) + `mcp.dokploy`
   (`npx -y @dokploy/mcp`, `DOKPLOY_URL` + `DOKPLOY_API_KEY` только через
-  `{env:...}`, пресет `minimal` против 508 инструментов; секреты
+  `{env:...}`, `DOKPLOY_ENABLED_TAGS=project,application,compose,deployment,domain`
+  вместо `all` (диагностике хватает: project/application/compose/deployment/domain;
+  databases/git/registry/sshKey/server не грузятся) + `DOKPLOY_REDACT_ENV=true`
+  (секретные поля вычищаются из ответов до модели); точечное расширение —
+  через `DOKPLOY_ENABLED_TAGS` (приоритет над пресетом).
+  + `mcp.speka` (remote `https://mcp.speka.click/mcp`, `Authorization: Bearer {env:SPEKA_MCP_API_KEY}`)
+  + `mcp.postgres` (local `mcp-postgres` на `DATABASE_URL`/host-env; сервер даёт чтение,
+  запись идёт только через `tools/postgres.ts` с enforced `permissions: read|dml|ddl`
+  — мульти-statement запрещены всегда, таймаут 10s, обрезка вывода).
+  Честная оговорка: MCP-инструменты в OpenCode allow-by-default, per-tool/per-agent
+  запреты для них не заведены — mitigation сейчас = сужение поверхности (теги+redact)
+  + чтение секретов запрещено контрактами; включать `all`/новые серверы — только
+  осознанно. Секреты
   в репозиторий не коммитить). Root `package.json`
   has only `@opencode-ai/plugin`, no scripts.
 
