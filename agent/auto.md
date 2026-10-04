@@ -72,6 +72,12 @@ permission:
     - `builder == "build"` или `confidence < 0.5` / `provider == "jev"` вернул `unknown` — `task` → `@build` (дефолтный build, идёт по умолчанию когда классификатор не смог определить). Передай карточку + `complexity` + `risk` + `reason: fallback to build`.
     - Если `classify_build.needs_tunnel == true` (keyword `превью/покажи/tunnel/preview` в `title/desc` или `Jev` вернул `needs_tunnel:true`) — **после** делегирования build/devops (или параллельно если build не нужен) вызови скрытый `task` → `@tunnel-manager` (передай `port` из `package.json` и `provider:auto`). Ретранслируй `PREVIEW_URL` + `PROVIDER` из ответа тоннеля. Не зови тоннель без `needs_tunnel:true` — только по классификатору.
      - Детальная эвристика классификатора (для справки): `devops keyword` → `devops 0.93` (высший приоритет, проверяется первым); `dependency keyword` → `smart 0.95` (высший приоритет); `risk high` → smart; trivial (`low + low + files≤2 + add/update/delete + deps 0 + unknowns≤1`) → fast 0.9; `low` на 3 файлах → fast 0.65 с hint; `medium` пограничный с `risk low` → fast с hint; `недостаточно данных / unknowns≥3` → `build`; `preview keyword` → `needs_tunnel:true`. Не дублируй её в промпте — доверься tool.
+5b. **Quality gate (обязательно для код/инфра-задач):**
+    - Исполнители (`build-fast`/`build-smart`/`devops`/`refactor`) сами зовут `task` → `@review` перед `done` и прикладывают `review:{verdict,depth}` к отчёту. Проверь наличие вердикта.
+    - Вердикт `APPROVED` — иди дальше (шаг 6–7).
+    - Вердикт `NEEDS_WORK` — верни ту же карточку + `for_executor` findings тому же исполнителю (макс 2 возврата суммарно; декремент ведёшь сам). После 2-го провала — стоп, отдай человеку findings + diff, не крути бесконечно.
+    - Вердикта нет в отчёте (исполнитель обошёл гейт) — сам вызови `task` → `@review` (передай карточку + файлы из отчёта исполнителя) и действуй как выше.
+    - В лог добавляй `review: <depth> <verdict> (blockers: N)` рядом со строкой `classify_build`.
 6. **Ротация и обратная связь:**
     - Если `build-fast` вернул `{"needs_escalation": true}` с devops-причиной — переключи эту же карточку на `@devops` (без worktree, devops работает напрямую).
     - Если `build-fast` вернул `{"needs_escalation": true}` с dependency-причиной — переключи на `@build-smart` (создай worktree перед повтором).

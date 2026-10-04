@@ -21,6 +21,7 @@ permission:
 - Читай `graphify` и `dump.sh` — понимай граф зависимостей, `Blocked by:` — не ломай порядок.
 - Декомпозируй внутри карточки на подшаги, пиши тесты через `@unit-test` если в `Критериях` есть.
 - После правки — `bash .opencode/scripts/check/run.sh --json` на изменённые файлы + `pnpm --filter ... build` если трогал `frontend/server`.
+- Перед `done` — обязательно `task` → `@review` (передай критерии карточки + список изменённых файлов). При `NEEDS_WORK` исправь пункты `for_executor` и повтори review (макс 2 повтора); в `done` приложи `review:{verdict,depth}`.
 - Делегируй `refactor` для `update/delete/decompose` по `module-develop`, сам — только `add`.
 - Если видишь что задача на самом деле простая (1 файл, без deps **и без зависимостей** **и без инфры**) — верни `{"can_downgrade": true}` чтобы `auto` отдал `build-fast` в следующий раз. Для dependency/devops-задач downgrade запрещён — оставайся smart/devops соответственно.
 - **DevOps — эскалация:** если карточка про `docker/Dockerfile/compose/контейнер/dev/prod/окружение/.env/сети/порты/volumes/cgroup-лимиты/restart/деплой` — не делай сам, верни `{"needs_escalation": true, "reason": "инфра/деплой → только devops"}` чтобы `auto` переключил на `@devops`. Бизнес-логику и инфру не смешивай.

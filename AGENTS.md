@@ -124,7 +124,7 @@ issue_provider: github
 
 - `agent/` — opencode subagents (`issue-writer`, `screenshot-report`,
   `component-builder`, `refactor`, `task-manager`, `task-audit`, `react-fix`, `unit-test`,
-  `structurer`).
+  `structurer`, `review`).
   `component-builder` — hidden subagent, read-only проектировщик React-компонентов
   (edit/bash запрещены): выдаёт в чат дерево компонентов, ответственности,
   props-контракты и декомпозицию большого компонента на мелкие, UI-кит
@@ -147,6 +147,13 @@ issue_provider: github
   `[???]` вместо выдумок, N интентов → N блоков); возврат md + JSON
   `{score,level,intents,structured_md,open_questions,needs_confirmation}`; сам `question`
   не задаёт — спрашивает caller.
+  `review` — hidden subagent-гейт качества (вызов через `task` → `@review` из
+  исполнителей перед `done`, контроль — `@auto` шаг 5b): сверяет diff с `AGENTS.md` +
+  `CODE_OF_CONDUCT.md` + `DESIGN.md` (для UI) через `check/run.sh` + `security/design`
+  guards по узким критериям Q1..Q8 (задача/контракты/принципы/статика/безопасность/
+  тесты/читаемость/гигиена scope); код не правит (`edit: deny`), возвращает
+  `{verdict: APPROVED|NEEDS_WORK, findings, for_executor}`; глубина fast/deep —
+  внутренней эвристикой, без отдельного classify-tool.
 - `skills/tunnel-manager/SKILL.md` — preview-tunnel runner (wraps
   `scripts/tunnel/`).
 - `skills/ci/SKILL.md` — vendor-lock-free GitHub Actions CI/CD (требования→исполнение): `@ci` (hidden subagent) опрашивает пользователя (type/registry/image/platforms/cache/deploy + монорепо `apps/<app>`) → `task → @ci-runner` (`hidden:subagent`) скаффолдит `scripts/ci/scaffold.sh --type ci|docker|all [--monorepo --app]` из `scripts/ci/templates/*.yml` → `.github/workflows/`; `workflows.sh status|logs` — read-only; registry-agnostic (`vars.DOCKER_REGISTRY`/`vars.DOCKER_IMAGE`/`secrets.REGISTRY_*` + `GITHUB_TOKEN` fallback), buildx + gha cache, `paths: apps/<app>/**` для монорепо, без cloud-экшенов.
@@ -250,7 +257,7 @@ issue_provider: github
 | планирование | `plan`, `auto`, `evol-plan` | read-only |
 | задачи | `task-manager`, `task-audit`, `task-batch`, `task-explain`, `issue-writer`, `init`, `init-runner` | read-only |
 | исполнение | `build-fast`, `build-smart`, `react-architect`, `react-concept`, `react-implement`, `react-fix`, `refactor`, `devops`, `docker-pack`, `ci`, `ci-runner`, `unit-test` | read-only; UI-ядро (`react-*`) — правки строго запрещены |
-| проверка | `diagnostics`, `screenshot-report` | read-only |
+| проверка | `diagnostics`, `screenshot-report`, `review` | read-only |
 | доставка | `commit-writer`, `worktree-manager`, `tunnel-manager` | read-only |
 | безопасность (сквозной) | `security` (hidden subagent-аудитор I/O) | читает guard-нарушения, предлагает validator-патчи, код не правит |
 
