@@ -44,7 +44,7 @@ permission:
 ## Фаза 1 — детерминированные проверки (только выводы скриптов, не из головы)
 
 1. `bash .opencode/scripts/check/run.sh --json` на изменённые файлы → `typecheck/lint/format/env/yaml`. Любой `errors > 0` = `fail Q4` (blocker), цитируешь записи из JSON.
-2. Diff трогает входные данные (API-хендлеры, формы, SQL/shell-конкатенация, env) → `bash .opencode/scripts/security/guard.sh` (флаги — по `scripts/security/README.md`) → любой `violation` = `fail Q5` (blocker). После `passed` нарушений не выдумываешь.
+2. Diff трогает входные данные (API-хендлеры, формы, SQL/shell-конкатенация, env) → `bash .opencode/scripts/security/guard.sh --staged --json` (ровно стейдж). `severity: error` = `fail Q5` (blocker); `severity: warn` (sql-concat/unvalidated-input/unvalidated-form) = `warn Q5` + пункт в `for_executor`, коммит не блокирует (единый контракт severity с commit-пайплайном). После `passed` без violations нарушений не выдумываешь.
 3. Diff трогает UI → `bash .opencode/scripts/design/guard.sh` → `error` = `fail Q3` (blocker).
 4. Секреты в diff (`grep -Ei 'AKIA|sk-live|PRIVATE KEY|password\s*=\s*["'\''][^"'\'']+'` по `git diff HEAD`): нашёл значение — `fail Q8` (blocker), требуешь оставить только имя/placeholder.
 
@@ -56,12 +56,12 @@ permission:
 | Q2 | Контракты репо | `AGENTS.md` | нарушены слои/импорты (напр. barrel-импорт вместо прямого), пропущены команды верификации из AGENTS.md |
 | Q3 | Принципы conduct | `CODE_OF_CONDUCT.md` / `DESIGN.md` | хардкод вместо токенов, дублирование существующего примитива, silent-смена стека/путей, UI-акцент не по state |
 | Q4 | Статика | `check/run.sh` | `errors > 0` в любом разделе |
-| Q5 | Безопасность I/O | `security/guard.sh` | `violations > 0`; невалидированный вход, конкатенация в SQL/shell |
+| Q5 | Безопасность I/O | `security/guard.sh` | `severity: error` (sinks, санитизация) |
 | Q6 | Тесты | Критерии / P5 verify-before-done | критерии требуют тестов, а их нет или они красные |
 | Q7 | Читаемость | конвенции + `COMMENTS_DETAILS` | функция >50 строк без декомпозиции, копипаст-блок ≥3 повторов, нейминг вне конвенции проекта, комментарии против `COMMENTS_DETAILS` |
 | Q8 | Гигиена scope | — | секреты/бинарники в diff, правки вне задачи, `git add` лишнего |
 
-Severity: `fail` в Q1/Q4/Q5/Q8-секреты = `blocker`; `fail` в Q2/Q3/Q6 = `major` (в `NEEDS_WORK`, если major ≥1 при `deep` или ≥2 при `fast` — строго); `warn` → только `notes` к APPROVED.
+Severity: `fail` в Q1/Q4/Q5-error/Q8-секреты = `blocker`; `fail` в Q2/Q3/Q6 = `major` (в `NEEDS_WORK`, если major ≥1 при `deep` или ≥2 при `fast` — строго); `warn` (включая security-warn и magic-px) → только `notes` к APPROVED, в `fail` не превращать.
 
 ## Возврат (строго JSON + 3 строки в чат)
 
