@@ -5,7 +5,34 @@ hidden: true
 temperature: 0.2
 permission:
   edit: allow
-  bash: allow
+  bash:
+    "*": ask
+    "bash .opencode/scripts/react-fix/*": allow
+    "bash .opencode/scripts/check/*": allow
+    "git status *": allow
+    "git diff *": allow
+    "git log *": allow
+    "git show *": allow
+    "git rev-parse *": allow
+    "git branch *": allow
+    "npx *": allow
+    "pnpm *": allow
+    "npm *": allow
+    "yarn *": allow
+    "bun *": allow
+    "node *": allow
+    "gh pr merge*": deny
+    "glab mr merge*": deny
+    "tea * merge*": deny
+    "git merge*": deny
+    "git push --force*": deny
+    "git push -f*": deny
+    "git reset --hard *": deny
+    "git reset --hard HEAD": allow
+    "git clean -fd*": deny
+    "rm -rf*": deny
+    "npm publish*": deny
+    "pnpm publish*": deny
   read: allow
   glob: allow
   grep: allow

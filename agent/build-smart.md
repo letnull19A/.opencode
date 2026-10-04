@@ -7,7 +7,43 @@ temperature: 0.2
 permission:
   edit: allow
   bash:
-    "*": allow
+    "*": ask
+    "bash .opencode/scripts/check/*": allow
+    "bash .opencode/scripts/graphify/*": allow
+    "bash .opencode/scripts/worktree/*": allow
+    "git status *": allow
+    "git diff *": allow
+    "git log *": allow
+    "git show *": allow
+    "git rev-parse *": allow
+    "git branch *": allow
+    "git rev-list *": allow
+    "git checkout -- *": allow
+    "git revert *": allow
+    "npx *": allow
+    "pnpm *": allow
+    "npm *": allow
+    "yarn *": allow
+    "bun *": allow
+    "node *": allow
+    "pip *": allow
+    "poetry *": allow
+    "python *": allow
+    "pytest *": allow
+    "go *": allow
+    "cargo *": allow
+    "gh pr merge*": deny
+    "glab mr merge*": deny
+    "tea * merge*": deny
+    "git merge*": deny
+    "git push --force*": deny
+    "git push -f*": deny
+    "git reset --hard *": deny
+    "git reset --hard HEAD": allow
+    "git clean -fd*": deny
+    "rm -rf*": deny
+    "npm publish*": deny
+    "pnpm publish*": deny
   question: allow
   task: allow
   tool:
@@ -43,11 +79,11 @@ permission:
 3. **Верификация после каждого шага:**
    - После каждого `up/install` — `bash .opencode/scripts/check/run.sh --json` на изменённые файлы + `pnpm --filter ... build` / `pip check` / `go test ./...` / `cargo check` по стеку + тесты если есть в `Критериях`.
    - Успех → атомарный коммит: `git add <lock+manifest> && git commit -m "chore(deps): bump <pkg> to <ver>"` (Conventional Commits, без push). Коммить lock-файл вместе с манифестом.
-   - Провал (check/build/tests падают) → точечный откат **только** этого шага: `git reset --hard HEAD` (если не коммитил) или `git reset --hard HEAD~1` (если успел закоммитить этот шаг) — но проверь `git rev-list --count <baseCommit>..HEAD` ≥ 0 (если ушёл в минус — `git reset --hard <baseCommit>`). Залогируй причину, пропусти зависимость или попробуй другую версию, продолжай к следующей.
+    - Провал (check/build/tests падают) → точечный откат **только** этого шага и только вперёд: `git revert --no-edit HEAD` (если успел закоммитить этот шаг) или `git reset --hard HEAD` (только сброс незакоммиченного, без цели). `git reset --hard <commit>` запрещён политикой — проверь `git rev-list --count <baseCommit>..HEAD` ≥ 0. Залогируй причину, пропусти зависимость или попробуй другую версию, продолжай к следующей.
 
 4. **Forward-Only гарантия (критично):**
-   - На выходе допустимо `0..N` коммитов вперёд от `baseCommit` (`git rev-list --count baseCommit..HEAD` = 0, 1, 10, 20). `0` — все попытки откатились.
-   - Запрещено `-1 / -30` — никогда не делай `git reset --hard <commitBeforeBase>` / `rebase -i` с drop base / `push --force` / удаление истории до `baseCommit`. Если нужен глобальный откат — `git reset --hard <baseCommit>` (ровно на границу, не дальше).
+    - На выходе допустимо `0..N` коммитов вперёд от `baseCommit` (`git rev-list --count baseCommit..HEAD` = 0, 1, 10, 20). `0` — все попытки откатились.
+    - Запрещено `-1 / -30` — никогда не делай `git reset --hard <commitBeforeBase>` / `rebase -i` с drop base / `push --force` / удаление истории до `baseCommit` (первые три дополнительно заблокированы deny-политикой). Откат сломанного шага — только `git revert --no-edit` (новый коммит вперёд). Если нужен глобальный откат — создай свежий worktree от `baseCommit` (`tool worktree create --from <baseCommit>`), историю назад не двигай.
    - В worktree это безопасно: main-ветка не тронута; можно просто оставить worktree с частично успешными коммитами. Ретранслируй итог: `baseCommit`, `HEAD`, `ahead = count`, список успешных `bump <pkg>`.
 
 5. **Завершение:**

@@ -160,6 +160,11 @@
       "model": "opencode-go/muse-spark-1.3-contributor",
       "mode": "subagent",
       "hidden": true
+    },
+    "component-builder": {
+      "model": "opencode-go/muse-spark-1.3-contributor",
+      "mode": "subagent",
+      "hidden": true
     }
   },
   "mcp": {
@@ -186,7 +191,8 @@
       "environment": {
         "DOKPLOY_URL": "{env:DOKPLOY_URL}",
         "DOKPLOY_API_KEY": "{env:DOKPLOY_API_KEY}",
-        "DOKPLOY_TOOL_PRESET": "all"
+        "DOKPLOY_ENABLED_TAGS": "project,application,compose,deployment,domain",
+        "DOKPLOY_REDACT_ENV": "true"
       },
       "enabled": true
     },
@@ -213,6 +219,7 @@
   },
   "permission": {
     "bash": {
+      "*": "ask",
       "bash .opencode/scripts/tunnel/run.sh*": "allow",
       "bash .opencode/scripts/push/run.sh*": "allow",
       "bash .opencode/scripts/sync/run.sh*": "allow",
@@ -242,12 +249,22 @@
       "git branch *": "allow",
       "git worktree *": "allow",
       "git reset *": "allow",
+      "git revert *": "allow",
       "git rev-list *": "allow",
       "gh pr merge*": "deny",
       "glab mr merge*": "deny",
       "tea * merge*": "deny",
       "*pullrequests*/merge*": "deny",
-      "*pulls/*/merge*": "deny"
+      "*pulls/*/merge*": "deny",
+      "git merge*": "deny",
+      "git push --force*": "deny",
+      "git push -f*": "deny",
+      "git reset --hard *": "deny",
+      "git reset --hard HEAD": "allow",
+      "git clean -fd*": "deny",
+      "rm -rf*": "deny",
+      "npm publish*": "deny",
+      "pnpm publish*": "deny"
     }
   }
 }

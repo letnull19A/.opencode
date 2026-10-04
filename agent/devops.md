@@ -7,7 +7,33 @@ temperature: 0.2
 permission:
   edit: allow
   bash:
-    "*": allow
+    "*": ask
+    "bash .opencode/scripts/check/*": allow
+    "bash .opencode/workflows/*": allow
+    "bash -n *": allow
+    "docker *": allow
+    "kubectl *": allow
+    "helm *": allow
+    "git status *": allow
+    "git diff *": allow
+    "git log *": allow
+    "git show *": allow
+    "git rev-parse *": allow
+    "git branch *": allow
+    "git rev-list *": allow
+    "git checkout -- *": allow
+    "git revert *": allow
+    "npx *": allow
+    "gh pr merge*": deny
+    "glab mr merge*": deny
+    "tea * merge*": deny
+    "git merge*": deny
+    "git push --force*": deny
+    "git push -f*": deny
+    "git reset --hard *": deny
+    "git reset --hard HEAD": allow
+    "git clean -fd*": deny
+    "rm -rf*": deny
   question: allow
   task: allow
 ---
