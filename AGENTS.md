@@ -171,6 +171,16 @@ issue_provider: github
   скрипта любым агентом (рецепт find-class → вопрос → точечная правка,
   разбор таблицы, BEM/camelCase-нюансы); `@react-fix` остаётся
   предпочтительным исполнителем.
+- `skills/nx-*/SKILL.md` — Nx-воркспейс: `nx-workspace` (read-only разведка:
+  `nx show projects/project --json | jq`, `nx graph --print`, `nx.json`; запрет
+  читать `project.json` напрямую), `nx-run-tasks` (`nx run/run-many/affected`,
+  флаги `--skipNxCache/--verbose/--nxBail/--configuration`), `link-workspace-packages`
+  (только pnpm-ветка: `pnpm add --filter <consumer> --workspace`, `workspace:*`,
+  запрет костылей через tsconfig `paths`), `nx-generate` (discover → локальный
+  `tools/generators/` в приоритете → `--help` → исходники → паттерны →
+  обязательный `--dry-run --no-interactive` → run → `nx format --fix` → verify;
+  разделы `nx-import`/`nx-plugins` внутри того же файла; `monitor-ci` намеренно
+  исключён — нет Nx Cloud).
 - `scripts/issue-writer/` — `schema/issue.schema.json` (LLM contract) +
   `validate-issue-data.py` → `detect-provider.sh` → `render-issue.py` →
   `create-issue.sh`, glued by `orchestrate.sh`.
@@ -270,10 +280,10 @@ issue_provider: github
 
 | Отдел (стадия) | Агенты | `DESIGN.md` |
 | -------------- | ------ | ----------- |
-| разведка | `recon`, `ask`, `structurer` | read-only |
+| разведка | `recon`, `ask`, `structurer`, `nx-workspace` | read-only |
 | планирование | `plan`, `auto`, `evol-plan` | read-only |
 | задачи | `task-manager`, `task-audit`, `task-batch`, `task-explain`, `issue-writer`, `init`, `init-runner` | read-only |
-| исполнение | `build-fast`, `build-smart`, `react-architect`, `react-concept`, `react-implement`, `react-fix`, `refactor`, `devops`, `docker-pack`, `ci`, `ci-runner`, `unit-test` | read-only; UI-ядро (`react-*`) — правки строго запрещены |
+| исполнение | `build-fast`, `build-smart`, `react-architect`, `react-concept`, `react-implement`, `react-fix`, `refactor`, `devops`, `docker-pack`, `ci`, `ci-runner`, `unit-test`, `nx-run-tasks`, `nx-generate` | read-only; UI-ядро (`react-*`) — правки строго запрещены |
 | проверка | `diagnostics`, `screenshot-report`, `review` | read-only |
 | доставка | `commit-writer`, `worktree-manager`, `tunnel-manager` | read-only |
 | безопасность (сквозной) | `security` (hidden subagent-аудитор I/O) | читает guard-нарушения, предлагает validator-патчи, код не правит |
@@ -372,6 +382,20 @@ bash .opencode/scripts/design/guard.sh          # guardrail незакоммич
 # дальше агент заполняет разделы по коду/опросу и работает строго по файлу;
 # после UI-задачи — обновить разделы + строка в журнале решений с датой.
 # guard error — стоп и явный approve человека, без approve коммита нет.
+```
+
+```bash
+# nx (разведка и запуск из корня consumer-репо, префикс npx обязателен):
+npx nx show projects --json | head              # резолвится — воркспейс жив
+npx nx show project <name> --json | jq '.targets | keys'
+npx nx graph --print | jq '.graph.nodes | keys'
+npx nx run <project>:<task> [--configuration=<name>]
+npx nx run-many -t build test lint typecheck
+npx nx affected -t build test lint --base=main --head=HEAD
+npx nx list; npx nx g <gen> --help              # discover перед генерацией
+npx nx g <gen> <opts> --dry-run --no-interactive  # обязательно перед real-run
+# link: pnpm add <pkg> --filter <consumer> --workspace (только pnpm, paths-костыли запрещены)
+# plugins: pnpm nx add @nx/<plugin>; monitor-ci НЕ ставить (нет Nx Cloud)
 ```
 
 ## Version / env gotchas
