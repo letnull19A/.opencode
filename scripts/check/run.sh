@@ -302,7 +302,7 @@ for e in errs:
 with open(out,'w',encoding='utf-8') as o: json.dump(uniq,o,ensure_ascii=False)
 PY
     elif npx --yes oxfmt --help >/dev/null 2>&1; then
-      npx --yes oxfmt --check $(cat "$TMPDIR/fmt.txt") > "$FMT_TMP" 2>&1 || true
+      npx --yes oxfmt --list-different $(cat "$TMPDIR/fmt.txt") > "$FMT_TMP" 2>&1 || true
       python3 - "$FMT_TMP" "$FMT_ERRORS" << 'PY'
 import json, sys
 src, out = sys.argv[1], sys.argv[2]
