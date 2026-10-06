@@ -24,6 +24,20 @@ permission:
     "git checkout -- *": allow
     "git revert *": allow
     "npx *": allow
+    "head *": allow
+    "tail *": allow
+    "sed *": allow
+    "ls *": allow
+    "python3 *": allow
+    "node *": allow
+    "bun *": allow
+    "redis-cli *": allow
+    "ss *": allow
+    "cat *": allow
+    "pm2 *": allow
+    "nx *": allow
+    "jq *": allow
+    "yaml *": allow
     "gh pr merge*": deny
     "glab mr merge*": deny
     "tea * merge*": deny
