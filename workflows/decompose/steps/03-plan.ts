@@ -1,8 +1,11 @@
 #!/usr/bin/env bun
 // @ts-nocheck
 // 03-plan — планирует на что разбить: хуки, компоненты, типы. Читает файл, предлагает splits.
+// Маппинг на фактор 3 матрицы complex (слой, skills/evol-plan/SKILL.md#2b): каждый split
+// несёт layer (FSD shared→app + gateway|service; здесь файловый уровень — shared/entities по виду).
+// Полная компиляция 4 факторов — workflows/new-task/steps/04-plan.ts; граф-карта — skills/nesting/SKILL.md.
 // Вход: {input:{file}, backup:{...}}
-// Выход: {splits:[{kind,file,hint}], plan, _reads}
+// Выход: {splits:[{kind,file,hint,layer}], plan, _reads}
 
 import { readFileSync } from "fs"
 import path from "path"
@@ -27,11 +30,11 @@ const splits:any[]=[]
 const dir = path.dirname(file)
 const base = path.basename(file, path.extname(file))
 
-if (hasTypes) splits.push({ kind:"types", file: `${dir}/${base}.types.ts`, hint:"Вынести type/interface/enum — чистые контракты" })
-if (hasHooks) splits.push({ kind:"hooks", file: `${dir}/hooks/use${base}.ts`, hint:"Вынести логику в хук — отделить от JSX" })
-if (hasComponents && lines.length>100) splits.push({ kind:"components", file: `${dir}/components/${base}Parts.tsx`, hint:"Вынести презентационные куски — один компонент одна ответственность" })
-if (hasUtils) splits.push({ kind:"utils", file: `${dir}/${base}.utils.ts`, hint:"Вынести чистые функции" })
-if (!splits.length) splits.push({ kind:"components", file: `${dir}/${base}.parts.tsx`, hint:"Разбить по ответственности — composition вместо монолита" })
+if (hasTypes) splits.push({ kind:"types", file: `${dir}/${base}.types.ts`, hint:"Вынести type/interface/enum — чистые контракты", layer:"entities" })
+if (hasHooks) splits.push({ kind:"hooks", file: `${dir}/hooks/use${base}.ts`, hint:"Вынести логику в хук — отделить от JSX", layer:"features" })
+if (hasComponents && lines.length>100) splits.push({ kind:"components", file: `${dir}/components/${base}Parts.tsx`, hint:"Вынести презентационные куски — один компонент одна ответственность", layer:"widgets" })
+if (hasUtils) splits.push({ kind:"utils", file: `${dir}/${base}.utils.ts`, hint:"Вынести чистые функции", layer:"shared" })
+if (!splits.length) splits.push({ kind:"components", file: `${dir}/${base}.parts.tsx`, hint:"Разбить по ответственности — composition вместо монолита", layer:"widgets" })
 
 // если файл уже 20-50 после плана — ок
 const plan = `Декомпозиция ${file} (${lines.length} строк → цель 20-50):\n` + splits.map(s=>`- [${s.kind}] ${s.file} — ${s.hint}`).join("\n")

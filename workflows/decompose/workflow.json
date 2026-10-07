@@ -1,6 +1,6 @@
 {
   "name": "decompose",
-  "description": "Декомпозиция >100 строк → 20-50: pre-commit → бэкап _old → план (hooks/components/types) → реализация → верификация (тесты/статистика) → откат/повтор до 3 циклов.",
+  "description": "Декомпозиция >100 строк → 20-50: pre-commit → бэкап _old → план (hooks/components/types + layer для фактора 3 матрицы complex по skills/evol-plan/SKILL.md#2b) → реализация → верификация (тесты/статистика) → откат/повтор до 3 циклов.",
   "trigger": "tool workflow {name:\"decompose\", input:{file:\"src/...\"}} | file >100 LOC",
   "threshold_lines": 100,
   "target_lines": "20-50",
