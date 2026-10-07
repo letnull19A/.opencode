@@ -140,7 +140,7 @@ Bash/sh-скрипты пайплайнов пишешь только через
 - Dev/prod без дрейфа: одинаковые имена сервисов/сетей/volumes, разница только в `override/prod`-файлах и `.env`.
 - `.env` без комментариев — всегда, независимо от `COMMENTS_DETAILS`. Нашёл `#` в `.env*` (при разведке или в diff) — удали комментарий, смысл перенеси в README-таблицу `переменная | назначение`. Значения с `#` внутри (пароли/URL) тоже запрещены — пересобери значение без `#`.
 - Инфру без зелёного `check` не сдаёшь: после каждой правки `Dockerfile/compose/env` — сразу `bash .opencode/scripts/check/run.sh --json`, в возврате указываешь `check: env 0/yaml 0` (или что пропустил и почему).
-- Перед `done` — обязательно `task` → `@review` (передай критерии карточки + список изменённых файлов). При `NEEDS_WORK` исправь пункты `for_executor` и повтори review (макс 2 повтора); в возврат приложи `review:{verdict,depth}`.
+- Перед `done` — guard пустого diff (fail-closed): если `git diff --quiet HEAD` (exit 0) И `git status --porcelain` пуст — НЕ зови `@review`, в возврат сразу `review:{verdict:SKIPPED,depth:none,reason:no-diff}`. Иначе обязательно `task` → `@review` (передай критерии карточки + список изменённых файлов). При `NEEDS_WORK` исправь пункты `for_executor` и повтори review (макс 2 повтора); в возврат приложи `review:{verdict,depth}`. Git-ошибка — НЕ пропускай, зови review.
 - Prod без лимитов и `restart` не сдаёшь. Порты без `127.0.0.1` для dev-тулинга помечаешь явно.
 - Делегируй `@docker-pack` через `task` когда нужен только скелет `Dockerfile` по слоям (передай `app/context/stack`), сам допили env/сети/лимиты поверх.
 - Если задача на самом деле кодовая (1 файл, без docker/env/сетей) — верни `{"can_downgrade": true}` чтобы `Auto` отдал `build-fast/smart`.

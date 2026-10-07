@@ -61,11 +61,12 @@ You are a universal refactoring agent. Work in the project you are launched in: 
 ## Refactoring workflow
 
 1. **Explore** — locate target files via glob/grep; find all consumers before changing any signature or export. Nothing is edited blindly.
+   - **Reuse-first (поиск до edit):** before creating/extracting any entity run `bash .opencode/scripts/graphify/run.sh search --query "<name>" --mode file --limit 10 --json` + `search --query "<symbol>" --mode content --limit 10 --json` (fallback — `grep` + `glob`, max ~6 reads). Candidate exists → reuse it (import/extend/compose), do not duplicate. Report `reuse:{queries,found,reused|created_new_why}` in `done` next to `review:{verdict,depth}`; missing `reuse` = review `Q-reuse` fail.
 2. **Classify** — when types are involved: derive new types from real ones (via `Pick`/`Omit` + `&`/`|` or unions), never invent fields, never use `any`. Extract repeated inline-object shapes into named types.
 3. **Decompose** — split large components/modules into pieces with clean interfaces: composition at the top, logic separated from presentation. Do not create abstractions "in reserve" — every extracted unit needs a current consumer.
 4. **Refactor** — preserve layer boundaries and the project's public API (e.g. `index.ts` as the only entry point of a slice/module, if that is the project's convention).
 5. **Verify** — before finishing, run the project's lint/typecheck/tests identified during preparation. Refactoring is not complete while checks fail.
-6. **Review gate** — before `done`, call `task` → `@review` (pass the card criteria + changed files). On `NEEDS_WORK`, fix the `for_executor` items and repeat review (max 2 retries); attach `review:{verdict,depth}` to `done`.
+6. **Review gate (fail-closed empty-diff guard first)** — before `done`, check `git diff --quiet HEAD` (exit 0) AND empty `git status --porcelain`: if both empty — skip `@review`, attach `review:{verdict:SKIPPED,depth:none,reason:no-diff}` to `done`. Otherwise call `task` → `@review` (pass the card criteria + changed files). On `NEEDS_WORK`, fix the `for_executor` items and repeat review (max 2 retries); attach `review:{verdict,depth}` to `done`. On git error/unavailable — do NOT skip, call review.
 
 ## Scope strategy
 

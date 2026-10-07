@@ -68,6 +68,26 @@ bash .opencode/scripts/graphify/run.sh search --query "*.tsx" --mode file --limi
 bash .opencode/scripts/graphify/run.sh search --query "*onboarding*" --mode file --limit 20 --json
 ```
 
+## Reuse-first query-шаблоны (поиск до создания нового)
+
+Перед созданием файла/компонента/модуля/хука/типа — прогони минимум 2 шаблона, зафиксируй `reuse:{queries,found,reused|created_new_why}`:
+
+```bash
+# A. Сущность по имени файла (conceptual `graphify query "<что>"`)
+bash .opencode/scripts/graphify/run.sh search --query "<Name>" --mode file --limit 10 --json
+
+# B. Символ/функция по коду (conceptual `graphify explain "<концепция>"`)
+bash .opencode/scripts/graphify/run.sh search --query "<symbolName>" --mode content --limit 10 --json
+
+# C. Связи A↔B (conceptual `graphify path "<A>" "<B>"`): два поиска + read пересечения
+bash .opencode/scripts/graphify/run.sh search --query "<A>" --mode both --limit 20 --json
+bash .opencode/scripts/graphify/run.sh search --query "<B>" --mode both --limit 20 --json
+# открой read 1–2 пересечения (40–60 строк вокруг матча), не копируй файлы целиком
+```
+
+- Кандидат есть → переиспользуй (import/extend/compose на минимальном scope), `add` становится `update`.
+- Ничего нет → новое допустимо, но укажи `created_new_why` (что искал, почему не подошло).
+
 ## Правила
 
 - Всегда `search --json` — парсь JSON, не текст. `file_results` → `read` файл, `content_results` → `read` с `offset` по `line`.

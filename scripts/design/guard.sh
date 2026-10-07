@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 # guard.sh — guardrail дизайна перед коммитом. Только чтение + проверка.
-# Сверяет НЕЗАКОММИЧЕННЫЕ изменения UI-файлов с DESIGN.md:
-#   error magic-color          hex/rgba-литерал в коде, которого нет в токенах DESIGN.md
-#   error unregistered-component  новый компонент, не записанный в §3 DESIGN.md
-#   error design-not-updated   есть design-нарушения, а сам DESIGN.md не тронут
+# DESIGN.md трактуется как style-guide (токены/box-shadow/dark/a11y), а не реестр-дамп:
+#   error magic-color          hex/rgba-литерал в коде, которого нет в токенах DESIGN.md (§2)
+#   error box-shadow           box-shadow в коде (запрещён DESIGN.md §2/§5 — только border/outline)
+#   error unregistered-component  новый ГЛОБАЛЬНЫЙ компонент (shared/ui, пакет), не покрытый DESIGN.md.
+#                              Локальное (app/**/components/*, page-local, const, UPPER_SNAKE) — не регистрируется, не ошибка.
+#   error design-not-updated   есть РЕАЛЬНЫЕ нарушения токенов (magic-color/box-shadow), а DESIGN.md не тронут
 #   warn  magic-px             px-литерал не из токенов (не блокирует, но виден)
 # Пропускает: комментарии, *.test.* / *.spec.* / *.stories.*, строки с `design:ignore`.
 #
@@ -134,11 +136,19 @@ allowed_px = set(re.findall(r"(?<![\w.])(\d+(?:\.\d+)?px)", design))
 HEX_RE = re.compile(r"#[0-9a-fA-F]{3,4}\b|#[0-9a-fA-F]{6}\b|#[0-9a-fA-F]{8}\b")
 RGBA_RE = re.compile(r"rgba?\([^)]*\)", re.I)
 PX_RE = re.compile(r"(?<![\w.])(\d+(?:\.\d+)?px)")
+BOX_RE = re.compile(r"box-shadow\s*:|boxShadow\s*:", re.I)
 COMP_RE = re.compile(
     r"export\s+(?:default\s+)?(?:function|const|class|abstract\s+class)\s+([A-Z][A-Za-z0-9_]*)"
     r"|(?:function|const)\s+([A-Z][A-Za-z0-9_]*)\s*[=(]"
     r"|\b(?:class|struct)\s+([A-Z][A-Za-z0-9_]*)")
 COMMENT_RE = re.compile(r"^\s*(//|\*|#|<!--|\"\"\"|''')")
+CONSTANT_RE = re.compile(r"^[A-Z][A-Z0-9_]*$")
+# Глобальное = переиспользуемое (shared/ui, пакет). Локальное (app/**/components/*,
+# page-local, const) нигде не регистрируется — DESIGN.md для него style-guide, не dump.
+def is_global_file(path):
+    return "shared/ui" in path.replace("\\", "/")
+# Нормализованный текст DESIGN для нечёткого матчинга (ErrorBoundary == error-boundary).
+design_norm = re.sub(r"[^a-z0-9]", "", design_low)
 
 violations = []
 ui_files = set()
@@ -162,23 +172,36 @@ for entry in added:
             violations.append({"file": f, "line": int(lno), "severity": "error",
                                "rule": "magic-color",
                                "message": f"магический цвет {m} — вынеси в токены DESIGN.md (§2)"})
+    if BOX_RE.search(code):
+        violations.append({"file": f, "line": int(lno), "severity": "error",
+                           "rule": "box-shadow",
+                           "message": "box-shadow запрещён DESIGN.md (§2/§5) — используй border/outline или spacing/тон фона; исключение только по явному запросу пользователя"})
     for m in PX_RE.findall(code):
         if m not in allowed_px:
             violations.append({"file": f, "line": int(lno), "severity": "warn",
                                "rule": "magic-px",
                                "message": f"магический размер {m} — добавь токен в DESIGN.md (§2) или design:ignore"})
-    for grp in COMP_RE.findall(code):
-        name = next((g for g in grp if g), "")
-        if name and name not in design:
-            violations.append({"file": f, "line": int(lno), "severity": "error",
-                               "rule": "unregistered-component",
-                               "message": f"компонент {name} не зарегистрирован в DESIGN.md (§3)"})
+    # unregistered-component — ТОЛЬКО для глобального (shared/ui, пакет).
+    # Локальное (app/**/components/*, page-local) и константы (UPPER_SNAKE allowlist,
+    # напр. SUPPORT_EMAIL) — не регистрируются, DESIGN.md для них style-guide.
+    if is_global_file(f):
+        for grp in COMP_RE.findall(code):
+            name = next((g for g in grp if g), "")
+            if not name:
+                continue
+            if CONSTANT_RE.match(name):
+                continue  # константа-allowlist (SUPPORT_EMAIL и т.п.), не компонент
+            name_norm = re.sub(r"[^a-z0-9]", "", name.lower())
+            if name_norm and name_norm not in design_norm:
+                violations.append({"file": f, "line": int(lno), "severity": "error",
+                                   "rule": "unregistered-component",
+                                   "message": f"глобальный компонент {name} не покрыт DESIGN.md (§5) — добавь или переиспользуй shared/ui / @web2bizz/ui"})
 
-errors = [v for v in violations if v["severity"] == "error"]
-if errors and not touched:
+token_errors = [v for v in violations if v["rule"] in ("magic-color", "box-shadow")]
+if token_errors and not touched:
     violations.append({"file": "DESIGN.md", "line": 0, "severity": "error",
                        "rule": "design-not-updated",
-                       "message": "есть design-нарушения, а DESIGN.md не обновлён — предложи человеку точные правки (токены/компоненты/журнал §6); правит только владелец, коммит после его approve"})
+                       "message": "есть реальные нарушения токенов (magic-color/box-shadow), а DESIGN.md не обновлён — предложи человеку точные правки токенов (§2); правит только владелец, коммит после его approve"})
 
 passed = not any(v["severity"] == "error" for v in violations)
 out = {"design_file": design_path, "ui_files": sorted(ui_files),

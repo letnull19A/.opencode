@@ -46,7 +46,8 @@ issue_provider: github
   своим CLI). Механически запрещено в `opencode.json` (`deny`, работает
   даже в auto-режиме). Если просят «замержи» — не мержить, а отдать
   человеку `PR_URL:` + свежий `status-pr.sh` и команду для ручного мержа.
-- DESIGN.md rule (только UI: веб и мобилки): `DESIGN.md` в корне проекта,
+- DESIGN.md rule (только UI: веб и мобилки): `DESIGN.md` в корне проекта —
+  style-guide (токены, `box-shadow`, тёмная тема, a11y), а не реестр-дамп;
   владелец — человек; агентам всех отделов файл — только для чтения
   (UI-ядро `react-*` — строгий read-only, см. Departments). Агент за
   UI-задачей перед работой делает `init.sh --check`, если файла нет —
@@ -54,19 +55,26 @@ issue_provider: github
   правил берёт программно через
   `bash .opencode/scripts/design/context.sh` (исполняющий агент;
   read-only сабагенты без bash читают `DESIGN.md` напрямую) и работает
-  строго по нему (токены/компоненты/конвенции); противоречие — вопрос
-  пользователю, а не тихий отход. Нужны изменения (токен/компонент/
-  конвенция) — агент показывает человеку точный патч (секция → строки);
+  строго по нему (токены/box-shadow/dark/a11y); противоречие — вопрос
+  пользователю, а не тихий отход. Локальное (`app/**/components/*`,
+  page-local, `const`, UPPER_SNAKE вроде `SUPPORT_EMAIL`) нигде не
+  регистрируется; глобальное — `shared/ui` + пакет (`@web2bizz/ui`).
+  Нужны изменения (токен/конвенция/глобальный компонент) — агент показывает
+  человеку точный патч (секция → строки);
   вносит только владелец, затем approve → коммит. Обновление разделов
   и журнала после задачи — тоже за владельцем, по предложению агента.
   Backend/infra-агенты файл игнорируют.
 - Design-guard rule (коммиты UI): ничто UI не попадает в коммит без
   проверки — перед `git add` исполняющий агент прогоняет
   `bash .opencode/scripts/design/guard.sh` (только незакоммиченные
-  изменения). Error-нарушения — стоп и явный approve человека;
-  без approve коммита нет. На `design-not-updated` агент отдаёт точные
-  предлагаемые правки `DESIGN.md`; вносит их человек, затем approve →
-  коммит. Проверяльщик здесь — человек.
+  изменения; DESIGN как style-guide: `error` — магический цвет,
+  `box-shadow`, глобальный `unregistered-component`; `warn` — магический
+  px, не блокирует). Error-нарушения — стоп и явный approve человека;
+  без approve коммита нет. `design-not-updated` — только при реальных
+  нарушениях токенов (`magic-color`/`box-shadow`): агент отдаёт точные
+  предлагаемые правки токенов `DESIGN.md`; вносит их человек, затем approve →
+  коммит. Проверяльщик здесь — человек. Контракт severity един для всего
+  пайплайна (commit/review): `error` блокирует, `warn` — нет.
 - Security rule (все коммиты, фронт + бэк): вход валидируется на границе
   (API — schema до логики, формы — тем же schemas), выход сериализуется
   через schemas, sinks (`innerHTML`/`eval`/`shell=True`) и конкатенация
@@ -154,7 +162,7 @@ issue_provider: github
   `CODE_OF_CONDUCT.md` + `DESIGN.md` (для UI) через `check/run.sh` + `security/design`
   guards по узким критериям Q1..Q8 (задача/контракты/принципы/статика/безопасность/
   тесты/читаемость/гигиена scope); код не правит (`edit: deny`), возвращает
-  `{verdict: APPROVED|NEEDS_WORK, findings, for_executor}`; глубина fast/deep —
+  `{verdict: APPROVED|NEEDS_WORK|SKIPPED, findings, for_executor}` (SKIPPED — только при пустом `git diff HEAD` + `git status --porcelain`, fail-closed: git-ошибка = ревью запускается; SKIPPED ≠ APPROVED); глубина fast/deep —
   внутренней эвристикой, без отдельного classify-tool.
 - `skills/tunnel-manager/SKILL.md` — preview-tunnel runner (wraps
   `scripts/tunnel/`).
