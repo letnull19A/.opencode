@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # guard.sh — guardrail дизайна перед коммитом. Только чтение + проверка.
-# Сверяет НЕЗАКОММИЧЕННЫЕ изменения UI-файлов с DESIGN.md:
+# Сверяет НЕЗАКОММИЧЕННЫЕ изменения UI-файлов с DESIGN.md (style-guide: токены/box-shadow/dark/a11y):
 #   error magic-color          hex/rgba-литерал в коде, которого нет в токенах DESIGN.md
 #                              (внутри верхнеуровневых блоков токенов `:root`/`.dark`
 #                               литерал — это само определение палитры, §2, и не
 #                               проверяется; hex и rgb() нормализуются к одному канону)
+#   error box-shadow           box-shadow в коде (запрещён §2/§5 — только border/outline)
 #   error unregistered-component  новый компонент, не записанный в §3 DESIGN.md
 #                              (компонент = объявление по форме: function/class/struct,
 #                               либо `const X =` с доказанным признаком компонента)
@@ -245,6 +246,7 @@ except FileNotFoundError:
 HEX_RE = re.compile(r"#[0-9a-fA-F]{3,4}\b|#[0-9a-fA-F]{6}\b|#[0-9a-fA-F]{8}\b")
 RGBA_RE = re.compile(r"rgba?\([^)]*\)", re.I)
 PX_RE = re.compile(r"(?<![\w.])(\d+(?:\.\d+)?px)")
+BOX_RE = re.compile(r"box-shadow\s*:|boxShadow\s*:", re.I)
 # Компонент ловим ПО ФОРМЕ ОБЪЯВЛЕНИЯ, а не по «любому PascalCase-идентификатору»:
 #   function X( / export default function X / export class X / struct X
 # однозначно означают компонент. А вот `const X = ...` — форма неоднозначна
@@ -505,6 +507,11 @@ for f in sorted(added_by_file):
                                        "rule": "magic-color",
                                        "message": f"магический цвет {m.group()} — вынеси в токены DESIGN.md (§2)"})
                     file_errors += 1
+        if BOX_RE.search(code):
+            violations.append({"file": f, "line": lno, "severity": "error",
+                               "rule": "box-shadow",
+                               "message": "box-shadow запрещён DESIGN.md (§2/§5) — используй border/outline или spacing/тон фона; исключение только по явному запросу пользователя"})
+            file_errors += 1
         for m in PX_RE.findall(code):
             if m not in allowed_px:
                 violations.append({"file": f, "line": lno, "severity": "warn",

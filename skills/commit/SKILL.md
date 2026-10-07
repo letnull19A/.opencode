@@ -26,9 +26,13 @@ description: Create atomic Conventional Commits from a dirty git tree — split 
    (`*.tsx`/`*.jsx`/`*.css`/`*.scss`/мобильные) — от этого зависит дизайн-guardrail ниже.
    Дальше иди строго по группам, по очереди (стейдж → проверка ровно стейджа → коммит):
    `git add <paths группы>` → guards с `--staged` (проверяется ровно то, что попадёт в коммит, а не всё дерево):
-   дизайн-guardrail `bash .opencode/scripts/design/guard.sh --staged` если в группе есть UI-файлы
-   (вышел 1 — error-нарушения: стоп, покажи их + точные предлагаемые правки `DESIGN.md`
-   (правит их только человек-владелец, UI-ядро — read-only) и жди явного approve; без approve не коммитишь;
+    дизайн-guardrail `bash .opencode/scripts/design/guard.sh --staged` если в группе есть UI-файлы
+    (DESIGN.md — style-guide, а не реестр: `error` — магический цвет, `box-shadow`,
+    глобальный `unregistered-component` (`shared/ui`, пакет); локальное —
+    `app/**/components/*`, page-local, `const`/UPPER_SNAKE — регистрации не требует;
+    `warn` — магический px, не блокирует; `design-not-updated` — только при реальных
+    нарушениях токенов. Вышел 1 — error-нарушения: стоп, покажи их + точные предлагаемые правки токенов `DESIGN.md`
+    (правит их только человек-владелец, UI-ядро — read-only) и жди явного approve; без approve не коммитишь;
    вышел 0 — идёшь дальше; вышел 2 (нет `DESIGN.md`) — сначала `design/init.sh` + заполнение, потом guard),
    затем всегда (фронт и бэк) security-guardrail `bash .opencode/scripts/security/guard.sh --staged`.
    Вышел 1 — error-нарушения: стоп, покажи их, разбор сложных мест делегируй `@security` через `task`

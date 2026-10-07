@@ -38,8 +38,10 @@ description: Develop a module end-to-end via one of the add/update/delete/decomp
 - **spec**: изучи структуру проекта и соседние модули (как устроен похожий
   модуль — конвенции именования, файлы); напиши `SPEC.md` (цель, требования,
   acceptance criteria). Покажи пользователю — жди явного «да».
+  Reuse-first в spec: сначала `bash .opencode/scripts/graphify/run.sh search --query "<имя>" --mode file --limit 10 --json` + `search --query "<символ>" --mode content --limit 10 --json` (fallback `grep`/`glob`); кандидат есть → spec на расширение/композицию (`update`), не на новый модуль, с `Reuse: <path:line>`; нет → `created_new_why`. SPEC.md/PLAN.md в корень репо не класть (только в `specs/`/`.plan/` модуля или рядом с модулем — новых `*.md` в корне репо запрещено).
 - **planning**: напиши `PLAN.md` (полный список файлов: создать/изменить,
   ответственность каждого, порядок). Покажи — жди явного «да».
+  Каждый пункт плана обязан ссылаться на reuse-результат (переиспользуемый файл или `created_new_why`); пункт без reuse-основания — неполон.
 - **tests**: делегируй `@unit-test` — тесты на SPEC/PLAN. Для add сначала
   красный прогон — нормально (TDD).
 - **implementation**: add — реализуешь сам (`build`); update/delete/decompose —
