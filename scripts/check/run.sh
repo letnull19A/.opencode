@@ -321,6 +321,10 @@ fi
 # ---------- env (программная валидация .env*) ----------
 # Правило: .env* содержит только KEY=VALUE (допустим `export KEY=VALUE` и пустые строки).
 # Любые пояснения — в README.md ## Окружение, а не в .env.
+# Исключение: файлы `*.example` — документационные шаблоны (dotenv/compose их как
+# runtime-env никогда не грузят: compose читает `.env`, dotenv грузит `.env`);
+# комментарии и prod/local-дубли в шаблоне intentional — для них пропускаются
+# правила про комментарии и дубликаты. Остальные правила действуют как обычно.
 # Ловит программно: #-комментарии (полные и инлайн `пробел+#`), строки без `=`,
 # невалидные имена, дубликаты ключей.
 ENV_ERRORS="$TMPDIR/env.json"
@@ -337,6 +341,8 @@ re_full = re.compile(r'^\s*#')
 re_kv = re.compile(r'^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=(.*)$')
 errs = []
 for f in files:
+    # *.example — документационные шаблоны: комментарии и дубликаты intentional.
+    is_template = f.endswith('.example')
     try:
         seen = {}
         with open(f, encoding='utf-8', errors='ignore') as fh:
@@ -345,6 +351,8 @@ for f in files:
                 if not line.strip():
                     continue
                 if re_full.match(line):
+                    if is_template:
+                        continue
                     errs.append({"file": f, "line": i, "message": "комментарий в .env запрещён — перенеси в README.md ## Окружение (переменная | назначение)", "raw": line.strip()[:200]})
                     continue
                 m = re_kv.match(line)
@@ -356,10 +364,13 @@ for f in files:
                     continue
                 key = m.group(1)
                 if key in seen:
-                    errs.append({"file": f, "line": i, "message": f"дубликат {key} в .env (первое на строке {seen[key]}) — оставь одно значение", "raw": line.strip()[:200]})
+                    if not is_template:
+                        errs.append({"file": f, "line": i, "message": f"дубликат {key} в .env (первое на строке {seen[key]}) — оставь одно значение", "raw": line.strip()[:200]})
                 else:
                     seen[key] = i
                 if re.search(r'\s#', line):
+                    if is_template:
+                        continue
                     errs.append({"file": f, "line": i, "message": "инлайн-комментарий в .env запрещён — перенеси в README.md ## Окружение", "raw": line.strip()[:200]})
     except FileNotFoundError:
         continue
