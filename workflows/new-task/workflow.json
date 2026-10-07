@@ -1,6 +1,6 @@
 {
   "name": "new-task",
-  "description": "0→1: от сырой фразы 'новая задача' до карточки в Trello, готовой к работе. Минимально: validate → classify → recon → plan → create (dry-run preview gate).",
+  "description": "0→1: от сырой фразы 'новая задача' до карточки в Trello, готовой к работе. Минимально: validate → classify → route-classify (тип роута public/auth/unauth по skills/routing/SKILL.md, до plan) → recon (reuse-first: graphify/grep до нового, reuse в facts) → plan (add→update при кандидате, reuse в JSON; при complex=true компиляция закрытой матрицы 4 факторов роутинг×роль×слой×вложенность по skills/evol-plan/SKILL.md#2b-3b) → create (dry-run preview gate).",
   "trigger": "новая задача | /new-task | tool workflow {name:\"new-task\"}",
   "steps": [
     {
@@ -16,6 +16,13 @@
       "guardrails": { "allow_tools": ["classify_plan"], "max_reads": 2 }
     },
     {
+      "id": "route-classify",
+      "description": "Классификация роута до планирования: вход — единица страница|модуль (фронт) или эндпоинт|модуль (бэк); выход — тип public/auth/unauth. Правило — таблица skills/routing/SKILL.md#классификатор-таблица. Смешанная единица делится на модули.",
+      "run": "workflows/new-task/steps/025-route-classify.ts",
+      "needs": ["classify"],
+      "guardrails": { "allow_tools": ["none"], "max_reads": 4, "deny": ["edit", "write"] }
+    },
+    {
       "id": "recon",
       "run": "workflows/new-task/steps/03-recon.ts",
       "needs": ["validate"],
@@ -23,9 +30,10 @@
     },
     {
       "id": "plan",
+      "description": "Компиляция плана: обычный — route-строка в контекст; complex (порог skills/evol-plan/SKILL.md#2b) — 4 строки матрицы + критерии доступа + разрез по слоям + Blocked by. Граф-карта — skills/nesting/SKILL.md.",
       "run": "workflows/new-task/steps/04-plan.ts",
-      "needs": ["classify","recon"],
-      "guardrails": { "allow_tools": ["evol-plan"], "max_reads": 4 }
+      "needs": ["classify", "recon", "route-classify"],
+      "guardrails": { "allow_tools": ["evol-plan"], "max_reads": 6 }
     },
     {
       "id": "create",
