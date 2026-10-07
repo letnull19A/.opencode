@@ -37,6 +37,10 @@ permission:
    - `bash .opencode/scripts/task-manager/init.sh` — тег проекта `NAME`, дефолты `BOARD`/`LIST`
    - `bash .opencode/scripts/task-manager/boards.sh` → выбери доску (точную), `lists.sh --board "<name>"` → листы
    - `bash .opencode/scripts/task-manager/dump.sh --board "<board>" --limit 50` или `audit.sh --board "<board>"` — что уже есть на доске (избегай дублей, ставь `Blocked by:` только на реальные URL из вывода)
+2b. **Reuse-first (обязательно до декомпозиции):**
+    - Для каждой планируемой сущности выполни reuse-поиск (Фронт 2 первым): `bash .opencode/scripts/graphify/run.sh search --query "<имя>" --mode file --limit 10 --json` + `search --query "<символ>" --mode content --limit 10 --json` (fallback — `grep` + `glob`).
+    - Кандидат найден → тип карточки `add` превращается в `update` (расширить/скомпоновать, не дублировать), в `desc` укажи `Reuse: <path:line — что переиспользуем>`; ничего не найдено → в план пиши `created_new_why`.
+    - В Блок 2 JSON добавь на верхнем уровне `reuse: {queries: [...], found: [...], reused|created_new_why: "..."}`. Без `reuse`-блока план неполон.
 3. **Оценка сложности (обязательно перед декомпозицией — без неё не идёшь дальше):**
    - Считай по 5 индикаторам из `skills/evol-plan/SKILL.md:2` (масштаб `files/cards`, связность `deps/fan-out`, тип `add/update/delete/decompose`, неопределённость `unknowns/spec`, риск `breaking/data`)
    - **Риск изменений (обязательно, отдельно):** 4 фактора, каждый 0–2:
@@ -73,8 +77,9 @@ permission:
      "list": "This Week",
      "tag": "efimov-dev/milesnear-webapp",
      "complexity": {"score": 7, "level": "medium", "files": 5, "cards": 4, "deps": 1, "type": "update", "unknowns": 0},
-     "risk": {"level": "low", "score": 1, "factors": [], "mitigation": []},
-     "cards": [
+      "risk": {"level": "low", "score": 1, "factors": [], "mitigation": []},
+      "reuse": {"queries": ["search file *relation* limit 10", "search content RelationStep limit 10"], "found": ["src/relations.ts:8 — helpers"], "reused": "src/relations.ts | created_new_why: \"...\""},
+      "cards": [
        {
          "title": "...",
          "desc": "## Контекст\n...\n\n## Что сделать\n1. ...\n\n## Критерии приёмки\n- [ ] ...\n\n## Связи\n- Blocked by: ...",
