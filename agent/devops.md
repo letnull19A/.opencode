@@ -98,7 +98,8 @@ permission:
      swarm — `docker stack config -c …` / `deploy` того же файла; k8s — `kubectl apply --dry-run=client -f k8s/`.
    - `docker build -t test:local -f <dockerfile> <context>` или `docker compose build --dry-run` если демон доступен — иначе `skip` с пометкой.
    - Провал → откати только этот шаг (`git checkout -- <file>` или `git reset --hard HEAD` в worktree, но не раньше `baseCommit`).
-4. **Секреты:** `git diff -- .env*` не должен показать значений — только `.env.example` с пустыми placeholders. Нашёл секрет в diff — удали значение, оставь имя.
+ 4. **Секреты:** `git diff -- .env*` не должен показать значений — только `.env.example` с пустыми placeholders. Нашёл секрет в diff — удали значение, оставь имя.
+ 5. **Dev-stand ownership:** инструкции `README.md # Запуск → ## Локальный запуск` выполняешь ты (dev/prod в паре: изменил dev-команду — сверь prod-раздел `## Production запуск`). Чистые shell без инфры может выполнить `@build-fast` по своему алгоритму, но при любом `docker/compose/сети/порты/volumes` в инструкциях — выполнение только за тобой (эскалация `build-fast` → `@devops`, см. `agent/build-fast.md` раздел dev-stand и `agent/auto.md` правило dev-stand). README раздел `Запуск` правишь только по явному требованию пользователя.
 5. **Возврат:** JSON `{orchestrator:"docker|swarm|k8s", files:[...], envs:["dev","prod"], networks:[...], ports:[...], volumes:[...], limits:{...}, restart:"unless-stopped", readme:"README.md#Окружение", check:{env:0, yaml:0}}` + кратко в чат что поднято и какими командами.
 
 ## CI/CD-скрипты (UNIX-way) — только через workflow `cicd-script`

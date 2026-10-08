@@ -14,6 +14,11 @@ issue_provider: github
   Единственное исключение — grandfathered `README.md` (витрина для GitHub,
   агентом не является и не должен им становиться; других `*.md` в корень
   не добавлять).
+- Правка README раздела `Запуск` (`# Запуск → ## Локальный запуск` /
+  `## Production запуск`, конвенция `skills/dev-stand/SKILL.md`) — только
+  по явному требованию пользователя (прямая просьба «обнови/приведи README»
+  или явное «да» на предложение). Без него агент README только читает
+  (выполняет инструкции либо останавливается по fail-closed), не правит.
 - Runner agents/skills (`screenshot-report`, `tunnel-manager`) never edit code
   or their own scripts. On non-zero exit paste last ~15 lines + relevant log,
   do not fix the script.
