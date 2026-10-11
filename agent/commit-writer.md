@@ -22,6 +22,8 @@ permission:
 
 ## Вход
 
+Разрешённые команды — только `git status/diff/log/show/add/commit`, `bash .opencode/scripts/git-changes/run.sh ...`, `bash .opencode/scripts/commit-trello/*`. Всё остальное (включая `echo` и `gh`) запрещено. Не делай вывод о полном запрете shell по одной refused-команде — сверяйся со своей allowlist выше. Push — НИКОГДА.
+
 - Список изменений — обязательно `bash .opencode/scripts/git-changes/run.sh --limit 20 --json` (единый JSON: `dirty` + `log.commits[].trello/closes` + `by_card`). Фолбэк если скрипт недоступен: `git status --porcelain`, `git diff --stat HEAD`, `git diff --name-only HEAD`
 - `git log --oneline -5` или `by_card` из скрипта — стиль сообщений в этом репо (английский, Conventional Commits)
 - Подсказка пользователя из `$ARGUMENTS` (scope/тип + `Trello: https://trello.com/c/<SHORT>`) — учитывай, но `git-changes` — источник правды; карточка из `by_card` обязательна для 1:1
