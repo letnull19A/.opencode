@@ -404,7 +404,12 @@ PY
 # ---------- status ----------
 do_status() {
   if [[ -f "$INDEX_JSON" ]]; then
-    cat "$INDEX_JSON" | python3 -c 'import json,sys,os; d=json.load(sys.stdin); print(f"root: {d[\"root\"]}\ncount: {d[\"count\"]}\nindexed_at: {d.get(\"indexed_at\")}\nhash: {d.get(\"hash\")}\npath: \"'$INDEX_JSON'\"")'
+    python3 - "$INDEX_JSON" <<'PY'
+import json, sys
+index_path = sys.argv[1]
+d = json.load(open(index_path, encoding='utf-8'))
+print(f"root: {d.get('root')}\ncount: {d.get('count')}\nindexed_at: {d.get('indexed_at')}\nhash: {d.get('hash')}\npath: {index_path}")
+PY
   else
     echo "graphify: индекс не создан — запусти: bash .opencode/scripts/graphify/run.sh index --root $ROOT"
     exit 1
