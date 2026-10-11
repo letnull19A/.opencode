@@ -14,6 +14,9 @@ permission:
     "bash .opencode/scripts/graphify/*": allow
     "bash .opencode/scripts/check/*": allow
     "bash .opencode/scripts/worktree/*": allow
+    "bash .opencode/scripts/pr/*": allow
+    "bash .opencode/scripts/push/run.sh*": allow
+    "bash scripts/push/run.sh*": allow
     "git status *": allow
     "git diff *": allow
     "git log *": allow
