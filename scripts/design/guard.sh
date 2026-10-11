@@ -2,10 +2,21 @@
 # guard.sh — guardrail дизайна перед коммитом. Только чтение + проверка.
 # Сверяет НЕЗАКОММИЧЕННЫЕ изменения UI-файлов с DESIGN.md:
 #   error magic-color          hex/rgba-литерал в коде, которого нет в токенах DESIGN.md
+#                              (внутри верхнеуровневых блоков токенов `:root`/`.dark`
+#                               литерал — это само определение палитры, §2, и не
+#                               проверяется; hex и rgb() нормализуются к одному канону)
 #   error unregistered-component  новый компонент, не записанный в §3 DESIGN.md
+#                              (компонент = объявление по форме: function/class/struct,
+#                               либо `const X =` с доказанным признаком компонента)
 #   error design-not-updated   есть design-нарушения, а сам DESIGN.md не тронут
 #   warn  magic-px             px-литерал не из токенов (не блокирует, но виден)
 # Пропускает: комментарии, *.test.* / *.spec.* / *.stories.*, строки с `design:ignore`.
+#
+# Монорепо: DESIGN.md резолвится PER-FILE — ближайший вверх по директориям
+# (apps/<service>/DESIGN.md, services/<service>/DESIGN.md и т.д.), с фолбэком на
+# корневой $ROOT/DESIGN.md. Токены/компоненты = union сервисного + корневого.
+# Файл, для которого не нашлось ни одного DESIGN.md, по дизайну не проверяется
+# (помечается в JSON как files_without_design), чтобы не плодить ложные error'ы.
 #
 # Использование (из корня consumer-репозитория):
 #   bash .opencode/scripts/design/guard.sh [--staged] [--json]
@@ -16,7 +27,8 @@
 #
 # Выход: stdout — только JSON {passed, violations[]}; stderr — summary.
 # Коды: 0 — чисто (или нет UI-изменений), 1 — есть error-нарушения (коммит
-# только после явного approve человека), 2 — нет DESIGN.md / не git.
+# только после явного approve человека), 2 — не git, либо НИ ОДНОГО DESIGN.md
+# в репозитории (нет даже корневого).
 
 set -euo pipefail
 
@@ -46,13 +58,10 @@ if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   exit 2
 fi
 ROOT="$(git rev-parse --show-toplevel)"
-DESIGN="$ROOT/DESIGN.md"
-
-if [[ ! -f "$DESIGN" ]]; then
-  echo '{"passed":false,"error":"no_design_file","hint":"bash .opencode/scripts/design/init.sh","violations":[]}'
-  echo "design/guard: нет DESIGN.md — сначала: bash .opencode/scripts/design/init.sh" >&2
-  exit 2
-fi
+ROOT_DESIGN="$ROOT/DESIGN.md"
+# Корневой DESIGN.md — фолбэк/источник общих токенов, не единственный:
+# резолюция per-file (ближайший вверх) делается в python-блоке. Поэтому
+# отсутствие корневого файла — не ранний exit, а решение уже там.
 
 TMPDIR="$(mktemp -d)"
 trap 'rm -rf "$TMPDIR"' EXIT
@@ -73,17 +82,11 @@ fi
 grep -E "$UI_RE" "$TMPDIR/changed.txt" 2>/dev/null | grep -vE "$SKIP_RE" | sort -u > "$TMPDIR/ui.txt" || true
 grep -E "$UI_RE" "$TMPDIR/untracked.txt" 2>/dev/null | grep -vE "$SKIP_RE" | sort -u > "$TMPDIR/ui_new.txt" || true
 
-# DESIGN.md тронут в этой же пачке? (тогда freshness-чек пропускаем)
-DESIGN_TOUCHED=0
-if grep -qxF "DESIGN.md" "$TMPDIR/changed.txt" 2>/dev/null || grep -qxF "DESIGN.md" "$TMPDIR/untracked.txt" 2>/dev/null; then
-  DESIGN_TOUCHED=1
-fi
-# путь может быть подпапкой — проверяем и суффикс
-if [[ "$DESIGN_TOUCHED" -eq 0 ]]; then
-  if grep -E '(^|/)DESIGN\.md$' "$TMPDIR/changed.txt" "$TMPDIR/untracked.txt" 2>/dev/null | grep -q .; then
-    DESIGN_TOUCHED=1
-  fi
-fi
+# Какие DESIGN.md тронуты в этой же пачке? (список, не один флаг — freshness
+# теперь проверяется per-design-файл, а не только по корню)
+cat "$TMPDIR/changed.txt" "$TMPDIR/untracked.txt" 2>/dev/null \
+  | grep -E '(^|/)DESIGN\.md$' | sort -u > "$TMPDIR/design_touched.txt" || true
+[[ -s "$TMPDIR/design_touched.txt" ]] && DESIGN_TOUCHED=1 || DESIGN_TOUCHED=0
 
 # Дифф добавленных строк с номерами (tracked), untracked — целиком.
 : > "$TMPDIR/added.tsv"
@@ -115,78 +118,450 @@ if [[ -s "$TMPDIR/ui_new.txt" ]]; then
 fi
 
 GUARD_JSON="$TMPDIR/guard.json"
-python3 - "$TMPDIR/added.tsv" "$DESIGN" "$DESIGN_TOUCHED" "$GUARD_JSON" << 'PY'
-import json, re, sys
-added_path, design_path, out_path = sys.argv[1], sys.argv[2], sys.argv[4]
-touched = sys.argv[3] == "1"
+python3 - "$TMPDIR/added.tsv" "$ROOT" "$ROOT_DESIGN" "$TMPDIR/design_touched.txt" "$GUARD_JSON" "$ONLY_STAGED" << 'PY'
+import json, os, re, subprocess, sys
+from bisect import bisect_right
 
-design = open(design_path, encoding="utf-8").read()
-design_low = design.lower()
+added_path = sys.argv[1]
+ROOT = os.path.realpath(sys.argv[2])
+root_design = sys.argv[3] if os.path.isfile(sys.argv[3]) else ""
+touched_path = sys.argv[4]
+out_path = sys.argv[5]
+_staged = sys.argv[6] == "1"
+
+def canon_color(s):
+    """Канонический вид цвета: hex и rgb()/rgba() приводятся к ОДНОЙ форме.
+
+    Зачем: палитра в DESIGN.md и её использование в коде записаны по-разному
+    (`#fff` vs `rgb(255 255 255)`). Без нормализации эквивалентные записи
+    ловятся как «магический цвет». Форма: `rgb(r,g,b)` для непрозрачных,
+    `rgba(r,g,b,a)` для альфы (a в долях) — обе стороны проходят через
+    один формат, поэтому сравнение честное.
+    """
+    t = re.sub(r"\s+", "", s).lower()
+    m = re.fullmatch(r"#([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})", t)
+    if m:
+        h = m.group(1)
+        if len(h) in (3, 4):
+            h = "".join(ch * 2 for ch in h)
+        if len(h) not in (6, 8):
+            return t  # некорректная длина (5/7 цифр) — сравниваем как есть
+        r, g, b = (int(h[i:i + 2], 16) for i in (0, 2, 4))
+        a = int(h[6:8], 16) / 255 if len(h) == 8 else None
+    else:
+        m = re.fullmatch(r"rgba?\(([^)]*)\)", t)
+        if not m:
+            return t  # не цвет — вернуть как есть (сравнение не сойдётся)
+        nums = [n for n in m.group(1).replace(",", " ").replace("/", " ").split(" ") if n]
+        if len(nums) < 3:
+            return t
+        try:
+            r, g, b = (int(float(n)) for n in nums[:3])
+            a = float(nums[3]) if len(nums) > 3 else None
+        except ValueError:
+            return t  # проценты/мусор — не интерпретируем молча
+    if a is None or a == 1:
+        return f"rgb({r},{g},{b})"
+    return f"rgba({r},{g},{b},{a:.6g})"
+
 
 def norm_color(s):
-    return re.sub(r"\s+", "", s.lower())
+    """Историческое имя — теперь это канонизация, а не lower()+trim."""
+    return canon_color(s)
 
-allowed_colors = {norm_color(m) for m in
-                  re.findall(r"#[0-9a-fA-F]{3,8}\b", design) +
-                  re.findall(r"rgba?\([^)]*\)", design, re.I)}
-allowed_px = set(re.findall(r"(?<![\w.])(\d+(?:\.\d+)?px)", design))
+# --- резолюция DESIGN.md per-file: ближайший вверх, не выше $ROOT -------------
+_dir_cache = {}
+def resolve_design_dir(start_dir):
+    """Ближайший DESIGN.md от start_dir вверх (включая сам start_dir), граница — ROOT."""
+    if start_dir in _dir_cache:
+        return _dir_cache[start_dir]
+    cur = start_dir
+    hit = ""
+    while True:
+        cand = os.path.join(cur, "DESIGN.md")
+        if os.path.isfile(cand):
+            hit = cand
+            break
+        if cur == ROOT:
+            break
+        parent = os.path.dirname(cur)
+        if parent == cur or not parent.startswith(ROOT):
+            break  # вышли за границу репозитория
+        cur = parent
+    _dir_cache[start_dir] = hit
+    return hit
+
+# --- разбор одного design-файла (кэш по пути: не читаем на каждую строку) ---
+_design_cache = {}
+def load_design(path):
+    if path not in _design_cache:
+        try:
+            text = open(path, encoding="utf-8").read()
+        except OSError:
+            text = ""
+        colors = {norm_color(m) for m in
+                  re.findall(r"#[0-9a-fA-F]{3,8}\b", text) +
+                  re.findall(r"rgba?\([^)]*\)", text, re.I)}
+        px = set(re.findall(r"(?<![\w.])(\d+(?:\.\d+)?px)", text))
+        # текст хранится в исходном регистре: проверка имени компонента
+        # регистрозависимая (PascalCase), lowercase-версия для неё непригодна.
+        _design_cache[path] = (colors, px, text)
+    return _design_cache[path]
+
+def rules_for_file(f):
+    """(allowed_colors, allowed_px, design_text, design_path) для файла f.
+
+    Union: сервисный (ближайший) + корневой. Обоснование: корневой DESIGN.md —
+    владелец общих токенов; сервисный — расширение/переопределение под сервис.
+    Пересечение не конфликтует (это set-union литералов), а общие токены из корня
+    не должны ломать легальный код сервиса. Приоритет сервисного достигается
+    тем, что резолюция находит его ПЕРВЫМ — корневой используется, только если
+    сервисного нет (тогда он и есть ближайший).
+    """
+    fdir = os.path.dirname(os.path.join(ROOT, f))
+    nearest = resolve_design_dir(fdir)
+    if nearest and os.path.realpath(nearest) == os.path.realpath(root_design or ""):
+        nearest = ""  # ближайший и есть корневой — дублировать не надо
+    paths = [p for p in (nearest, root_design) if p]
+    if not paths:
+        return set(), set(), "", ""
+    colors, px, text_parts = set(), set(), []
+    for p in paths:
+        c, x, t = load_design(p)
+        colors |= c
+        px |= x
+        text_parts.append(t)
+    return colors, px, "\n".join(text_parts), paths[0]
+
+_touched = set()
+try:
+    for line in open(touched_path, encoding="utf-8"):
+        line = line.strip()
+        if line:
+            _touched.add(os.path.realpath(os.path.join(ROOT, line)))
+except FileNotFoundError:
+    pass
 
 HEX_RE = re.compile(r"#[0-9a-fA-F]{3,4}\b|#[0-9a-fA-F]{6}\b|#[0-9a-fA-F]{8}\b")
 RGBA_RE = re.compile(r"rgba?\([^)]*\)", re.I)
 PX_RE = re.compile(r"(?<![\w.])(\d+(?:\.\d+)?px)")
-COMP_RE = re.compile(
-    r"export\s+(?:default\s+)?(?:function|const|class|abstract\s+class)\s+([A-Z][A-Za-z0-9_]*)"
-    r"|(?:function|const)\s+([A-Z][A-Za-z0-9_]*)\s*[=(]"
-    r"|\b(?:class|struct)\s+([A-Z][A-Za-z0-9_]*)")
+# Компонент ловим ПО ФОРМЕ ОБЪЯВЛЕНИЯ, а не по «любому PascalCase-идентификатору»:
+#   function X( / export default function X / export class X / struct X
+# однозначно означают компонент. А вот `const X = ...` — форма неоднозначна
+# (константа с любой формой записи выглядит так же), поэтому `const`-ветка
+# дополнительно требует: (1) имя в форме React-компонента (PascalCase, т.е.
+# есть строчная буква — UPPER_SNAKE вроде STICK_THRESHOLD_PX/LOCALES отсекается
+# по правилу именования, а не по списку исключений) и (2) в строке объявления
+# + следующих строках есть признак компонента (стрелка/функция/JSX/memo/
+# forwardRef/React.FC). Иначе `export const FOO_BAR = 48` сошёл бы за компонент.
+COMP_FUNC_RE = re.compile(
+    r"\b(?:export\s+(?:default\s+)?)?(?:async\s+)?function\s+([A-Z][A-Za-z0-9_]*)\s*\(")
+COMP_CLASS_RE = re.compile(
+    r"\b(?:export\s+(?:default\s+)?)?(?:abstract\s+)?class\s+([A-Z][A-Za-z0-9_]*)")
+COMP_STRUCT_RE = re.compile(r"\bstruct\s+([A-Z][A-Za-z0-9_]*)")
+COMP_CONST_RE = re.compile(r"\b(?:export\s+)?const\s+([A-Z][A-Za-z0-9_]*)\s*=")
+COMP_MARK_RE = re.compile(
+    r"=>|\bfunction\b|createElement|\bmemo\s*\(|\bforwardRef\s*\(|React\.FC\b"
+    r"|\bFC\b|<[A-Za-z][A-Za-z0-9]*/?")
+
+
+def looks_like_component_name(name):
+    """React-компонент — PascalCase (минимум одна строчная буква).
+
+    UPPER_SNAKE-константы (LOCALES, DEFAULT_LOCALE, STICK_THRESHOLD_PX) —
+    это конфиг/числа, а не компоненты. Правило по РЕГУЛЯРИЗМУ ИМЕНИ, а не по
+    чёрному списку: любой UPPER_SNAKE отсекается автоматически.
+    """
+    return any(ch.islower() for ch in name)
+
+
+# --- контекст файла: где именно лежит строка --------------------------------
+_snapshot_cache = {}
+
+
+def file_snapshot(rel):
+    """Строки файла ИЗ ТОГО ЖЕ источника, из которого пришли номера строк
+    added.tsv: при --staged это индекс (`git show :file`), иначе рабочее дерево.
+    Кэш по пути — читаем один раз на файл, не на строку."""
+    if rel in _snapshot_cache:
+        return _snapshot_cache[rel]
+    text = ""
+    if _staged:
+        try:
+            p = subprocess.run(["git", "show", ":" + rel], cwd=ROOT,
+                               capture_output=True, text=True, check=False)
+            if p.returncode == 0:
+                text = p.stdout
+        except OSError:
+            text = ""
+    if not text:
+        try:
+            with open(os.path.join(ROOT, rel), encoding="utf-8", errors="replace") as fh:
+                text = fh.read()
+        except OSError:
+            text = ""
+    lines = text.splitlines()
+    _snapshot_cache[rel] = lines
+    return lines
+
+
+# По DESIGN.md §2 hex/rgba законны ровно в одном месте — блок объявления
+# токенов: верхнеуровневый `:root {}` / `.dark {}`.
+#
+# `html` в список НЕ входит намеренно: это базовый reset, а не палитра —
+# раньше он был источником молчаливых пропусков.
+TOKEN_SEL_RE = re.compile(r"^:(?:root)$|^\.dark$")
+
+
+def _is_token_selector(sel):
+    """Токенный селектор — РОВНО ОДИН селектор из списка, без хвостов.
+
+    Строго, без `any()` по запятой: `.card:hover, .dark` / `:root, .app-shell` /
+    `html, body` — это НЕ блок палитры. Признак один токен где-то в списке не
+    делает блок легальным, он лишь тихо легализует весь блок целиком.
+    Строгость выбрана «наружу» (лишнее violation вместо молчаливой дыры).
+    """
+    s = sel.strip()
+    if not s or "," in s:
+        return False
+    return TOKEN_SEL_RE.match(s) is not None
+
+
+def token_block_spans(text):
+    """Диапазоны (start, end) символьных смещений, где литерал — палитра.
+
+    Диапазон = содержимое блока токенов МИНУС содержимое вложенных в него
+    блоков. Диапазон эмитится только для ЗАКРЫТОГО блока: незакрытая скобка
+    означает, что дальше границы блока неизвестны, поэтому весь остаток файла
+    трактуется как обычный код (ловим лишнее, не теряем нарушения).
+
+    Сканер учитывает комментарии `/* */` и строковые литералы: `{` внутри
+    `content: "{"` не открывает блок и не ломает стек.
+    """
+    spans = []
+    stack = []          # (is_token, content_start) по уровням вложенности
+    token_open = None   # [start, [(s, e), ...]] — открытый блок токенов
+    nested_start = None  # начало вложенного блока внутри блока токенов
+    buf = ""
+    i, n = 0, len(text)
+    while i < n:
+        if text.startswith("/*", i):
+            e = text.find("*/", i + 2)
+            if e == -1:
+                break  # незакрытый комментарий — до конца файла, блок не эмитим
+            i = e + 2
+            continue
+        if text[i] in "\"'":
+            j = i + 1
+            while j < n:
+                if text[j] == "\\":
+                    j += 2
+                    continue
+                if text[j] == text[i] or text[j] == "\n":
+                    break
+                j += 1
+            i = j + 1  # содержимое строки не влияет на стек
+            continue
+        c = text[i]
+        if c == "{":
+            is_token = not stack and _is_token_selector(buf)
+            stack.append((is_token, i + 1))
+            if is_token:
+                token_open = [i + 1, []]
+            elif stack[:-1] and stack[-2][0]:
+                nested_start = i + 1  # вложенный блок ВНУТРИ блока токенов
+            buf = ""
+        elif c == "}":
+            if stack:
+                is_token, _start = stack.pop()
+                if is_token and token_open:
+                    # Вырезаем содержимое вложенных блоков из диапазона палитры.
+                    segs, cur = [], token_open[0]
+                    for s0, e0 in token_open[1]:
+                        if s0 > cur:
+                            segs.append((cur, s0))
+                        cur = e0
+                    if cur < i:
+                        segs.append((cur, i))
+                    spans.extend(segs)
+                    token_open = None
+                elif nested_start is not None:
+                    token_open[1].append((nested_start, i))
+                    nested_start = None
+            elif token_open:
+                # Лишняя `}` на нулевом уровне: блок токенов считаем испорченным.
+                token_open = None
+            buf = ""
+        elif c == ";":
+            buf = ""  # конец декларации, селектор не продолжается
+        else:
+            buf += c
+        i += 1
+    # Незакрытый блок токенов (token_open != None) намеренно НЕ эмитим.
+    return spans
+
+
+def line_offsets(text):
+    """Смещение начала каждой строки (index 0 → строка 1)."""
+    starts = [0]
+    idx = text.find("\n")
+    while idx != -1:
+        starts.append(idx + 1)
+        idx = text.find("\n", idx + 1)
+    return starts
+
+
+def in_token_span(offset, spans):
+    return any(s0 <= offset < e0 for s0, e0 in spans)
+
+
+def token_block_lines(text):
+    """Номера строк (1-based), целиком лежащие внутри блока палитры.
+
+    Производная от token_block_spans: строка в блоке токенов, если её
+    содержимое принадлежит диапазону палитры. Внутри блока токенов литералы —
+    это сами токены, а не «магические цвета» (§2). Вне блока
+    (`.app-sidebar-overlay { background: rgb(0 0 0 / 0.5) }`) ничего не
+    меняется — магический цвет по-прежнему ловится.
+    """
+    out = set()
+    if not text:
+        return out
+    starts = line_offsets(text)
+    for s0, e0 in token_block_spans(text):
+        first = bisect_right(starts, s0) - 1
+        last = bisect_right(starts, e0 - 1) - 1 if e0 > s0 else first
+        for ln in range(first, last + 1):
+            lo, hi = starts[ln], starts[ln + 1] - 1 if ln + 1 < len(starts) else len(text)
+            if s0 <= lo and hi <= e0:
+                out.add(ln + 1)
+    return out
+
+
 COMMENT_RE = re.compile(r"^\s*(//|\*|#|<!--|\"\"\"|''')")
 
 violations = []
 ui_files = set()
+no_design_files = set()
+design_files = set()
+err_by_design = {}
 try:
     added = open(added_path, encoding="utf-8").read().splitlines()
 except FileNotFoundError:
     added = []
 
+# Группируем добавленные строки по файлу: контекст (блок токенов :root/.dark и
+# продолжение объявления `const X =`) нужно знать по ОКРУЖАЮЩЕМУ коду файла,
+# а added.tsv построчный.
+added_by_file = {}
 for entry in added:
     parts = entry.split("\t", 2)
     if len(parts) != 3:
         continue
     f, lno, code = parts
+    try:
+        lno = int(lno)
+    except ValueError:
+        continue
+    added_by_file.setdefault(f, []).append((lno, code))
+for f in added_by_file:
+    added_by_file[f].sort()
+
+for f in sorted(added_by_file):
     ui_files.add(f)
-    if "design:ignore" in code:
+    allowed_colors, allowed_px, design_text, dpath = rules_for_file(f)
+    if not dpath:
+        # Ни одного DESIGN.md для файла — не проверяем (иначе ложные error'ы),
+        # но явно отмечаем в JSON, НЕ как error-блокер.
+        no_design_files.add(f)
         continue
-    if COMMENT_RE.match(code):
+    design_files.add(dpath)
+    # Контекст файла считаем один раз на файл: строки блоков токенов и сами
+    # строки файла (для multiline-контекста объявления компонента).
+    snap = file_snapshot(f)
+    snap_text = "\n".join(snap) if snap else ""
+    token_lines = token_block_lines(snap_text) if snap else set()
+    token_spans = token_block_spans(snap_text) if snap else []
+    lstarts = line_offsets(snap_text) if snap else []
+    file_errors = 0
+    for lno, code in added_by_file[f]:
+        if "design:ignore" in code:
+            continue
+        if COMMENT_RE.match(code):
+            continue
+        # Hex/rgba ВНУТРИ блока токенов (:root/.dark верхнего уровня) — это и
+        # есть палитра, её определение (DESIGN.md §2). Вне блока — обычный
+        # магический цвет. Проверка ПО ПОЗИЦИИ литерала, а не по номеру строки:
+        # строка может начинаться в блоке токенов и содержать вложенный блок
+        # (`.card { ... }` внутри `:root {}`) — такой литерал не легален.
+        base = lstarts[lno - 1] if 0 < lno <= len(lstarts) else 0
+        for rx in (HEX_RE, RGBA_RE):
+            for m in rx.finditer(code):
+                off = base + m.start()
+                if in_token_span(off, token_spans):
+                    continue
+                if norm_color(m.group()) not in allowed_colors:
+                    violations.append({"file": f, "line": lno, "severity": "error",
+                                       "rule": "magic-color",
+                                       "message": f"магический цвет {m.group()} — вынеси в токены DESIGN.md (§2)"})
+                    file_errors += 1
+        for m in PX_RE.findall(code):
+            if m not in allowed_px:
+                violations.append({"file": f, "line": lno, "severity": "warn",
+                                   "rule": "magic-px",
+                                   "message": f"магический размер {m} — добавь токен в DESIGN.md (§2) или design:ignore"})
+        # Компонент: однозначные формы объявления + `const` с доказанным
+        # признаком компонента в строке объявления и следующих строках.
+        window = "\n".join(snap[lno - 1:lno + 2]) if snap else code
+        if not window.strip():
+            window = code
+        names = (COMP_FUNC_RE.findall(code) + COMP_CLASS_RE.findall(code)
+                 + COMP_STRUCT_RE.findall(code))
+        for name in COMP_CONST_RE.findall(code):
+            if looks_like_component_name(name) and COMP_MARK_RE.search(window):
+                names.append(name)
+        for name in names:
+            if name not in design_text:
+                violations.append({"file": f, "line": lno, "severity": "error",
+                                   "rule": "unregistered-component",
+                                   "message": f"компонент {name} не зарегистрирован в DESIGN.md (§3)"})
+                file_errors += 1
+    if file_errors:
+        err_by_design.setdefault(dpath, set()).add(f)
+
+# design-not-updated — per-design-файл: нарушения есть, а ИМЕННО ЕГО DESIGN.md
+# (сервисный/корневой) не тронут в этой пачке.
+for dpath, files in sorted(err_by_design.items()):
+    if os.path.realpath(dpath) in _touched:
         continue
-    for m in HEX_RE.findall(code) + RGBA_RE.findall(code):
-        if norm_color(m) not in allowed_colors:
-            violations.append({"file": f, "line": int(lno), "severity": "error",
-                               "rule": "magic-color",
-                               "message": f"магический цвет {m} — вынеси в токены DESIGN.md (§2)"})
-    for m in PX_RE.findall(code):
-        if m not in allowed_px:
-            violations.append({"file": f, "line": int(lno), "severity": "warn",
-                               "rule": "magic-px",
-                               "message": f"магический размер {m} — добавь токен в DESIGN.md (§2) или design:ignore"})
-    for grp in COMP_RE.findall(code):
-        name = next((g for g in grp if g), "")
-        if name and name not in design:
-            violations.append({"file": f, "line": int(lno), "severity": "error",
-                               "rule": "unregistered-component",
-                               "message": f"компонент {name} не зарегистрирован в DESIGN.md (§3)"})
+    rel = os.path.relpath(dpath, ROOT)
+    shown = ", ".join(sorted(files)[:5]) + ("…" if len(files) > 5 else "")
+    violations.append({"file": rel, "line": 0, "severity": "error",
+                       "rule": "design-not-updated",
+                       "message": (f"есть design-нарушения в {shown}, а {rel} не обновлён — "
+                                   "предложи человеку точные правки (токены/компоненты/журнал §6); "
+                                   "правит только владелец, коммит после его approve")})
 
 errors = [v for v in violations if v["severity"] == "error"]
-if errors and not touched:
-    violations.append({"file": "DESIGN.md", "line": 0, "severity": "error",
-                       "rule": "design-not-updated",
-                       "message": "есть design-нарушения, а DESIGN.md не обновлён — предложи человеку точные правки (токены/компоненты/журнал §6); правит только владелец, коммит после его approve"})
-
-passed = not any(v["severity"] == "error" for v in violations)
-out = {"design_file": design_path, "ui_files": sorted(ui_files),
-       "design_touched": touched, "passed": passed,
+passed = not errors
+design_files_rel = sorted(os.path.relpath(p, ROOT) for p in design_files)
+no_design_rel = sorted(no_design_files)
+out = {"design_file": os.path.relpath(root_design, ROOT) if root_design
+          else (design_files_rel[0] if design_files_rel else ""),
+       "design_files": design_files_rel,
+       "files_without_design": no_design_rel,
+       "ui_files": sorted(ui_files),
+       "design_touched": bool(_touched), "passed": passed,
        "violations": violations,
        "summary": ("design guard passed" if passed
-                   else f"design guard: {len([v for v in violations if v['severity']=='error'])} errors") +
-                  (f" in {len(ui_files)} UI files" if ui_files else " (no UI changes)")}
+                   else f"design guard: {len(errors)} errors") +
+                  (f" in {len(ui_files)} UI files" if ui_files else " (no UI changes)") +
+                  (f"; no DESIGN.md for {len(no_design_rel)} files (skipped)" if no_design_rel else "")}
+if not root_design and not design_files:
+    # Полностью нет ни одного DESIGN.md — старый контракт exit 2.
+    out["error"] = "no_design_file"
+    out["hint"] = "bash .opencode/scripts/design/init.sh"
+    out["passed"] = False
 open(out_path, "w", encoding="utf-8").write(json.dumps(out, ensure_ascii=False, indent=2))
 PY
 
@@ -194,12 +569,18 @@ PY
 cat "$GUARD_JSON"
 if [[ "$JSON_ONLY" -eq 0 ]]; then
   python3 -c 'import json,sys; j=json.load(open(sys.argv[1],encoding="utf-8")); print("summary: "+j["summary"], file=sys.stderr);
+print("design files: "+", ".join(j.get("design_files") or ["-"]), file=sys.stderr)
+if j.get("files_without_design"): print("no design for (skipped): "+", ".join(j["files_without_design"][:10]), file=sys.stderr)
 for v in j["violations"]:
     print("  " + v["severity"] + " " + v["rule"] + " " + v["file"] + ":" + str(v["line"]) + " - " + v["message"], file=sys.stderr)' "$GUARD_JSON"
 fi
 
 if python3 -c 'import json,sys; sys.exit(0 if json.load(open(sys.argv[1],encoding="utf-8"))["passed"] else 1)' "$GUARD_JSON"; then
   exit 0
+elif python3 -c 'import json,sys; sys.exit(0 if json.load(open(sys.argv[1],encoding="utf-8")).get("error")=="no_design_file" else 1)' "$GUARD_JSON"; then
+  # Ни одного DESIGN.md в репозитории — старый контракт exit 2.
+  echo "design/guard: нет DESIGN.md — сначала: bash .opencode/scripts/design/init.sh" >&2
+  exit 2
 else
   echo "design/guard: есть error-нарушения — коммит только после явного approve человека" >&2
   exit 1
