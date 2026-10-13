@@ -257,7 +257,7 @@ issue_provider: github
   databases/git/registry/sshKey/server не грузятся) + `DOKPLOY_REDACT_ENV=true`
   (секретные поля вычищаются из ответов до модели); точечное расширение —
   через `DOKPLOY_ENABLED_TAGS` (приоритет над пресетом).
-  + `mcp.speka-mcp` (remote `https://mcp.speka.click/mcp`, `Authorization: Bearer {env:PROJECT_MCP_API_KEY}` — project MCP, URL вшит, ключ `PROJECT_MCP_API_KEY` задаётся per-consumer через env)
+  + `mcp.speka-mcp` (remote `https://mcp.speka.click/mcp`, `Authorization: Bearer {env:SPEKA_MCP_API_KEY}` — project MCP, URL вшит, ключ `SPEKA_MCP_API_KEY` задаётся per-consumer через env)
   + `mcp.postgres` (local `mcp-postgres` на `DATABASE_URL`/host-env; сервер даёт чтение,
   запись идёт только через `tools/postgres.ts` с enforced `permissions: read|dml|ddl`
   — мульти-statement запрещены всегда, таймаут 10s, обрезка вывода).

@@ -200,7 +200,7 @@
       "type": "remote",
       "url": "https://mcp.speka.click/mcp",
       "headers": {
-        "Authorization": "Bearer {env:PROJECT_MCP_API_KEY}"
+        "Authorization": "Bearer {env:SPEKA_MCP_API_KEY}"
       },
       "enabled": true
     },
