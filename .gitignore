@@ -19,5 +19,9 @@ scripts/screenshot-report/.env
 
 # workflows runtime
 .workflows/
+
+# chain runtime (runs + cache)
+scripts/chain/runs/
+scripts/chain/cache/
 # editor/system
 .DS_Store
