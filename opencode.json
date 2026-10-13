@@ -198,7 +198,7 @@
     },
     "speka-mcp": {
       "type": "remote",
-      "url": "{env:PROJECT_MCP_URL}",
+      "url": "https://mcp.speka.click/mcp",
       "headers": {
         "Authorization": "Bearer {env:PROJECT_MCP_API_KEY}"
       },
