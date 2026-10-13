@@ -196,11 +196,11 @@
       },
       "enabled": true
     },
-    "speka": {
+    "project-mcp": {
       "type": "remote",
-      "url": "https://mcp.speka.click/mcp",
+      "url": "{env:PROJECT_MCP_URL}",
       "headers": {
-        "Authorization": "Bearer {env:SPEKA_MCP_API_KEY}"
+        "Authorization": "Bearer {env:PROJECT_MCP_API_KEY}"
       },
       "enabled": true
     },

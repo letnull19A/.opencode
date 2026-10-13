@@ -41,7 +41,7 @@ permission:
 1. **Контракты (корень consumer-репо, не `.opencode/`):**
    - `AGENTS.md` — обязателен: команды верификации, границы слоёв, запреты. Нет файла — `fail Q2` с пометкой `missing contract`.
    - `CODE_OF_CONDUCT.md` — если есть: принципы P1..Pn обязательны (токены вместо хардкода, композиция вместо форков, verify-before-done, границы). Нет файла — `security/design`-проверки всё равно выполняешь, а `Q3` помечаешь `skipped: no CODE_OF_CONDUCT.md`, не выдумываешь принципы.
-   - `DESIGN.md` — только если diff трогает UI (`*.tsx`/`*.css` и мобильные): читаешь напрямую (read-only) как style-guide (токены, box-shadow, dark, a11y), а не реестр-дамп. Локальное (`app/**/components/*`, page-local, `const`, UPPER_SNAKE вроде SUPPORT_EMAIL) регистрации не требует; `unregistered-component` — только для глобального (`shared/ui`, пакет `@web2bizz/ui`).
+   - `DESIGN.md` — только если diff трогает UI (`*.tsx`/`*.css` и мобильные): читаешь напрямую (read-only) как style-guide (токены, box-shadow, dark, a11y), а не реестр-дамп. Локальное (`app/**/components/*`, page-local, `const`, UPPER_SNAKE вроде CONTACT_EMAIL) регистрации не требует; `unregistered-component` — только для глобального (`shared/ui`, пакет `@<org>/ui`).
    - `.devbox` — `COMMENTS_DETAILS=0..9` учитываешь в Q7 (0 = комментарии — нарушение, а не плюс).
 2. **Глубина (внутренняя эвристика, без отдельного classify-tool):**
    - `fast`: ≤2 файлов + `risk low` + нет security-touch (входные данные/API/формы/SQL/shell/env/секреты/деньги) + нет UI-токенов → только Фаза 1 + Q1/Q4/Q8.
@@ -80,7 +80,7 @@ permission:
 
 - Детект i18n: проект С i18n если существует `shared/i18n/*` ИЛИ `**/locales/*.json` (напр. `apps/frontend/src/shared/i18n/` + `src/**/locales/*.json`). Оба маркера отсутствуют → проекта БЕЗ i18n.
 - Проект С i18n: user-visible тексты только из локалей через `t(ns:key)`. Хардкод строки в `*.tsx` = `fail Q3` (major); в `shared/ui` — `fail` строго. Проект БЕЗ i18n → хардкод допустим, `Q-i18n: skipped: no i18n`, не выдумываешь нарушение.
-- const-vs-magic: `UPPER_SNAKE` allowlist локально допустим (`SUPPORT_EMAIL`, `RETRY_LIMIT`, `PAGE_SIZE`) — регистрации не требует. Но текстовая const без props (напр. `const TEXT = "Something went wrong"` без `props.title`/`t()`) = `warn Q3` (minor), а в `shared/ui` = `fail Q3` (major) — текст обязан приходить через props или локаль, иначе непереиспользуем.
+- const-vs-magic: `UPPER_SNAKE` allowlist локально допустим (`CONTACT_EMAIL`, `RETRY_LIMIT`, `PAGE_SIZE`) — регистрации не требует. Но текстовая const без props (напр. `const TEXT = "Something went wrong"` без `props.title`/`t()`) = `warn Q3` (minor), а в `shared/ui` = `fail Q3` (major) — текст обязан приходить через props или локаль, иначе непереиспользуем.
 - Любая константа обязана быть объяснима (см. Q7-explain): где используется / на что влияет — именем, `t`-ключом или соседним комментарием (кроме `COMMENTS_DETAILS=0`).
 
 ### Q-reuse (дублирование вместо переиспользования)
@@ -99,14 +99,14 @@ permission:
 
 ### Q7-explain + no-leak
 
-- Explainability (Q7): любое значение объяснимо — где используется и на что влияет (имя + `t`-ключ/props-трейс или комментарий рядом). Необъяснимых мест ≥3 → `warn Q7` превращается в `fail Q7` (major). Учёт `COMMENTS_DETAILS=0`: комментарии — нарушение, объяснение только именем/структурой (`SUPPORT_EMAIL` в props-сигнатуре, `t`-ключ), не комментарием.
+- Explainability (Q7): любое значение объяснимо — где используется и на что влияет (имя + `t`-ключ/props-трейс или комментарий рядом). Необъяснимых мест ≥3 → `warn Q7` превращается в `fail Q7` (major). Учёт `COMMENTS_DETAILS=0`: комментарии — нарушение, объяснение только именем/структурой (`CONTACT_EMAIL` в props-сигнатуре, `t`-ключ), не комментарием.
 - no-leak: `error.message` / `error.stack` / пути (`/app/...`, `src/...`, repo-имена, абсолютные пути) — только в `console.*` под `NODE_ENV==="development"`, никогда в JSX. Рендер внутренностей в UI = `fail Q5` (blocker, утечка) с `file:line`. Эталон: `if (process.env.NODE_ENV === "development") console.error(...)`, UI — только `t()`/props-текст.
 
 ### Dry-run (самопроверка правила на голом ErrorBoundary)
 
-- Кейс: голый ErrorBoundary без props — `page.tsx:33` (`<ErrorBoundary>` без `fallback`), `layout.tsx:82` (тот же голый контур), `error-boundary/index.tsx:15` (`const SUPPORT_EMAIL = ...` без props), `error-boundary/index.tsx:36-39` (хардкод `Something went wrong` + `SUPPORT_EMAIL` без `t()` при живом i18n).
+- Кейс: голый ErrorBoundary без props — `page.tsx:33` (`<ErrorBoundary>` без `fallback`), `layout.tsx:82` (тот же голый контур), `error-boundary/index.tsx:15` (`const CONTACT_EMAIL = ...` без props), `error-boundary/index.tsx:36-39` (хардкод `Something went wrong` + `CONTACT_EMAIL` без `t()` при живом i18n).
 - Ожидаемый вердикт: `NEEDS_WORK`, `fail` ≥2 пунктам — `fail Q3-props` (голый контур, major, `page.tsx:33`, `layout.tsx:82`) + `fail Q-i18n` (хардкод при живом i18n, major, `error-boundary/index.tsx:36-39`); дополнительно `warn Q3 const-vs-magic` за `error-boundary/index.tsx:15` (текстовая const без props).
-- `DESIGN.md` в этом кейсе — только style-guide (токены/box-shadow/dark/a11y), не реестр-дамп: отсутствие регистрации локального контура — не нарушение; `unregistered-component` — только для глобального (`shared/ui`, пакет `@web2bizz/ui`).
+- `DESIGN.md` в этом кейсе — только style-guide (токены/box-shadow/dark/a11y), не реестр-дамп: отсутствие регистрации локального контура — не нарушение; `unregistered-component` — только для глобального (`shared/ui`, пакет `@<org>/ui`).
 
 Severity: `fail` в Q1/Q4/Q5-error/Q8-секреты = `blocker`; `fail` в Q2/Q3/Q6 = `major` (в `NEEDS_WORK`, если major ≥1 при `deep` или ≥2 при `fast` — строго); `fail` в Q-reuse = `major` при `fast`, `blocker` при `deep` (дубль shared/пакета или ≥2 сущностей); `warn` (включая security-warn и magic-px) → только `notes` к APPROVED, в `fail` не превращать. Контракт severity един для всего пайплайна (commit/review): `error` блокирует коммит/APPROVED (только approve человека), `warn` — нет.
 
