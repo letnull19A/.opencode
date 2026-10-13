@@ -62,8 +62,8 @@ issue_provider: github
   read-only сабагенты без bash читают `DESIGN.md` напрямую) и работает
   строго по нему (токены/box-shadow/dark/a11y); противоречие — вопрос
   пользователю, а не тихий отход. Локальное (`app/**/components/*`,
-  page-local, `const`, UPPER_SNAKE вроде `SUPPORT_EMAIL`) нигде не
-  регистрируется; глобальное — `shared/ui` + пакет (`@web2bizz/ui`).
+  page-local, `const`, UPPER_SNAKE вроде `CONTACT_EMAIL`) нигде не
+  регистрируется; глобальное — `shared/ui` + пакет (`@<org>/ui`).
   Нужны изменения (токен/конвенция/глобальный компонент) — агент показывает
   человеку точный патч (секция → строки);
   вносит только владелец, затем approve → коммит. Обновление разделов
@@ -257,7 +257,7 @@ issue_provider: github
   databases/git/registry/sshKey/server не грузятся) + `DOKPLOY_REDACT_ENV=true`
   (секретные поля вычищаются из ответов до модели); точечное расширение —
   через `DOKPLOY_ENABLED_TAGS` (приоритет над пресетом).
-  + `mcp.speka` (remote `https://mcp.speka.click/mcp`, `Authorization: Bearer {env:SPEKA_MCP_API_KEY}`)
+  + `mcp.project-mcp` (remote `{env:PROJECT_MCP_URL}`, `Authorization: Bearer {env:PROJECT_MCP_API_KEY}` — project MCP, URL и ключ задаются per-consumer через env)
   + `mcp.postgres` (local `mcp-postgres` на `DATABASE_URL`/host-env; сервер даёт чтение,
   запись идёт только через `tools/postgres.ts` с enforced `permissions: read|dml|ddl`
   — мульти-statement запрещены всегда, таймаут 10s, обрезка вывода).
