@@ -6,16 +6,13 @@
 #                               литерал — это само определение палитры, §2, и не
 #                               проверяется; hex и rgb() нормализуются к одному канону)
 #   error box-shadow           box-shadow в коде (запрещён §2/§5 — только border/outline)
-#   error unregistered-component  новый компонент, не записанный в §3 DESIGN.md
-#                              (компонент = объявление по форме: function/class/struct,
-#                               либо `const X =` с доказанным признаком компонента)
 #   error design-not-updated   есть design-нарушения, а сам DESIGN.md не тронут
 #   warn  magic-px             px-литерал не из токенов (не блокирует, но виден)
 # Пропускает: комментарии, *.test.* / *.spec.* / *.stories.*, строки с `design:ignore`.
 #
 # Монорепо: DESIGN.md резолвится PER-FILE — ближайший вверх по директориям
 # (apps/<service>/DESIGN.md, services/<service>/DESIGN.md и т.д.), с фолбэком на
-# корневой $ROOT/DESIGN.md. Токены/компоненты = union сервисного + корневого.
+# корневой $ROOT/DESIGN.md. Токены = union сервисного + корневого.
 # Файл, для которого не нашлось ни одного DESIGN.md, по дизайну не проверяется
 # (помечается в JSON как files_without_design), чтобы не плодить ложные error'ы.
 #
@@ -210,7 +207,7 @@ def load_design(path):
     return _design_cache[path]
 
 def rules_for_file(f):
-    """(allowed_colors, allowed_px, design_text, design_path) для файла f.
+    """(allowed_colors, allowed_px, design_path) для файла f.
 
     Union: сервисный (ближайший) + корневой. Обоснование: корневой DESIGN.md —
     владелец общих токенов; сервисный — расширение/переопределение под сервис.
@@ -225,14 +222,13 @@ def rules_for_file(f):
         nearest = ""  # ближайший и есть корневой — дублировать не надо
     paths = [p for p in (nearest, root_design) if p]
     if not paths:
-        return set(), set(), "", ""
-    colors, px, text_parts = set(), set(), []
+        return set(), set(), ""
+    colors, px = set(), set()
     for p in paths:
-        c, x, t = load_design(p)
+        c, x, _t = load_design(p)
         colors |= c
         px |= x
-        text_parts.append(t)
-    return colors, px, "\n".join(text_parts), paths[0]
+    return colors, px, paths[0]
 
 _touched = set()
 try:
@@ -247,34 +243,9 @@ HEX_RE = re.compile(r"#[0-9a-fA-F]{3,4}\b|#[0-9a-fA-F]{6}\b|#[0-9a-fA-F]{8}\b")
 RGBA_RE = re.compile(r"rgba?\([^)]*\)", re.I)
 PX_RE = re.compile(r"(?<![\w.])(\d+(?:\.\d+)?px)")
 BOX_RE = re.compile(r"box-shadow\s*:|boxShadow\s*:", re.I)
-# Компонент ловим ПО ФОРМЕ ОБЪЯВЛЕНИЯ, а не по «любому PascalCase-идентификатору»:
-#   function X( / export default function X / export class X / struct X
-# однозначно означают компонент. А вот `const X = ...` — форма неоднозначна
-# (константа с любой формой записи выглядит так же), поэтому `const`-ветка
-# дополнительно требует: (1) имя в форме React-компонента (PascalCase, т.е.
-# есть строчная буква — UPPER_SNAKE вроде STICK_THRESHOLD_PX/LOCALES отсекается
-# по правилу именования, а не по списку исключений) и (2) в строке объявления
-# + следующих строках есть признак компонента (стрелка/функция/JSX/memo/
-# forwardRef/React.FC). Иначе `export const FOO_BAR = 48` сошёл бы за компонент.
-COMP_FUNC_RE = re.compile(
-    r"\b(?:export\s+(?:default\s+)?)?(?:async\s+)?function\s+([A-Z][A-Za-z0-9_]*)\s*\(")
-COMP_CLASS_RE = re.compile(
-    r"\b(?:export\s+(?:default\s+)?)?(?:abstract\s+)?class\s+([A-Z][A-Za-z0-9_]*)")
-COMP_STRUCT_RE = re.compile(r"\bstruct\s+([A-Z][A-Za-z0-9_]*)")
-COMP_CONST_RE = re.compile(r"\b(?:export\s+)?const\s+([A-Z][A-Za-z0-9_]*)\s*=")
-COMP_MARK_RE = re.compile(
-    r"=>|\bfunction\b|createElement|\bmemo\s*\(|\bforwardRef\s*\(|React\.FC\b"
-    r"|\bFC\b|<[A-Za-z][A-Za-z0-9]*/?")
-
-
-def looks_like_component_name(name):
-    """React-компонент — PascalCase (минимум одна строчная буква).
-
-    UPPER_SNAKE-константы (LOCALES, DEFAULT_LOCALE, STICK_THRESHOLD_PX) —
-    это конфиг/числа, а не компоненты. Правило по РЕГУЛЯРИЗМУ ИМЕНИ, а не по
-    чёрному списку: любой UPPER_SNAKE отсекается автоматически.
-    """
-    return any(ch.islower() for ch in name)
+# Проверка unregistered-component удалена осознанно: в DESIGN.md нет
+# конкретных компонентов — только абстракции (§3 template.md), поэтому
+# сопоставлять имена объявлений не с чем. См. историю принципа в README.
 
 
 # --- контекст файла: где именно лежит строка --------------------------------
@@ -471,7 +442,7 @@ for f in added_by_file:
 
 for f in sorted(added_by_file):
     ui_files.add(f)
-    allowed_colors, allowed_px, design_text, dpath = rules_for_file(f)
+    allowed_colors, allowed_px, dpath = rules_for_file(f)
     if not dpath:
         # Ни одного DESIGN.md для файла — не проверяем (иначе ложные error'ы),
         # но явно отмечаем в JSON, НЕ как error-блокер.
@@ -517,22 +488,6 @@ for f in sorted(added_by_file):
                 violations.append({"file": f, "line": lno, "severity": "warn",
                                    "rule": "magic-px",
                                    "message": f"магический размер {m} — добавь токен в DESIGN.md (§2) или design:ignore"})
-        # Компонент: однозначные формы объявления + `const` с доказанным
-        # признаком компонента в строке объявления и следующих строках.
-        window = "\n".join(snap[lno - 1:lno + 2]) if snap else code
-        if not window.strip():
-            window = code
-        names = (COMP_FUNC_RE.findall(code) + COMP_CLASS_RE.findall(code)
-                 + COMP_STRUCT_RE.findall(code))
-        for name in COMP_CONST_RE.findall(code):
-            if looks_like_component_name(name) and COMP_MARK_RE.search(window):
-                names.append(name)
-        for name in names:
-            if name not in design_text:
-                violations.append({"file": f, "line": lno, "severity": "error",
-                                   "rule": "unregistered-component",
-                                   "message": f"компонент {name} не зарегистрирован в DESIGN.md (§3)"})
-                file_errors += 1
     if file_errors:
         err_by_design.setdefault(dpath, set()).add(f)
 

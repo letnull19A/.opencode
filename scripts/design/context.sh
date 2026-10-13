@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # context.sh — программный автоинжект правил дизайна в контекст агента.
 # Читает DESIGN.md из корня репозитория и печатает компактный готовый блок:
-# стек одной строкой, токены/компоненты/конвенции как есть, из журнала —
+# стек одной строкой, токены/элементы/конвенции как есть, из журнала —
 # последние 5 решений, пустые placeholder-строки (`<!-- ... -->`) выкинуты.
 # UI-агент выполняет его в начале задачи и дальше работает по этому контексту.
 # Никакого LLM — чистая сборка, правила не пересказываются, а цитируются.
@@ -10,7 +10,7 @@
 #   bash .opencode/scripts/design/context.sh [--json]
 #
 #   без флагов  markdown-блок на stdout (вставляй в контекст как есть)
-#   --json      JSON {source, updated, stack, tokens, components, conventions,
+#   --json      JSON {source, updated, stack, tokens, elements, conventions,
 #               decisions, questions} — для машинного разбора
 #
 # Коды выхода: 0 — контекст выдан; 2 — нет DESIGN.md (сначала init.sh).
@@ -80,7 +80,7 @@ print(json.dumps({
     "updated": updated,
     "stack": section("1"),
     "tokens": section("2"),
-    "components": section("3"),
+    "elements": section("3"),
     "layout": section("4"),
     "conventions": section("5"),
     "recent_decisions": tail_list("6"),

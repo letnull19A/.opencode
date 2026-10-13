@@ -27,9 +27,7 @@ description: Create atomic Conventional Commits from a dirty git tree — split 
    Дальше иди строго по группам, по очереди (стейдж → проверка ровно стейджа → коммит):
    `git add <paths группы>` → guards с `--staged` (проверяется ровно то, что попадёт в коммит, а не всё дерево):
     дизайн-guardrail `bash .opencode/scripts/design/guard.sh --staged` если в группе есть UI-файлы
-    (DESIGN.md — style-guide, а не реестр: `error` — магический цвет, `box-shadow`,
-    глобальный `unregistered-component` (`shared/ui`, пакет); локальное —
-    `app/**/components/*`, page-local, `const`/UPPER_SNAKE — регистрации не требует;
+    (DESIGN.md — style-guide: `error` — магический цвет, `box-shadow`;
     `warn` — магический px, не блокирует; `design-not-updated` — только при реальных
     нарушениях токенов. Вышел 1 — error-нарушения: стоп, покажи их + точные предлагаемые правки токенов `DESIGN.md`
     (правит их только человек-владелец, UI-ядро — read-only) и жди явного approve; без approve не коммитишь;

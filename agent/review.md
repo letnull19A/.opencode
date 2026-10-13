@@ -41,7 +41,7 @@ permission:
 1. **Контракты (корень consumer-репо, не `.opencode/`):**
    - `AGENTS.md` — обязателен: команды верификации, границы слоёв, запреты. Нет файла — `fail Q2` с пометкой `missing contract`.
    - `CODE_OF_CONDUCT.md` — если есть: принципы P1..Pn обязательны (токены вместо хардкода, композиция вместо форков, verify-before-done, границы). Нет файла — `security/design`-проверки всё равно выполняешь, а `Q3` помечаешь `skipped: no CODE_OF_CONDUCT.md`, не выдумываешь принципы.
-   - `DESIGN.md` — только если diff трогает UI (`*.tsx`/`*.css` и мобильные): читаешь напрямую (read-only) как style-guide (токены, box-shadow, dark, a11y), а не реестр-дамп. Локальное (`app/**/components/*`, page-local, `const`, UPPER_SNAKE вроде CONTACT_EMAIL) регистрации не требует; `unregistered-component` — только для глобального (`shared/ui`, пакет `@<org>/ui`).
+   - `DESIGN.md` — только если diff трогает UI (`*.tsx`/`*.css` и мобильные): читаешь напрямую (read-only) как style-guide (токены, box-shadow, dark, a11y). Конкретных компонентов в файле нет по принципу — только абстракции; их отсутствие/наличие не проверяешь.
    - `.devbox` — `COMMENTS_DETAILS=0..9` учитываешь в Q7 (0 = комментарии — нарушение, а не плюс).
 2. **Глубина (внутренняя эвристика, без отдельного classify-tool):**
    - `fast`: ≤2 файлов + `risk low` + нет security-touch (входные данные/API/формы/SQL/shell/env/секреты/деньги) + нет UI-токенов → только Фаза 1 + Q1/Q4/Q8.
@@ -52,7 +52,7 @@ permission:
 
 1. `bash .opencode/scripts/check/run.sh --json` на изменённые файлы → `typecheck/lint/format/env/yaml`. Любой `errors > 0` = `fail Q4` (blocker), цитируешь записи из JSON.
 2. Diff трогает входные данные (API-хендлеры, формы, SQL/shell-конкатенация, env) → `bash .opencode/scripts/security/guard.sh --staged --json` (ровно стейдж). `severity: error` = `fail Q5` (blocker); `severity: warn` (sql-concat/unvalidated-input/unvalidated-form) = `warn Q5` + пункт в `for_executor`, коммит не блокирует (единый контракт severity с commit-пайплайном). После `passed` без violations нарушений не выдумываешь.
-3. Diff трогает UI → `bash .opencode/scripts/design/guard.sh` → `error` (`magic-color`/`box-shadow`/глобальный `unregistered-component`) = `fail Q3` (blocker); `warn` (`magic-px`) → только `notes` к APPROVED, в `fail` не превращать. Отсутствие регистрации локального компонента — не нарушение. Единый контракт severity с commit-пайплайном: `error` блокирует (только approve человека), `warn` — нет.
+3. Diff трогает UI → `bash .opencode/scripts/design/guard.sh` → `error` (`magic-color`/`box-shadow`) = `fail Q3` (blocker); `warn` (`magic-px`) → только `notes` к APPROVED, в `fail` не превращать. Единый контракт severity с commit-пайплайном: `error` блокирует (только approve человека), `warn` — нет.
 4. Секреты в diff (`grep -Ei 'AKIA|sk-live|PRIVATE KEY|password\s*=\s*["'\''][^"'\'']+'` по `git diff HEAD`): нашёл значение — `fail Q8` (blocker), требуешь оставить только имя/placeholder.
 
 ## Фаза 2 — узкие критерии (каждый pass/warn/fail + доказательство `file:line`)
@@ -106,7 +106,7 @@ permission:
 
 - Кейс: голый ErrorBoundary без props — `page.tsx:33` (`<ErrorBoundary>` без `fallback`), `layout.tsx:82` (тот же голый контур), `error-boundary/index.tsx:15` (`const CONTACT_EMAIL = ...` без props), `error-boundary/index.tsx:36-39` (хардкод `Something went wrong` + `CONTACT_EMAIL` без `t()` при живом i18n).
 - Ожидаемый вердикт: `NEEDS_WORK`, `fail` ≥2 пунктам — `fail Q3-props` (голый контур, major, `page.tsx:33`, `layout.tsx:82`) + `fail Q-i18n` (хардкод при живом i18n, major, `error-boundary/index.tsx:36-39`); дополнительно `warn Q3 const-vs-magic` за `error-boundary/index.tsx:15` (текстовая const без props).
-- `DESIGN.md` в этом кейсе — только style-guide (токены/box-shadow/dark/a11y), не реестр-дамп: отсутствие регистрации локального контура — не нарушение; `unregistered-component` — только для глобального (`shared/ui`, пакет `@<org>/ui`).
+- `DESIGN.md` в этом кейсе — только style-guide (токены/box-shadow/dark/a11y): компоненты в нём не живут по принципу, их не проверяешь.
 
 Severity: `fail` в Q1/Q4/Q5-error/Q8-секреты = `blocker`; `fail` в Q2/Q3/Q6 = `major` (в `NEEDS_WORK`, если major ≥1 при `deep` или ≥2 при `fast` — строго); `fail` в Q-reuse = `major` при `fast`, `blocker` при `deep` (дубль shared/пакета или ≥2 сущностей); `warn` (включая security-warn и magic-px) → только `notes` к APPROVED, в `fail` не превращать. Контракт severity един для всего пайплайна (commit/review): `error` блокирует коммит/APPROVED (только approve человека), `warn` — нет.
 
