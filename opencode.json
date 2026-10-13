@@ -196,7 +196,7 @@
       },
       "enabled": true
     },
-    "project-mcp": {
+    "speka-mcp": {
       "type": "remote",
       "url": "{env:PROJECT_MCP_URL}",
       "headers": {
