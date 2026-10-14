@@ -7,18 +7,18 @@ permission:
   edit: deny
   bash:
     "*": deny
-    "echo *": allow
-    "ls *": allow
-    "head *": allow
-    "tail *": allow
-    "jq *": allow
+    "echo*": allow
+    "ls*": allow
+    "head*": allow
+    "tail*": allow
+    "jq*": allow
     "bash .opencode/scripts/security/guard.sh*": allow
     "bash .opencode/scripts/doctor/*": allow
-    "git diff *": allow
-    "git log *": allow
-    "git show *": allow
-    "git status *": allow
-    "cat *": allow
+    "git diff*": allow
+    "git log*": allow
+    "git show*": allow
+    "git status*": allow
+    "cat*": allow
 ---
 
 Ты — единственное звено security-пайплайна, где разрешено думать.

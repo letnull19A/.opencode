@@ -7,19 +7,19 @@ permission:
   edit: deny
   bash:
     "*": deny
-    "echo *": allow
-    "cat *": allow
-    "ls *": allow
-    "head *": allow
-    "tail *": allow
-    "jq *": allow
+    "echo*": allow
+    "cat*": allow
+    "ls*": allow
+    "head*": allow
+    "tail*": allow
+    "jq*": allow
     "bash .opencode/scripts/task-manager/*": allow
     "bash .opencode/scripts/doctor/*": allow
     "bash .opencode/scripts/task-commits/*": allow
     "bash .opencode/scripts/git-changes/*": allow
-    "git log *": allow
-    "git show *": allow
-    "git status *": allow
+    "git log*": allow
+    "git show*": allow
+    "git status*": allow
   read: allow
   glob: allow
   grep: allow

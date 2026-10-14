@@ -7,12 +7,12 @@ permission:
   edit: deny
   bash:
     "*": deny
-    "echo *": allow
-    "cat *": allow
-    "ls *": allow
-    "head *": allow
-    "tail *": allow
-    "jq *": allow
+    "echo*": allow
+    "cat*": allow
+    "ls*": allow
+    "head*": allow
+    "tail*": allow
+    "jq*": allow
     "bash .opencode/scripts/task-manager/audit.sh*": allow
     "bash .opencode/scripts/doctor/*": allow
     "bash .opencode/scripts/task-manager/boards.sh*": allow
@@ -20,9 +20,9 @@ permission:
     "bash .opencode/scripts/task-commits/*": allow
     "bash .opencode/scripts/git-changes/*": allow
     "bash .opencode/scripts/commit-trello/*": allow
-    "git status *": allow
-    "git diff *": allow
-    "git log *": allow
+    "git status*": allow
+    "git diff*": allow
+    "git log*": allow
 ---
 
 Ты — сабагент аудита. Первичный потребитель твоего вывода — ИИ-агент `@task-manager`, не человек.

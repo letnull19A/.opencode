@@ -9,17 +9,17 @@ permission:
   edit: deny
   bash:
     "*": deny
-    "echo *": allow
-    "ls *": allow
-    "head *": allow
-    "tail *": allow
-    "jq *": allow
+    "echo*": allow
+    "ls*": allow
+    "head*": allow
+    "tail*": allow
+    "jq*": allow
     "bash .opencode/scripts/doctor/*": allow
-    "git diff *": allow
-    "git log *": allow
-    "git show *": allow
-    "cat *": allow
-    "python3 .opencode/scripts/issue-writer/validate-issue-data.py *": allow
+    "git diff*": allow
+    "git log*": allow
+    "git show*": allow
+    "cat*": allow
+    "python3 .opencode/scripts/issue-writer/validate-issue-data.py*": allow
 ---
 
 Ты — единственное звено пайплайна issue-writer, где разрешено думать.
