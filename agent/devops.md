@@ -9,6 +9,7 @@ permission:
   bash:
     "*": ask
     "bash .opencode/scripts/check/*": allow
+    "bash .opencode/scripts/doctor/*": allow
     "bash .opencode/scripts/ports/*": allow
     "bash -n *": allow
     "docker compose config *": allow

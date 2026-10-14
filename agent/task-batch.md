@@ -8,6 +8,7 @@ permission:
   bash:
     "*": deny
     "bash .opencode/scripts/planner/*": allow
+    "bash .opencode/scripts/doctor/*": allow
     "bash .opencode/scripts/task-manager/*": allow
     "bash .opencode/scripts/worktree/*": allow
     "bash .opencode/scripts/commit-trello/*": allow

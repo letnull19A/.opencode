@@ -7,6 +7,7 @@ permission:
   bash:
     "*": ask
     "bash .opencode/scripts/screenshot-report/run.sh*": allow
+    "bash .opencode/scripts/doctor/*": allow
     "cat .opencode/scripts/screenshot-report/pages.example.json": allow
     "ls .opencode/scripts/screenshot-report*": allow
 ---

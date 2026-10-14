@@ -7,6 +7,7 @@ temperature: 0.2
 permission:
   edit:
     "*": deny
+    "bash .opencode/scripts/doctor/*": allow
     "**/ARCHITECTURE.md": allow
   bash:
     "*": deny

@@ -7,6 +7,7 @@ permission:
   edit: deny
   bash:
     "*": deny
+    "bash .opencode/scripts/doctor/*": allow
     "bash .opencode/scripts/git-changes/*": allow
     "bash .opencode/scripts/commit-trello/*": allow
     "git status *": allow

@@ -7,6 +7,7 @@ permission:
   edit: deny
   bash:
     "*": deny
+    "bash .opencode/scripts/doctor/*": allow
     "bash .opencode/scripts/task-manager/init.sh*": allow
     "bash .opencode/scripts/task-manager/migrate.sh*": allow
     "cat *": allow

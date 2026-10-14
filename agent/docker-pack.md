@@ -7,6 +7,7 @@ permission:
   edit: allow
   bash:
     "*": deny
+    "bash .opencode/scripts/doctor/*": allow
     "bash .opencode/scripts/docker-pack/*": allow
     "cat *": allow
     "ls *": allow

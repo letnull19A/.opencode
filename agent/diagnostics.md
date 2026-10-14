@@ -7,6 +7,7 @@ permission:
   edit: deny
   bash:
     "*": deny
+    "bash .opencode/scripts/doctor/*": allow
     "bash .opencode/scripts/ci/*": allow
     "bash .opencode/scripts/sync/*": allow
     "bash .opencode/scripts/ports/*": allow

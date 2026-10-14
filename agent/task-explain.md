@@ -8,6 +8,7 @@ permission:
   bash:
     "*": deny
     "bash .opencode/scripts/task-manager/*": allow
+    "bash .opencode/scripts/doctor/*": allow
     "bash .opencode/scripts/task-commits/*": allow
     "bash .opencode/scripts/git-changes/*": allow
     "git log *": allow

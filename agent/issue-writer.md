@@ -9,6 +9,7 @@ permission:
   edit: deny
   bash:
     "*": deny
+    "bash .opencode/scripts/doctor/*": allow
     "git diff *": allow
     "git log *": allow
     "git show *": allow

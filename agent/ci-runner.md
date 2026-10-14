@@ -9,6 +9,7 @@ permission:
     "*": deny
     "bash .opencode/scripts/ci/*": allow
     "bash .opencode/scripts/check/*": allow
+    "bash .opencode/scripts/doctor/*": allow
     "cat *": allow
     "ls *": allow
     "git status *": allow

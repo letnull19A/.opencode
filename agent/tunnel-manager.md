@@ -8,6 +8,7 @@ permission:
   bash:
     "*": deny
     "bash .opencode/scripts/tunnel/run.sh*": allow
+    "bash .opencode/scripts/doctor/*": allow
   question: allow
   task: deny
 ---

@@ -5,7 +5,9 @@ hidden: true
 temperature: 0.2
 permission:
   edit: deny
-  bash: deny
+  bash:
+    "*": deny
+    "bash .opencode/scripts/doctor/*": allow
   read: allow
   glob: allow
   grep: allow

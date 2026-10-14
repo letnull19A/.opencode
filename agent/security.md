@@ -8,6 +8,7 @@ permission:
   bash:
     "*": deny
     "bash .opencode/scripts/security/guard.sh*": allow
+    "bash .opencode/scripts/doctor/*": allow
     "git diff *": allow
     "git log *": allow
     "git show *": allow

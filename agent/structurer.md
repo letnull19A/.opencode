@@ -8,6 +8,7 @@ permission:
   edit: deny
   bash:
     "*": deny
+    "bash .opencode/scripts/doctor/*": allow
   question: allow
   task: deny
 ---

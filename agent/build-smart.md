@@ -9,6 +9,7 @@ permission:
   bash:
     "*": ask
     "bash .opencode/scripts/check/*": allow
+    "bash .opencode/scripts/doctor/*": allow
     "bash .opencode/scripts/graphify/*": allow
     "bash .opencode/scripts/worktree/*": allow
     "git status *": allow

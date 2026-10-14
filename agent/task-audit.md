@@ -8,6 +8,7 @@ permission:
   bash:
     "*": deny
     "bash .opencode/scripts/task-manager/audit.sh*": allow
+    "bash .opencode/scripts/doctor/*": allow
     "bash .opencode/scripts/task-manager/boards.sh*": allow
     "bash .opencode/scripts/task-manager/lists.sh*": allow
     "bash .opencode/scripts/task-commits/*": allow

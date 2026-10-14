@@ -11,6 +11,7 @@ permission:
     "tree *": allow
     "bash .opencode/scripts/graphify/*": allow
     "bash .opencode/scripts/check/*": allow
+    "bash .opencode/scripts/doctor/*": allow
     "git status *": allow
     "git diff *": allow
     "git log *": allow
