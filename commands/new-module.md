@@ -1,5 +1,5 @@
 ---
-description: Разработать модуль по стратегии (add/update/delete/decompose): spec → планирование → тесты → реализация → верификация
+description: "Разработать модуль по стратегии (add/update/delete/decompose): spec → планирование → тесты → реализация → верификация"
 agent: build
 ---
 

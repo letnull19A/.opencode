@@ -1,5 +1,5 @@
 ---
-description: Разведка для точного плана — собирает максимум релевантной информации без мусора с двух фронтов: доки/интернет и файлы/граф. Вызывается только планировщиком (plan/evol-plan), напрямую не используется.
+description: "Разведка для точного плана — собирает максимум релевантной информации без мусора с двух фронтов: доки/интернет и файлы/граф. Вызывается только планировщиком (plan/evol-plan), напрямую не используется."
 mode: subagent
 hidden: true
 temperature: 0.2
@@ -7,19 +7,30 @@ permission:
   edit: deny
   bash:
     "*": deny
-    "ls *": allow
-    "tree *": allow
+    "ls*": allow
+    "tree*": allow
     "bash .opencode/scripts/graphify/*": allow
     "bash .opencode/scripts/check/*": allow
-    "echo *": allow
-    "cat *": allow
-    "head *": allow
-    "tail *": allow
-    "jq *": allow
+    "echo*": allow
+    "cat*": allow
+    "head*": allow
+    "tail*": allow
+    "jq*": allow
+    "wc*": allow
+    "grep*": allow
+    "rg*": allow
+    "find*": allow
+    "diff*": allow
+    "sed -n*": allow
     "bash .opencode/scripts/doctor/*": allow
-    "git status *": allow
-    "git diff *": allow
-    "git log *": allow
+    "git status*": allow
+    "git diff*": allow
+    "git log*": allow
+    "git show*": allow
+    "git rev-parse*": allow
+    "git rev-list*": allow
+    "git ls-files*": allow
+    "git branch*": allow
   read: allow
   glob: allow
   grep: allow

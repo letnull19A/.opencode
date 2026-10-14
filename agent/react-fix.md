@@ -1,5 +1,5 @@
 ---
-description: Чинит React-компоненты (разметка + стили) по имени CSS-класса: находит класс скриптом, уточняет что править и правит точечно. Используй когда просят исправить, поменять или добавить стили/разметку блока с известным классом.
+description: "Чинит React-компоненты (разметка + стили) по имени CSS-класса: находит класс скриптом, уточняет что править и правит точечно. Используй когда просят исправить, поменять или добавить стили/разметку блока с известным классом."
 mode: subagent
 hidden: true
 temperature: 0.2
@@ -9,32 +9,32 @@ permission:
     "*": ask
     "bash .opencode/scripts/react-fix/*": allow
     "bash .opencode/scripts/check/*": allow
-    "echo *": allow
-    "cat *": allow
-    "ls *": allow
-    "head *": allow
-    "tail *": allow
-    "jq *": allow
+    "echo*": allow
+    "cat*": allow
+    "ls*": allow
+    "head*": allow
+    "tail*": allow
+    "jq*": allow
     "bash .opencode/scripts/doctor/*": allow
-    "git status *": allow
-    "git diff *": allow
-    "git log *": allow
-    "git show *": allow
-    "git rev-parse *": allow
-    "git branch *": allow
-    "npx *": allow
-    "pnpm *": allow
-    "npm *": allow
-    "yarn *": allow
-    "bun *": allow
-    "node *": allow
+    "git status*": allow
+    "git diff*": allow
+    "git log*": allow
+    "git show*": allow
+    "git rev-parse*": allow
+    "git branch*": allow
+    "npx*": allow
+    "pnpm*": allow
+    "npm*": allow
+    "yarn*": allow
+    "bun*": allow
+    "node*": allow
     "gh pr merge*": deny
     "glab mr merge*": deny
     "tea * merge*": deny
     "git merge*": deny
     "git push --force*": deny
     "git push -f*": deny
-    "git reset --hard *": deny
+    "git reset --hard*": deny
     "git reset --hard HEAD": allow
     "git clean -fd*": deny
     "rm -rf*": deny

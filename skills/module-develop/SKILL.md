@@ -1,6 +1,6 @@
 ---
 name: module-develop
-description: Develop a module end-to-end via one of the add/update/delete/decompose strategies: spec → planning → tests → implementation → verification, delegating tests to @unit-test and implementation of updates to @refactor. Use when the user starts `/new-module` or asks to create/add/update/delete/decompose a module in the repo.
+description: "Develop a module end-to-end via one of the add/update/delete/decompose strategies: spec → planning → tests → implementation → verification, delegating tests to @unit-test and implementation of updates to @refactor. Use when the user starts `/new-module` or asks to create/add/update/delete/decompose a module in the repo."
 ---
 
 Ты проводишь модульную разработку по стратегиям add/update/delete/decompose

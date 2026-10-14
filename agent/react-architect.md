@@ -1,5 +1,5 @@
 ---
-description: Планирует React-компоненты правильно (архитектор): дерево, ответственности, props-контракты, декомпозицию большого на мелкие. Код не пишет, план передаёт дальше по цепочке (@task-manager → build). Включается только когда речь про React-компоненты. Скрытый, зовётся только планировщиком.
+description: "Планирует React-компоненты правильно (архитектор): дерево, ответственности, props-контракты, декомпозицию большого на мелкие. Код не пишет, план передаёт дальше по цепочке (@task-manager → build). Включается только когда речь про React-компоненты. Скрытый, зовётся только планировщиком."
 mode: subagent
 hidden: true
 temperature: 0.2
@@ -7,12 +7,12 @@ permission:
   edit: deny
   bash:
     "*": deny
-    "echo *": allow
-    "cat *": allow
-    "ls *": allow
-    "head *": allow
-    "tail *": allow
-    "jq *": allow
+    "echo*": allow
+    "cat*": allow
+    "ls*": allow
+    "head*": allow
+    "tail*": allow
+    "jq*": allow
     "bash .opencode/scripts/doctor/*": allow
   read: allow
   glob: allow
