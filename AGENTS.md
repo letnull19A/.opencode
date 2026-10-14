@@ -139,7 +139,7 @@ issue_provider: github
 
 - `agent/` — opencode subagents (`issue-writer`, `screenshot-report`,
   `component-builder`, `refactor`, `task-manager`, `task-audit`, `react-fix`, `unit-test`,
-  `structurer`, `review`).
+  `structurer`, `review`, `architect`).
   `component-builder` — hidden subagent, read-only проектировщик React-компонентов
   (`agent/component-builder.md`; edit/bash запрещены): выдаёт в чат дерево компонентов, ответственности,
   props-контракты и декомпозицию большого компонента на мелкие, UI-кит
@@ -169,6 +169,11 @@ issue_provider: github
   тесты/читаемость/гигиена scope); код не правит (`edit: deny`), возвращает
   `{verdict: APPROVED|NEEDS_WORK|SKIPPED, findings, for_executor}` (SKIPPED — только при пустом `git diff HEAD` + `git status --porcelain`, fail-closed: git-ошибка = ревью запускается; SKIPPED ≠ APPROVED); глубина fast/deep —
   внутренней эвристикой, без отдельного classify-tool.
+  `architect` — hidden subagent-владелец `ARCHITECTURE.md` (корень consumer-проекта):
+  держит слои/модули, границы импортов, ключевые потоки и журнал решений в актуальном
+  состоянии; пишет ТОЛЬКО этот файл (`edit` зажат картой `ARCHITECTURE.md`), код не трогает.
+  Вызывается исполнителями после структурных изменений и ревью при дрейфе; все остальные
+  агенты читают файл как обязательный контракт.
 - `skills/tunnel-manager/SKILL.md` — preview-tunnel runner (wraps
   `scripts/tunnel/`).
 - `skills/ci/SKILL.md` — vendor-lock-free GitHub Actions CI/CD (требования→исполнение): `@ci` (hidden subagent) опрашивает пользователя (type/registry/image/platforms/cache/deploy + монорепо `apps/<app>`) → `task → @ci-runner` (`hidden:subagent`) скаффолдит `scripts/ci/scaffold.sh --type ci|docker|all [--monorepo --app]` из `scripts/ci/templates/*.yml` → `.github/workflows/`; `workflows.sh status|logs` — read-only; registry-agnostic (`vars.DOCKER_REGISTRY`/`vars.DOCKER_IMAGE`/`secrets.REGISTRY_*` + `GITHUB_TOKEN` fallback), buildx + gha cache, `paths: apps/<app>/**` для монорепо, без cloud-экшенов.
@@ -290,6 +295,7 @@ issue_provider: github
 | проверка | `diagnostics`, `screenshot-report`, `review` | read-only |
 | доставка | `commit-writer`, `worktree-manager`, `tunnel-manager` | read-only |
 | безопасность (сквозной) | `security` (hidden subagent-аудитор I/O) | читает guard-нарушения, предлагает validator-патчи, код не правит |
+| архитектура (сквозной) | `architect` (hidden subagent-владелец) | пишет только `ARCHITECTURE.md`, остальные агенты — read-only контракт |
 
 ## Code comments (`COMMENTS_DETAILS` in `.devbox`)
 
