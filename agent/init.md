@@ -7,6 +7,10 @@ permission:
   edit: deny
   bash:
     "*": deny
+    "echo *": allow
+    "head *": allow
+    "tail *": allow
+    "jq *": allow
     "bash .opencode/scripts/doctor/*": allow
     "bash .opencode/scripts/task-manager/init.sh*": allow
     "bash .opencode/scripts/task-manager/migrate.sh*": allow

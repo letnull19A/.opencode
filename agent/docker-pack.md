@@ -7,6 +7,10 @@ permission:
   edit: allow
   bash:
     "*": deny
+    "echo *": allow
+    "head *": allow
+    "tail *": allow
+    "jq *": allow
     "bash .opencode/scripts/doctor/*": allow
     "bash .opencode/scripts/docker-pack/*": allow
     "cat *": allow

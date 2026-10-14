@@ -7,6 +7,12 @@ temperature: 0.2
 permission:
   edit:
     "*": deny
+    "echo *": allow
+    "cat *": allow
+    "ls *": allow
+    "head *": allow
+    "tail *": allow
+    "jq *": allow
     "bash .opencode/scripts/doctor/*": allow
     "**/ARCHITECTURE.md": allow
   bash:

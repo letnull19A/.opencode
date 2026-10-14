@@ -11,6 +11,7 @@
 #   worktree-stale     записи git worktree, чьих каталогов нет на диске
 #   submodule-missing  неинициализированные сабмодули (main + живые worktree)
 #   stale-refs         абсолютные пути в трекинговых текстовых файлах, которых нет
+#   prompt-permissions дрейф: промпт агента требует команду, а его bash-карта запрещает
 #
 # Границы: не трогает .env*/секреты/untracked/remote, никогда не коммитит.
 # Замена путей — только явной парой --replace по трекинговым файлам.
@@ -89,6 +90,68 @@ if [[ -n "$MATCHES" ]]; then
       [[ -e "$cand" ]] || issue "stale-refs" "warn" "$f" "$lno" "путь $cand отсутствует на диске"
     done < <(echo "$mline" | grep -o -E '/(media|mnt|home|root|Users|opt|srv|data|Volumes)/[A-Za-z0-9_@.~+/%-]+' | sort -u || true)
   done <<< "$MATCHES"
+fi
+
+# --- 4. prompt-permissions (дрейф: промпт требует, права запрещают) ------------
+# Сверяет bash-карты агентов с командами из их же промптов. Шorthand-карты
+# (bash: allow) пропускаются — сверять нечего.
+AGENT_DIRS=()
+[[ -d "$ROOT/.opencode/agent" ]] && AGENT_DIRS+=("$ROOT/.opencode/agent")
+[[ -d "$ROOT/agent" && "$ROOT/agent" != "$ROOT/.opencode/agent" ]] && AGENT_DIRS+=("$ROOT/agent")
+if [[ ${#AGENT_DIRS[@]} -gt 0 ]]; then
+  python3 - "${AGENT_DIRS[@]}" "$ISSUES_TMP" <<'PY'
+import glob, json, os, re, sys
+*dirs, out = sys.argv[1:]
+
+def bashmap(text):
+    lines = text.split('\n')
+    bi = [i for i, l in enumerate(lines) if l.strip() == '---'][:2]
+    if len(bi) < 2:
+        return None
+    fm = lines[bi[0] + 1:bi[1]]
+    res, on = {}, False
+    for l in fm:
+        if re.match(r'^  bash:\s*$', l):
+            on = True
+            continue
+        if on:
+            if re.match(r'^  \S', l) and not l.startswith('    '):
+                break
+            m = re.match(r'''^    "(.*)":\s*(\w+)\s*$''', l)
+            if m:
+                res[m.group(1)] = m.group(2)
+    return res
+
+def covered(cmd, keys):
+    return any(cmd.startswith(k.split('*')[0]) for k in keys)
+
+with open(out, 'a', encoding='utf-8') as fh:
+    seen = set()
+    for adir in dirs:
+        for f in sorted(glob.glob(os.path.join(adir, '*.md'))):
+            if f in seen:
+                continue
+            seen.add(f)
+        t = open(f, encoding='utf-8').read()
+        keys = bashmap(t)
+        if not keys:
+            continue
+        parts = t.split('---')
+        b = ' '.join(parts[2:]) if len(parts) > 2 else ''
+        cmds = set(re.findall(r'\.opencode/scripts/[^\s`\'")]+', b))
+        for m in re.finditer(r'`((?:cat|ls|echo|head|tail|grep|git|gh|npx|pnpm|npm|docker|kubectl|env|tree|sed|jq|python3|node|bun)\s[^`]{0,50})`', b):
+            cmds.add(m.group(1).strip())
+        for c in sorted(cmds):
+            variants = [c] if c.startswith('bash ') else ['bash ' + c, c]
+            if not any(covered(v, keys) for v in variants):
+                fh.write(json.dumps({
+                    'check': 'prompt-permissions',
+                    'severity': 'error',
+                    'file': os.path.relpath(f),
+                    'line': 0,
+                    'message': 'промпт требует %s, но bash-карта агента это запрещает' % c[:80],
+                }, ensure_ascii=False) + '\n')
+PY
 fi
 
 emit_report() {

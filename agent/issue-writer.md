@@ -9,6 +9,11 @@ permission:
   edit: deny
   bash:
     "*": deny
+    "echo *": allow
+    "ls *": allow
+    "head *": allow
+    "tail *": allow
+    "jq *": allow
     "bash .opencode/scripts/doctor/*": allow
     "git diff *": allow
     "git log *": allow

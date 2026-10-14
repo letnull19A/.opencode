@@ -22,6 +22,10 @@ issue_provider: github
 - Runner agents/skills (`screenshot-report`, `tunnel-manager`) never edit code
   or their own scripts. On non-zero exit paste last ~15 lines + relevant log,
   do not fix the script.
+- Shell discipline (все агенты): один tool-call — одна простая команда, без
+  `||` / `&&` / `;` цепочек и без страховочных `|| echo ...` (составной вызов
+  целиком отклоняется пермишенами, даже если каждая часть разрешена).
+  Чтение — через `read`/`glob`, `cat`/`head` — только как fallback.
 - Issue pipeline: never call `create-issue.sh` directly, never run `create`
   without `preview` + explicit user "yes". Only `@issue-writer` thinks (LLM);
   everything after it is deterministic scripts.

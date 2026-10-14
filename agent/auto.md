@@ -13,6 +13,12 @@ permission:
     "bash .opencode/scripts/task-manager/audit.sh*": allow
     "bash .opencode/scripts/graphify/*": allow
     "bash .opencode/scripts/check/*": allow
+    "echo *": allow
+    "cat *": allow
+    "ls *": allow
+    "head *": allow
+    "tail *": allow
+    "jq *": allow
     "bash .opencode/scripts/doctor/*": allow
     "bash .opencode/scripts/worktree/*": allow
     "bash .opencode/scripts/pr/*": allow

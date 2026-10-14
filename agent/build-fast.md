@@ -9,6 +9,12 @@ permission:
   bash:
     "*": ask
     "bash .opencode/scripts/check/*": allow
+    "echo *": allow
+    "cat *": allow
+    "ls *": allow
+    "head *": allow
+    "tail *": allow
+    "jq *": allow
     "bash .opencode/scripts/doctor/*": allow
     "git status *": allow
     "git diff *": allow

@@ -9,6 +9,11 @@ permission:
   bash:
     "*": deny
     "bash .opencode/scripts/check/run.sh*": allow
+    "echo *": allow
+    "ls *": allow
+    "head *": allow
+    "tail *": allow
+    "jq *": allow
     "bash .opencode/scripts/doctor/*": allow
     "bash .opencode/scripts/security/guard.sh*": allow
     "bash .opencode/scripts/design/guard.sh*": allow

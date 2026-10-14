@@ -8,6 +8,12 @@ permission:
   edit: deny
   bash:
     "*": deny
+    "echo *": allow
+    "cat *": allow
+    "ls *": allow
+    "head *": allow
+    "tail *": allow
+    "jq *": allow
     "bash .opencode/scripts/doctor/*": allow
   question: allow
   task: deny

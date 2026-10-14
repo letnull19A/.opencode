@@ -9,6 +9,10 @@ permission:
     "*": deny
     "bash .opencode/scripts/ci/*": allow
     "bash .opencode/scripts/check/*": allow
+    "echo *": allow
+    "head *": allow
+    "tail *": allow
+    "jq *": allow
     "bash .opencode/scripts/doctor/*": allow
     "cat *": allow
     "ls *": allow

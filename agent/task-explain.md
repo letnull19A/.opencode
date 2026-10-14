@@ -7,6 +7,12 @@ permission:
   edit: deny
   bash:
     "*": deny
+    "echo *": allow
+    "cat *": allow
+    "ls *": allow
+    "head *": allow
+    "tail *": allow
+    "jq *": allow
     "bash .opencode/scripts/task-manager/*": allow
     "bash .opencode/scripts/doctor/*": allow
     "bash .opencode/scripts/task-commits/*": allow
