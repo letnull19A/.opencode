@@ -9,39 +9,64 @@ permission:
   bash:
     "*": ask
     "bash .opencode/scripts/check/*": allow
-    "echo *": allow
+    "echo*": allow
     "bash .opencode/scripts/doctor/*": allow
     "bash .opencode/scripts/ports/*": allow
-    "bash -n *": allow
-    "docker compose config *": allow
-    "docker compose build --dry-run *": allow
-    "docker stack config *": allow
-    "kubectl apply --dry-run=client *": allow
-    "kubectl rollout status *": allow
-    "git status *": allow
-    "git diff *": allow
-    "git log *": allow
-    "git show *": allow
-    "git rev-parse *": allow
-    "git branch *": allow
-    "git rev-list *": allow
-    "git checkout -- *": allow
-    "git revert *": allow
-    "head *": allow
-    "tail *": allow
-    "ls *": allow
-    "cat *": allow
-    "jq *": allow
+    "bash .opencode/scripts/worktree/*": allow
+    "bash -n*": allow
+    "docker compose config*": allow
+    "docker compose build --dry-run*": allow
+    "docker stack config*": allow
+    "kubectl apply --dry-run=client*": allow
+    "kubectl rollout status*": allow
+    "git status*": allow
+    "git diff*": allow
+    "git log*": allow
+    "git show*": allow
+    "git rev-parse*": allow
+    "git branch*": allow
+    "git rev-list*": allow
+    "git ls-files*": allow
+    "git remote*": allow
+    "git checkout*": allow
+    "git switch*": allow
+    "git revert*": allow
+    "head*": allow
+    "tail*": allow
+    "ls*": allow
+    "cat*": allow
+    "jq*": allow
+    "wc*": allow
+    "grep*": allow
+    "rg*": allow
+    "find*": allow
+    "tree*": allow
+    "diff*": allow
+    "mkdir*": allow
+    "cp*": allow
+    "mv*": allow
+    "touch*": allow
+    "rm*": allow
+    "pnpm*": allow
+    "npm*": allow
+    "bun*": allow
+    "node*": allow
+    "python3*": allow
+    "make*": allow
     "gh pr merge*": deny
     "glab mr merge*": deny
     "tea * merge*": deny
     "git merge*": deny
     "git push --force*": deny
     "git push -f*": deny
-    "git reset --hard *": deny
+    "git reset --hard*": deny
     "git reset --hard HEAD": allow
     "git clean -fd*": deny
     "rm -rf*": deny
+    "npm publish*": deny
+    "pnpm publish*": deny
+    "yarn publish*": deny
+    "bun publish*": deny
   question: allow
   task: allow
 ---

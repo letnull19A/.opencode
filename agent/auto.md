@@ -13,24 +13,56 @@ permission:
     "bash .opencode/scripts/task-manager/audit.sh*": allow
     "bash .opencode/scripts/graphify/*": allow
     "bash .opencode/scripts/check/*": allow
-    "echo *": allow
-    "cat *": allow
-    "ls *": allow
-    "head *": allow
-    "tail *": allow
-    "jq *": allow
+    "bash .opencode/scripts/sync/run.sh*": allow
+    "bash .opencode/scripts/chain/run.sh*": allow
+    "bash .opencode/scripts/tunnel/run.sh*": allow
+    "bash .opencode/scripts/security/*": allow
+    "bash .opencode/scripts/design/*": allow
+    "bash .opencode/scripts/react-fix/*": allow
+    "bash .opencode/scripts/planner/*": allow
+    "bash .opencode/scripts/ci/*": allow
+    "bash .opencode/scripts/docker-pack/*": allow
+    "bash .opencode/scripts/git-changes/*": allow
+    "bash .opencode/scripts/commit-trello/*": allow
+    "bash .opencode/scripts/task-commits/*": allow
+    "bash .opencode/scripts/ports/*": allow
+    "bash .opencode/scripts/issue-writer/*": allow
+    "bash .opencode/scripts/screenshot-report/run.sh*": allow
+    "echo*": allow
+    "cat*": allow
+    "ls*": allow
+    "head*": allow
+    "tail*": allow
+    "jq*": allow
+    "wc*": allow
+    "grep*": allow
+    "rg*": allow
+    "find*": allow
+    "tree*": allow
+    "diff*": allow
+    "sed -n*": allow
+    "pwd*": allow
     "bash .opencode/scripts/doctor/*": allow
     "bash .opencode/scripts/worktree/*": allow
     "bash .opencode/scripts/pr/*": allow
     "bash .opencode/scripts/push/run.sh*": allow
     "bash scripts/push/run.sh*": allow
-    "git status *": allow
-    "git diff *": allow
-    "git log *": allow
-    "git show *": allow
-    "git rev-parse *": allow
-    "git branch *": allow
-    "git worktree *": allow
+    "git status*": allow
+    "git diff*": allow
+    "git log*": allow
+    "git show*": allow
+    "git rev-parse*": allow
+    "git rev-list*": allow
+    "git ls-files*": allow
+    "git remote*": allow
+    "git branch*": allow
+    "git worktree*": allow
+    "git checkout --*": allow
+    "git restore*": allow
+  # worktree (`../<repo>-<name>`) лежит вне Location — без этого каждая
+  # команда в нём спрашивает права вместо выполнения.
+  external_directory:
+    "*": allow
   question: allow
   task: allow
   tool:

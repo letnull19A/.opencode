@@ -7,13 +7,14 @@ permission:
   edit: deny
   bash:
     "*": deny
-    "echo *": allow
-    "cat *": allow
-    "ls *": allow
-    "head *": allow
-    "tail *": allow
-    "jq *": allow
+    "echo*": allow
+    "cat*": allow
+    "ls*": allow
+    "head*": allow
+    "tail*": allow
+    "jq*": allow
     "bash .opencode/scripts/doctor/*": allow
+    "bash .opencode/scripts/graphify/*": allow
     "bash .opencode/scripts/task-manager/init.sh*": allow
     "bash .opencode/scripts/task-manager/boards.sh*": allow
     "bash .opencode/scripts/task-manager/lists.sh*": allow
@@ -24,10 +25,10 @@ permission:
     "bash .opencode/scripts/trello-task/lists.sh*": allow
     "bash .opencode/scripts/trello-task/audit.sh*": allow
     "bash .opencode/scripts/trello-task/dump.sh*": allow
-    "git status *": allow
-    "git diff *": allow
-    "git log *": allow
-    "git show *": allow
+    "git status*": allow
+    "git diff*": allow
+    "git log*": allow
+    "git show*": allow
   question: allow
   task: allow
 ---

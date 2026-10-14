@@ -7,23 +7,26 @@ permission:
   edit: deny
   bash:
     "*": deny
-    "echo *": allow
-    "cat *": allow
-    "ls *": allow
-    "head *": allow
-    "tail *": allow
-    "jq *": allow
+    "echo*": allow
+    "cat*": allow
+    "ls*": allow
+    "head*": allow
+    "tail*": allow
+    "jq*": allow
     "bash .opencode/scripts/doctor/*": allow
     "bash .opencode/scripts/ci/*": allow
     "bash .opencode/scripts/sync/*": allow
     "bash .opencode/scripts/ports/*": allow
-    "git status *": allow
-    "git diff *": allow
-    "git log *": allow
-    "git show *": allow
-    "git rev-parse *": allow
-    "git remote *": allow
-    "git branch *": allow
+    "git status*": allow
+    "git diff*": allow
+    "git log*": allow
+    "git show*": allow
+    "git rev-parse*": allow
+    "git remote*": allow
+    "git branch*": allow
+    "gh run*": allow
+    "gh auth*": allow
+    "bash -n*": allow
   question: allow
   task: allow
 ---

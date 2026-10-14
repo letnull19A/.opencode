@@ -9,33 +9,50 @@ permission:
   bash:
     "*": ask
     "bash .opencode/scripts/check/*": allow
-    "echo *": allow
-    "cat *": allow
-    "ls *": allow
-    "head *": allow
-    "tail *": allow
-    "jq *": allow
+    "bash .opencode/scripts/graphify/*": allow
+    "echo*": allow
+    "cat*": allow
+    "ls*": allow
+    "head*": allow
+    "tail*": allow
+    "jq*": allow
+    "wc*": allow
+    "grep*": allow
+    "rg*": allow
+    "find*": allow
+    "tree*": allow
+    "diff*": allow
+    "sed -n*": allow
+    "mkdir*": allow
+    "cp*": allow
+    "mv*": allow
+    "touch*": allow
+    "rm*": allow
     "bash .opencode/scripts/doctor/*": allow
-    "git status *": allow
-    "git diff *": allow
-    "git log *": allow
-    "git show *": allow
-    "git rev-parse *": allow
-    "git branch *": allow
-    "git rev-list *": allow
-    "npx *": allow
-    "pnpm *": allow
-    "npm *": allow
-    "yarn *": allow
-    "bun *": allow
-    "node *": allow
+    "git status*": allow
+    "git diff*": allow
+    "git log*": allow
+    "git show*": allow
+    "git rev-parse*": allow
+    "git branch*": allow
+    "git rev-list*": allow
+    "git ls-files*": allow
+    "git checkout --*": allow
+    "npx*": allow
+    "pnpm*": allow
+    "npm*": allow
+    "yarn*": allow
+    "bun*": allow
+    "node*": allow
+    "python3*": allow
+    "make*": allow
     "gh pr merge*": deny
     "glab mr merge*": deny
     "tea * merge*": deny
     "git merge*": deny
     "git push --force*": deny
     "git push -f*": deny
-    "git reset --hard *": deny
+    "git reset --hard*": deny
     "git reset --hard HEAD": allow
     "git clean -fd*": deny
     "rm -rf*": deny

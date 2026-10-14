@@ -7,21 +7,32 @@ permission:
   edit: deny
   bash:
     "*": deny
-    "echo *": allow
-    "cat *": allow
-    "ls *": allow
-    "head *": allow
-    "tail *": allow
-    "jq *": allow
+    "echo*": allow
+    "cat*": allow
+    "ls*": allow
+    "head*": allow
+    "tail*": allow
+    "jq*": allow
     "bash .opencode/scripts/worktree/*": allow
     "bash .opencode/scripts/doctor/*": allow
     "bash .opencode/scripts/task-manager/*": allow
     "bash .opencode/scripts/commit-trello/*": allow
-    "git status *": allow
-    "git diff *": allow
-    "git log *": allow
-    "git show *": allow
-    "git branch *": allow
+    "git status*": allow
+    "git diff*": allow
+    "git log*": allow
+    "git show*": allow
+    "git branch*": allow
+    "git rev-parse*": allow
+    "git rev-list*": allow
+    "git ls-files*": allow
+    "git remote*": allow
+    "git worktree*": allow
+    "git checkout*": allow
+    "git switch*": allow
+  # worktree (`../<repo>-<name>`) лежит вне Location — иначе любая команда
+  # в нём (status/diff/log) упирается в запрос внешнего каталога.
+  external_directory:
+    "*": allow
   question: allow
   task: allow
 ---
