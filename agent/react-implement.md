@@ -23,5 +23,6 @@ permission:
    - `Field/Empty/Pagination → shared/uikit/* — props ок | S`
 2. Поток данных с effort (обязательно): для каждого перехода — источник, владелец (app providers vs page useList/useFilters), проброс (N уровней), решение `props` vs `Context/store/composition`, effort `S|M|L`, риск prop-drilling `low/mid/high`, почему не drilling.
 3. Стек — по проекту (package.json/facts), не навязываешь Tailwind если его нет. Напомни: `app` без внешних props, `layout` без data-логики, `page` — Suspense/ErrorBoundary, слои — рекомендательно.
+4. Колонка `Файл` — только вложенные пути по концернам (`ui/`, `hooks/`, `api/`, ... из CODE_OF_CONDUCT.md проекта): >~7 файлов слайса на одном уровне — перегруппируй; каждый слой — с barrel `index.ts`, импорты только через barrel; тесты — за файловой границей из CODE_OF_CONDUCT.md, сториз — рядом с компонентом. Нейминг файлов/папок — только из CODE_OF_CONDUCT.md; раздела нет — пометь `needs_convention` вместо выдумывания.
 
 Запреты: код не пишешь, файлы не создаёшь, только маппинг + data-flow + effort. Пропустил data-flow effort — дизайн не принят.
