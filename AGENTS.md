@@ -205,7 +205,8 @@ issue_provider: github
   thinking command over skill `commit`: atomic Conventional Commits, no push
   (флаг `--push` — те же коммиты + `push/run.sh` в конце); `pr.md` → `/pr`
   (`--new` — думает над JSON-body + `create-pr.sh`, `--update [number]` —
-  думает над изменениями + `update-pr.sh`; мерж запрещён, только скрипты);
+  думает над изменениями + `update-pr.sh`; `--list` — одна команда
+  `list-prs.sh` и ответ строго по её выводу; мерж запрещён, только скрипты);
   `sync.md` → `/sync`, thin runner over `scripts/sync/run.sh`, no git thinking;
   `new-task.md` → `/new-task`, delegates to `task-manager` subagent;
   `fix.md` → `/fix`, delegates to `react-fix` subagent;
@@ -222,7 +223,9 @@ issue_provider: github
   конфликты/checks/reviews/lifecycle; агент сверяется с ним перед любым
   ответом про PR, а не гадает; see `scripts/pr/README.md`) +
   `update-pr.sh` (обновить PR: `--number` или PR текущей ветки;
-  `gh pr edit`/`glab mr update`/REST PATCH; gitea — честный exit 2).
+  `gh pr edit`/`glab mr update`/REST PATCH; gitea — честный exit 2) +
+  `list-prs.sh` (read-only список всех PR со стадиями: `--filter`,
+  `--status <lifecycle>`, `--author`, `--json`).
 - `scripts/react-fix/` — `find-class.sh` (поиск CSS-класса в tsx/css →
   таблица `FILE|LINE|KIND|TEXT` для ИИ; точное имя + BEM-дети, без
   подстрок; read-only; см. `scripts/react-fix/README.md`).

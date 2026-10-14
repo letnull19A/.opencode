@@ -44,6 +44,12 @@
   Печатает `PR_URL: <url>` или `PR_URL: none`, exit 0 в обоих случаях.
   Используется после любых git-операций (`/push`, `/sync`, `/commit`),
   чтобы ссылка была даже если PR создан не агентом.
+- `list-prs.sh [--filter open|closed|merged|all] [--status <lifecycle>] [--author me] [--limit N] [--json]` —
+  read-only список PR/MR с живыми статусами (conflicts/checks/reviews/lifecycle —
+  та же приоритетная лестница, что в `status-pr.sh`). Позволяет навести
+  порядок во всех PR репозитория: что висит, что с конфликтами, что merged.
+  github — per-PR `gh pr view` для checks/reviews (batch-номера `gh` не понимает),
+  gitlab/gitea/bitbucket — из листинга, неизвестное честно `unknown`.
 - `update-pr.sh [--number N | --branch B] [--title ...] [--body/--body-file/--json] [--base ...] [--labels ...] [--ready] [--dry-run]` —
   обновить существующий PR/MR (цель — явный номер или PR текущей ветки).
   Body-стандарт как у create (`--json`, иначе исключение); хоть одно изменение
@@ -80,4 +86,6 @@ python3 .opencode/scripts/pr/render-pr.py github --json /tmp/pr.json
 bash .opencode/scripts/pr/get-pr-url.sh
 bash .opencode/scripts/pr/create-pr.sh --title "feat(pr): guarantee PR link output" --json /tmp/pr.json --base main --dry-run
 bash .opencode/scripts/pr/update-pr.sh --number 123 --title "feat(pr): guarantee PR link output" --dry-run
+bash .opencode/scripts/pr/list-prs.sh --filter open
+bash .opencode/scripts/pr/list-prs.sh --status CONFLICTS --json
 ```

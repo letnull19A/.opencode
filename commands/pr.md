@@ -1,5 +1,5 @@
 ---
-description: Создать PR (/pr --new) или обновить существующий (/pr --update [number]) — думаешь над содержимым, исполняешь только скриптами
+description: PR под управлением скриптов — /pr --new (создать), /pr --update [number] (обновить), /pr --list (список со статусами)
 agent: build
 ---
 
@@ -12,6 +12,18 @@ agent: build
 - `/pr --new [--base <branch>] [--draft] [--labels "a,b"]` — создать PR текущей ветки.
 - `/pr --update [<number>] [--title ...] [--base ...] [--labels ...] [--ready]` — обновить
   существующий (номер явно или PR текущей ветки). Body меняется только через JSON (ниже).
+- `/pr --list [--status <lifecycle>] [--filter=open|closed|merged|all] [--author me] [--json]` —
+  список PR с живыми статусами (read-only).
+
+## Процедура --list
+
+1. Ровно одна команда: `bash .opencode/scripts/pr/list-prs.sh [--filter ...] [--status ...] [--author me] [--json]`
+   (`--filter=open` из сообщения нормализуй в `--filter open`). Скрипт сам считает
+   lifecycle по той же лестнице, что `status-pr.sh`.
+2. Отвечай СТРОГО по её выводу: таблица + строки `PR: #N <url> | lifecycle=X`.
+   `unknown` — «не знаю», а не «всё хорошо». Хочешь детали по конкретному PR —
+   `bash .opencode/scripts/pr/status-pr.sh --branch <head из списка>`.
+3. `--json` — когда нужен разбор/агрегация, не для красоты.
 
 ## Процедура --new
 
