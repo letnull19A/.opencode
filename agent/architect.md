@@ -7,20 +7,15 @@ temperature: 0.2
 permission:
   edit:
     "*": deny
-    "echo *": allow
-    "cat *": allow
-    "ls *": allow
-    "head *": allow
-    "tail *": allow
-    "jq *": allow
-    "bash .opencode/scripts/doctor/*": allow
     "**/ARCHITECTURE.md": allow
   bash:
     "*": deny
-    "git status *": allow
-    "git diff *": allow
-    "git log *": allow
-    "git show *": allow
+    "git status*": allow
+    "git diff*": allow
+    "git log*": allow
+    "git show*": allow
+    "git rev-parse*": allow
+    "git ls-files*": allow
     "bash .opencode/scripts/graphify/*": allow
   read: allow
   glob: allow

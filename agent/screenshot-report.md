@@ -4,14 +4,15 @@ mode: subagent
 hidden: true
 temperature: 0
 permission:
+  edit: deny
   bash:
     "*": ask
-    "echo *": allow
-    "cat *": allow
-    "ls *": allow
-    "head *": allow
-    "tail *": allow
-    "jq *": allow
+    "echo*": allow
+    "cat*": allow
+    "ls*": allow
+    "head*": allow
+    "tail*": allow
+    "jq*": allow
     "bash .opencode/scripts/screenshot-report/run.sh*": allow
     "bash .opencode/scripts/doctor/*": allow
     "cat .opencode/scripts/screenshot-report/pages.example.json": allow

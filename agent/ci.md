@@ -9,19 +9,23 @@ permission:
     "*": deny
     "bash .opencode/scripts/ci/*": allow
     "bash .opencode/scripts/check/*": allow
-    "echo *": allow
-    "head *": allow
-    "tail *": allow
-    "jq *": allow
+    "echo*": allow
+    "head*": allow
+    "tail*": allow
+    "jq*": allow
     "bash .opencode/scripts/doctor/*": allow
-    "cat *": allow
-    "ls *": allow
-    "git status *": allow
-    "git diff *": allow
-    "git log *": allow
-    "git show *": allow
-    "git add *": allow
-    "git commit *": allow
+    "cat*": allow
+    "ls*": allow
+    "mkdir*": allow
+    "rm*": allow
+    "git status*": allow
+    "git diff*": allow
+    "git log*": allow
+    "git show*": allow
+    "git rev-parse*": allow
+    "git rev-list*": allow
+    "git ls-files*": allow
+    "rm -rf*": deny
   read: allow
   glob: allow
   grep: allow

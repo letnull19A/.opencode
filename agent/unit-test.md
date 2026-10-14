@@ -5,7 +5,53 @@ hidden: true
 temperature: 0.2
 permission:
   edit: allow
-  bash: allow
+  bash:
+    "*": deny
+    "bash .opencode/scripts/check/*": allow
+    "bash .opencode/scripts/graphify/*": allow
+    "bash .opencode/scripts/doctor/*": allow
+    "echo*": allow
+    "cat*": allow
+    "ls*": allow
+    "head*": allow
+    "tail*": allow
+    "jq*": allow
+    "wc*": allow
+    "grep*": allow
+    "rg*": allow
+    "find*": allow
+    "tree*": allow
+    "diff*": allow
+    "mkdir*": allow
+    "rm*": allow
+    "node*": allow
+    "bun*": allow
+    "npx*": allow
+    "pnpm*": allow
+    "npm*": allow
+    "yarn*": allow
+    "python3*": allow
+    "python*": allow
+    "pytest*": allow
+    "git status*": allow
+    "git diff*": allow
+    "git log*": allow
+    "git show*": allow
+    "git rev-parse*": allow
+    "git rev-list*": allow
+    "git ls-files*": allow
+    "git branch*": allow
+    "gh pr merge*": deny
+    "glab mr merge*": deny
+    "tea * merge*": deny
+    "git merge*": deny
+    "git push --force*": deny
+    "git push -f*": deny
+    "git reset --hard*": deny
+    "git clean -fd*": deny
+    "rm -rf*": deny
+    "npm publish*": deny
+    "pnpm publish*": deny
   read: allow
   glob: allow
   grep: allow

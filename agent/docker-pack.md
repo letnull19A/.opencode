@@ -7,17 +7,25 @@ permission:
   edit: allow
   bash:
     "*": deny
-    "echo *": allow
-    "head *": allow
-    "tail *": allow
-    "jq *": allow
+    "echo*": allow
+    "head*": allow
+    "tail*": allow
+    "jq*": allow
     "bash .opencode/scripts/doctor/*": allow
     "bash .opencode/scripts/docker-pack/*": allow
-    "cat *": allow
-    "ls *": allow
-    "git status *": allow
-    "git diff *": allow
-    "git log *": allow
+    "cat*": allow
+    "ls*": allow
+    "mkdir*": allow
+    "rm*": allow
+    "find*": allow
+    "tree*": allow
+    "git status*": allow
+    "git diff*": allow
+    "git log*": allow
+    "git show*": allow
+    "git rev-parse*": allow
+    "git ls-files*": allow
+    "rm -rf*": deny
   read: allow
   glob: allow
   grep: allow
