@@ -202,7 +202,10 @@ issue_provider: github
   per-script `package.json`. State in `~/.local/state/opencode-tunnel/<name>.json`.
 - `commands/` — custom slash-commands (`push.md` → `/push`, thin runner over
   `scripts/push/run.sh`, no git thinking in the agent; `commit.md` → `/commit`,
-  thinking command over skill `commit`: atomic Conventional Commits, no push;
+  thinking command over skill `commit`: atomic Conventional Commits, no push
+  (флаг `--push` — те же коммиты + `push/run.sh` в конце); `pr.md` → `/pr`
+  (`--new` — думает над JSON-body + `create-pr.sh`, `--update [number]` —
+  думает над изменениями + `update-pr.sh`; мерж запрещён, только скрипты);
   `sync.md` → `/sync`, thin runner over `scripts/sync/run.sh`, no git thinking;
   `new-task.md` → `/new-task`, delegates to `task-manager` subagent;
   `fix.md` → `/fix`, delegates to `react-fix` subagent;
@@ -217,7 +220,9 @@ issue_provider: github
   `PR_URL: none`; вызывается после любых git-операций и при любом
   упоминании PR) + `status-pr.sh` (ЕДИНСТВЕННЫЙ источник правды о статусе:
   конфликты/checks/reviews/lifecycle; агент сверяется с ним перед любым
-  ответом про PR, а не гадает; see `scripts/pr/README.md`).
+  ответом про PR, а не гадает; see `scripts/pr/README.md`) +
+  `update-pr.sh` (обновить PR: `--number` или PR текущей ветки;
+  `gh pr edit`/`glab mr update`/REST PATCH; gitea — честный exit 2).
 - `scripts/react-fix/` — `find-class.sh` (поиск CSS-класса в tsx/css →
   таблица `FILE|LINE|KIND|TEXT` для ИИ; точное имя + BEM-дети, без
   подстрок; read-only; см. `scripts/react-fix/README.md`).
