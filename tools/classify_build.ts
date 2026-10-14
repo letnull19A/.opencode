@@ -1,20 +1,20 @@
 // @ts-nocheck
-import { tool } from "@opencode-ai/plugin"
+import { z } from "zod"
 
-export default tool({
+export default {
   description: "Классификатор build+preview: выбирает build-fast (low), build-smart (medium/high), devops (инфра/деплои) или build (default fallback) и needs_tunnel (нужен ли preview-тоннель). Принимает complexity/risk от evol-plan или сырые поля задачи, пробует Jev → fallback на эвристику → build по умолчанию. Возвращает JSON {builder, confidence, reason, provider, needs_tunnel, tunnel_reason}.",
   args: {
-    title: tool.schema.string().optional().describe("Заголовок задачи / карточки Trello"),
-    desc: tool.schema.string().optional().describe("Описание задачи (## Что сделать / Критерии)"),
-    level: tool.schema.enum(["low", "medium", "high"]).optional().describe("Уровень сложности из evol-plan"),
-    score: tool.schema.number().optional().describe("Score сложности 0-20"),
-    files: tool.schema.number().optional().describe("Кол-во файлов в задаче"),
-    deps: tool.schema.number().optional().describe("Кол-во зависимостей"),
-    type: tool.schema.enum(["add", "update", "delete", "decompose"]).optional().describe("Тип изменения"),
-    unknowns: tool.schema.number().optional().describe("Неопределённость"),
-    risk_level: tool.schema.enum(["low", "medium", "high"]).optional().describe("Уровень риска"),
-    risk_score: tool.schema.number().optional().describe("Риск score 0-8"),
-    risk_factors: tool.schema.array(tool.schema.string()).optional().describe("Факторы риска: breaking,data,security,external"),
+    title: z.string().optional().describe("Заголовок задачи / карточки Trello"),
+    desc: z.string().optional().describe("Описание задачи (## Что сделать / Критерии)"),
+    level: z.enum(["low", "medium", "high"]).optional().describe("Уровень сложности из evol-plan"),
+    score: z.number().optional().describe("Score сложности 0-20"),
+    files: z.number().optional().describe("Кол-во файлов в задаче"),
+    deps: z.number().optional().describe("Кол-во зависимостей"),
+    type: z.enum(["add", "update", "delete", "decompose"]).optional().describe("Тип изменения"),
+    unknowns: z.number().optional().describe("Неопределённость"),
+    risk_level: z.enum(["low", "medium", "high"]).optional().describe("Уровень риска"),
+    risk_score: z.number().optional().describe("Риск score 0-8"),
+    risk_factors: z.array(z.string()).optional().describe("Факторы риска: breaking,data,security,external"),
   },
   async execute(args, context) {
     const hasTitle = !!(args.title && args.title.trim())
@@ -179,4 +179,4 @@ export default tool({
     }
     return JSON.stringify({ builder: "build-smart", confidence: 0.75, reason: "medium/high complexity or deps/type update/decompose", provider: "heuristic", needs_tunnel: needsTunnelHeuristic.needs, tunnel_reason: needsTunnelHeuristic.reason, input }, null, 2)
   },
-})
+}

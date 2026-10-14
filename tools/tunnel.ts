@@ -1,16 +1,16 @@
 // @ts-nocheck
-import { tool } from "@opencode-ai/plugin"
+import { z } from "zod"
 import path from "path"
 
-export default tool({
+export default {
   description: "Управление preview-тоннелями (ngrok/loca.lt) для dev-сервера. Обёртка над scripts/tunnel/run.sh — create/status/url/restart/kill. Возвращает PREVIEW_URL/PROVIDER/PUBLIC_IP.",
   args: {
-    action: tool.schema.enum(["start", "status", "url", "restart", "kill"]).describe("Действие тоннеля"),
-    port: tool.schema.number().optional().describe("Порт dev-сервера (vite 5173, next 3000)"),
-    name: tool.schema.string().optional().describe("Имя тоннеля (default default) для нескольких тоннелей"),
-    ttl: tool.schema.number().optional().describe("TTL секунд, default 3600"),
-    provider: tool.schema.enum(["auto", "ngrok", "localtunnel"]).optional().describe("Провайдер: auto (ngrok если есть NGROK_AUTHTOKEN, иначе loca.lt)"),
-    all: tool.schema.boolean().optional().describe("Для kill --all"),
+    action: z.enum(["start", "status", "url", "restart", "kill"]).describe("Действие тоннеля"),
+    port: z.number().optional().describe("Порт dev-сервера (vite 5173, next 3000)"),
+    name: z.string().optional().describe("Имя тоннеля (default default) для нескольких тоннелей"),
+    ttl: z.number().optional().describe("TTL секунд, default 3600"),
+    provider: z.enum(["auto", "ngrok", "localtunnel"]).optional().describe("Провайдер: auto (ngrok если есть NGROK_AUTHTOKEN, иначе loca.lt)"),
+    all: z.boolean().optional().describe("Для kill --all"),
   },
   async execute(args, context) {
     const root = (context as any).worktree ?? (context as any).directory ?? "."
@@ -30,4 +30,4 @@ export default tool({
     if (proc.exitCode !== 0 && args.action !== "status" && args.action !== "url") throw new Error(combined || `tunnel ${args.action} failed ${proc.exitCode}`)
     return combined
   },
-})
+}

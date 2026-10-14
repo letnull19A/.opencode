@@ -1,21 +1,21 @@
 // @ts-nocheck
-import { tool } from "@opencode-ai/plugin"
+import { z } from "zod"
 import path from "path"
-export default tool({
+export default {
   description: "Чек-листы Trello-карточки (подзадачи). Обёртка над scripts/task-manager/checklist.sh. Действия: show/create/add-item/complete/complete-all/uncomplete.",
   args: {
-    id: tool.schema.string().optional().describe("ID карточки"),
-    url: tool.schema.string().optional().describe("URL карточки"),
-    card: tool.schema.string().optional().describe("Точное имя карточки"),
-    from_board: tool.schema.string().optional().describe("Сузить поиск по доске при --card"),
-    list: tool.schema.string().optional().describe("Точное имя чек-листа (если на карточке один — можно опустить)"),
-    show: tool.schema.boolean().optional().describe("Показать чек-листы JSON"),
-    create: tool.schema.string().optional().describe("Создать чек-лист с именем"),
-    items: tool.schema.string().optional().describe("Пункты через ; для --create, напр. \"Шаг 1;Шаг 2\""),
-    add_item: tool.schema.string().optional().describe("Добавить пункт в чек-лист"),
-    complete: tool.schema.string().optional().describe("Отметить пункт как выполненный (точное имя)"),
-    complete_all: tool.schema.boolean().optional().describe("Отметить все пункты чек-листа"),
-    uncomplete: tool.schema.string().optional().describe("Снять отметку с пункта"),
+    id: z.string().optional().describe("ID карточки"),
+    url: z.string().optional().describe("URL карточки"),
+    card: z.string().optional().describe("Точное имя карточки"),
+    from_board: z.string().optional().describe("Сузить поиск по доске при --card"),
+    list: z.string().optional().describe("Точное имя чек-листа (если на карточке один — можно опустить)"),
+    show: z.boolean().optional().describe("Показать чек-листы JSON"),
+    create: z.string().optional().describe("Создать чек-лист с именем"),
+    items: z.string().optional().describe("Пункты через ; для --create, напр. \"Шаг 1;Шаг 2\""),
+    add_item: z.string().optional().describe("Добавить пункт в чек-лист"),
+    complete: z.string().optional().describe("Отметить пункт как выполненный (точное имя)"),
+    complete_all: z.boolean().optional().describe("Отметить все пункты чек-листа"),
+    uncomplete: z.string().optional().describe("Снять отметку с пункта"),
   },
   async execute(args, context) {
     const root = (context as any).worktree ?? (context as any).directory ?? "."
@@ -40,4 +40,4 @@ export default tool({
     if (proc.exitCode !== 0) throw new Error((out + "\n" + err).trim() || `checklist failed ${proc.exitCode}`)
     return (out + "\n" + err).trim()
   },
-})
+}

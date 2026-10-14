@@ -1,15 +1,15 @@
 // @ts-nocheck
-import { tool } from "@opencode-ai/plugin"
+import { z } from "zod"
 import path from "path"
-export default tool({
+export default {
   description: "Поиск семантических дублей Trello-задач. Обёртка над scripts/task-manager/find_duplicates.sh — возвращает {count, duplicates:[{name,shortUrl,similarity,reason}]}, threshold 0.65 для автоблока.",
   args: {
-    title: tool.schema.string().optional().describe("Заголовок для проверки дубля"),
-    desc: tool.schema.string().optional().describe("Описание для проверки"),
-    board: tool.schema.string().optional().describe("Точное имя доски"),
-    json: tool.schema.boolean().optional().describe("Вывод JSON (default)"),
-    threshold: tool.schema.number().optional().describe("Порог similarity 0-1 (default 0.65)"),
-    all: tool.schema.boolean().optional().describe("Аудит всех дублей доски (пары)"),
+    title: z.string().optional().describe("Заголовок для проверки дубля"),
+    desc: z.string().optional().describe("Описание для проверки"),
+    board: z.string().optional().describe("Точное имя доски"),
+    json: z.boolean().optional().describe("Вывод JSON (default)"),
+    threshold: z.number().optional().describe("Порог similarity 0-1 (default 0.65)"),
+    all: z.boolean().optional().describe("Аудит всех дублей доски (пары)"),
   },
   async execute(args, context) {
     const root = (context as any).worktree ?? (context as any).directory ?? "."
@@ -28,4 +28,4 @@ export default tool({
     if (proc.exitCode !== 0 && !out.trim().startsWith("{")) throw new Error((err || out).trim() || `find_duplicates failed ${proc.exitCode}`)
     return out.trim() || err.trim()
   },
-})
+}

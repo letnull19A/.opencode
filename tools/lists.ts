@@ -1,10 +1,10 @@
 // @ts-nocheck
-import { tool } from "@opencode-ai/plugin"
+import { z } from "zod"
 import path from "path"
-export default tool({
+export default {
   description: "Листы Trello-доски (id + name). Обёртка над scripts/task-manager/lists.sh --board. Только точные имена, без гаданий.",
   args: {
-    board: tool.schema.string().describe("Точное имя доски Trello (см. boards)"),
+    board: z.string().describe("Точное имя доски Trello (см. boards)"),
   },
   async execute(args, context) {
     const root = (context as any).worktree ?? (context as any).directory ?? "."
@@ -17,4 +17,4 @@ export default tool({
     if (proc.exitCode !== 0 && !out.trim()) throw new Error(err || `lists failed ${proc.exitCode}`)
     return out.trim() || err.trim()
   },
-})
+}

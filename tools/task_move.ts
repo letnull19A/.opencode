@@ -1,17 +1,17 @@
 // @ts-nocheck
-import { tool } from "@opencode-ai/plugin"
+import { z } from "zod"
 import path from "path"
-export default tool({
+export default {
   description: "Перемещение Trello-карточки в другой лист/доску. Обёртка над scripts/task-manager/move.sh. Селектор карточки — ровно один: id/url/card.",
   args: {
-    id: tool.schema.string().optional().describe("ID карточки"),
-    url: tool.schema.string().optional().describe("URL карточки https://trello.com/c/<SHORT>"),
-    card: tool.schema.string().optional().describe("Точное имя карточки (поиск по всем открытым доскам, уточни --from_board при дублях)"),
-    from_board: tool.schema.string().optional().describe("Сузить поиск по имени доски при --card"),
-    list: tool.schema.string().describe("Целевой лист (точное имя)"),
-    to_board: tool.schema.string().optional().describe("Целевая доска (default текущая)"),
-    pos: tool.schema.string().optional().describe("Позиция: top|bottom|N"),
-    dry_run: tool.schema.boolean().optional().describe("Только показать план без PUT"),
+    id: z.string().optional().describe("ID карточки"),
+    url: z.string().optional().describe("URL карточки https://trello.com/c/<SHORT>"),
+    card: z.string().optional().describe("Точное имя карточки (поиск по всем открытым доскам, уточни --from_board при дублях)"),
+    from_board: z.string().optional().describe("Сузить поиск по имени доски при --card"),
+    list: z.string().describe("Целевой лист (точное имя)"),
+    to_board: z.string().optional().describe("Целевая доска (default текущая)"),
+    pos: z.string().optional().describe("Позиция: top|bottom|N"),
+    dry_run: z.boolean().optional().describe("Только показать план без PUT"),
   },
   async execute(args, context) {
     const root = (context as any).worktree ?? (context as any).directory ?? "."
@@ -32,4 +32,4 @@ export default tool({
     if (proc.exitCode !== 0) throw new Error((out + "\n" + err).trim() || `move failed ${proc.exitCode}`)
     return (out + "\n" + err).trim()
   },
-})
+}

@@ -1,14 +1,14 @@
 // @ts-nocheck
-import { tool } from "@opencode-ai/plugin"
+import { z } from "zod"
 import path from "path"
 
-export default tool({
+export default {
   description: "Поиск связи коммитов ↔ Trello-карточек по трейлерам Trello:/Closes:. Обёртка над scripts/commit-trello/run.sh. Парсит git log без Trello API.",
   args: {
-    card: tool.schema.string().optional().describe("URL/shortLink/id карточки Trello (https://trello.com/c/<SHORT> или SHORT)"),
-    commit: tool.schema.string().optional().describe("Хеш коммита (7+ символов)"),
-    all: tool.schema.boolean().optional().describe("Все коммиты с Trello/Closes"),
-    limit: tool.schema.number().optional().describe("Лимит коммитов (default 50)"),
+    card: z.string().optional().describe("URL/shortLink/id карточки Trello (https://trello.com/c/<SHORT> или SHORT)"),
+    commit: z.string().optional().describe("Хеш коммита (7+ символов)"),
+    all: z.boolean().optional().describe("Все коммиты с Trello/Closes"),
+    limit: z.number().optional().describe("Лимит коммитов (default 50)"),
   },
   async execute(args, context) {
     const root = (context as any).worktree ?? (context as any).directory ?? "."
@@ -26,4 +26,4 @@ export default tool({
     if (proc.exitCode !== 0 && !out.trim().startsWith("{")) throw new Error(err || `commit_trello failed ${proc.exitCode}`)
     return out.trim() || err.trim()
   },
-})
+}

@@ -1,17 +1,17 @@
 // @ts-nocheck
-import { tool } from "@opencode-ai/plugin"
+import { z } from "zod"
 import path from "path"
 
-export default tool({
+export default {
   description: "Поиск коммитов по списку задач Trello (джойн задачи → коммиты с Trello:/Closes:). Unix-обёртка над scripts/task-commits/run.sh. stdout — JSON {tasks,commits,by_task,tasks_without_commits} для ИИ.",
   args: {
-    board: tool.schema.string().optional().describe("Точное имя доски Trello, default BOARD из .devbox-project"),
-    tag: tool.schema.string().optional().describe("Метка проекта NAME, default из .devbox-project"),
-    all: tool.schema.boolean().optional().describe("Все карточки доски без фильтра по метке"),
-    limit: tool.schema.number().optional().describe("Макс. карточек на лист (default 50)"),
-    log_limit: tool.schema.number().optional().describe("Сколько последних коммитов сканировать (default 100, кап 500)"),
-    tasks_file: tool.schema.string().optional().describe("Путь к JSON с задачами (audit.json/dump.json) вместо запроса к Trello"),
-    tasks_json: tool.schema.string().optional().describe("Inline JSON с задачами (массив cards или audit)"),
+    board: z.string().optional().describe("Точное имя доски Trello, default BOARD из .devbox-project"),
+    tag: z.string().optional().describe("Метка проекта NAME, default из .devbox-project"),
+    all: z.boolean().optional().describe("Все карточки доски без фильтра по метке"),
+    limit: z.number().optional().describe("Макс. карточек на лист (default 50)"),
+    log_limit: z.number().optional().describe("Сколько последних коммитов сканировать (default 100, кап 500)"),
+    tasks_file: z.string().optional().describe("Путь к JSON с задачами (audit.json/dump.json) вместо запроса к Trello"),
+    tasks_json: z.string().optional().describe("Inline JSON с задачами (массив cards или audit)"),
   },
   async execute(args, context) {
     const root = (context as any).worktree ?? (context as any).directory ?? "."
@@ -35,4 +35,4 @@ export default tool({
     }
     return out.trim() || err.trim()
   },
-})
+}

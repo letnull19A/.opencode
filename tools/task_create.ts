@@ -1,15 +1,15 @@
 // @ts-nocheck
-import { tool } from "@opencode-ai/plugin"
+import { z } from "zod"
 import path from "path"
-export default tool({
+export default {
   description: "Создание Trello-карточки с меткой проекта NAME. Обёртка над scripts/task-manager/create.sh. Требует title, берёт BOARD/LIST из .devbox-project если не переданы.",
   args: {
-    title: tool.schema.string().describe("Заголовок карточки, императив до ~80 символов, без точки"),
-    board: tool.schema.string().optional().describe("Точное имя доски, default BOARD из .devbox-project"),
-    list: tool.schema.string().optional().describe("Точное имя листа, default LIST из .devbox-project"),
-    desc: tool.schema.string().optional().describe("Описание по шаблону ## Контекст / ## Что сделать / ## Критерии / ## Связи"),
-    color: tool.schema.string().optional().describe("Цвет метки: green/yellow/orange/red/purple/blue/sky/lime/pink/black (default green)"),
-    save_defaults: tool.schema.boolean().optional().describe("Запомнить BOARD/LIST в .devbox-project"),
+    title: z.string().describe("Заголовок карточки, императив до ~80 символов, без точки"),
+    board: z.string().optional().describe("Точное имя доски, default BOARD из .devbox-project"),
+    list: z.string().optional().describe("Точное имя листа, default LIST из .devbox-project"),
+    desc: z.string().optional().describe("Описание по шаблону ## Контекст / ## Что сделать / ## Критерии / ## Связи"),
+    color: z.string().optional().describe("Цвет метки: green/yellow/orange/red/purple/blue/sky/lime/pink/black (default green)"),
+    save_defaults: z.boolean().optional().describe("Запомнить BOARD/LIST в .devbox-project"),
   },
   async execute(args, context) {
     const root = (context as any).worktree ?? (context as any).directory ?? "."
@@ -27,4 +27,4 @@ export default tool({
     if (proc.exitCode !== 0) throw new Error((out + "\n" + err).trim() || `create failed ${proc.exitCode}`)
     return (out + "\n" + err).trim()
   },
-})
+}

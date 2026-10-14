@@ -1,16 +1,16 @@
 // @ts-nocheck
-import { tool } from "@opencode-ai/plugin"
+import { z } from "zod"
 import path from "path"
-export default tool({
+export default {
   description: "Worktree-менеджер (параллельная разработка). Обёртка над scripts/worktree/run.sh: create/list/status/remove/prune.",
   args: {
-    command: tool.schema.enum(["create", "list", "status", "remove", "prune"]).describe("Команда worktree"),
-    name: tool.schema.string().optional().describe("Имя worktree / ветки"),
-    branch: tool.schema.string().optional().describe("Ветка для create"),
-    base: tool.schema.string().optional().describe("Базовая ветка (default main)"),
-    from: tool.schema.string().optional().describe("Откуда ветвить"),
-    json: tool.schema.boolean().optional().describe("Вывод JSON"),
-    force: tool.schema.boolean().optional().describe("Force для remove"),
+    command: z.enum(["create", "list", "status", "remove", "prune"]).describe("Команда worktree"),
+    name: z.string().optional().describe("Имя worktree / ветки"),
+    branch: z.string().optional().describe("Ветка для create"),
+    base: z.string().optional().describe("Базовая ветка (default main)"),
+    from: z.string().optional().describe("Откуда ветвить"),
+    json: z.boolean().optional().describe("Вывод JSON"),
+    force: z.boolean().optional().describe("Force для remove"),
   },
   async execute(args, context) {
     const root = (context as any).worktree ?? (context as any).directory ?? "."
@@ -29,4 +29,4 @@ export default tool({
     if (proc.exitCode !== 0) throw new Error((out + "\n" + err).trim() || `worktree ${args.command} failed ${proc.exitCode}`)
     return (out + "\n" + err).trim()
   },
-})
+}

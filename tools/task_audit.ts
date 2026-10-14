@@ -1,14 +1,14 @@
 // @ts-nocheck
-import { tool } from "@opencode-ai/plugin"
+import { z } from "zod"
 import path from "path"
 
-export default tool({
+export default {
   description: "Read-only аудит Trello-доски (JSON для ИИ). Обёртка над scripts/task-manager/audit.sh. Вернёт {board,totals,lists,overdue,blocked} — просрочки и Blocked by: уже посчитаны скриптом.",
   args: {
-    board: tool.schema.string().optional().describe("Точное имя доски, default BOARD из .devbox-project"),
-    tag: tool.schema.string().optional().describe("Метка проекта, default NAME из .devbox-project"),
-    all: tool.schema.boolean().optional().describe("Без фильтра по метке — все карточки доски"),
-    limit: tool.schema.number().optional().describe("Макс. карточек на лист (default 50)"),
+    board: z.string().optional().describe("Точное имя доски, default BOARD из .devbox-project"),
+    tag: z.string().optional().describe("Метка проекта, default NAME из .devbox-project"),
+    all: z.boolean().optional().describe("Без фильтра по метке — все карточки доски"),
+    limit: z.number().optional().describe("Макс. карточек на лист (default 50)"),
   },
   async execute(args, context) {
     const root = (context as any).worktree ?? (context as any).directory ?? "."
@@ -25,4 +25,4 @@ export default tool({
     if (proc.exitCode !== 0 && !out.trim().startsWith("{")) throw new Error(err || `task_audit failed ${proc.exitCode}`)
     return out.trim() || err.trim()
   },
-})
+}

@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { tool } from "@opencode-ai/plugin"
+import { z } from "zod"
 import path from "path"
 
 function buildUrl(db?: string) {
@@ -60,14 +60,14 @@ function allowedKinds(permissions: string): SqlKind[] {
   return out
 }
 
-export default tool({
+export default {
   description: "Postgres (Node, multi-DB, reused host). Обёртка над mcp-postgres + прямым psql. Хост из POSTGRES_HOST, БД — параметром db (переиспользуемый репо). Методы: query (read-only по умолчанию — SELECT/WITH..SELECT/EXPLAIN, enforced до обращения к БД), schema, listTables. Для записи укажи permissions: dml (INSERT/UPDATE/DELETE) и/или ddl (CREATE/ALTER/DROP). Множественные statements через `;` запрещены всегда. Примеры: postgres {db:\"mydb\", sql:\"SELECT * FROM users\"} или {db:\"mydb\", action:\"schema\"}",
   args: {
-    db: tool.schema.string().optional().describe("Имя БД (меняется, хост один). Если не указано — DATABASE_URL или POSTGRES_DB"),
-    sql: tool.schema.string().optional().describe("SQL запрос (один statement; read по умолчанию, запись только с permissions dml/ddl)"),
-    action: tool.schema.enum(["query","schema","listTables"]).optional().describe("Действие, default query если sql передан"),
-    table: tool.schema.string().optional().describe("Для schema: имя таблицы (без — все таблицы)"),
-    permissions: tool.schema.string().optional().describe("read (default) | dml | ddl | dml,ddl — enforced: запрещённый тип отклоняется до выполнения"),
+    db: z.string().optional().describe("Имя БД (меняется, хост один). Если не указано — DATABASE_URL или POSTGRES_DB"),
+    sql: z.string().optional().describe("SQL запрос (один statement; read по умолчанию, запись только с permissions dml/ddl)"),
+    action: z.enum(["query","schema","listTables"]).optional().describe("Действие, default query если sql передан"),
+    table: z.string().optional().describe("Для schema: имя таблицы (без — все таблицы)"),
+    permissions: z.string().optional().describe("read (default) | dml | ddl | dml,ddl — enforced: запрещённый тип отклоняется до выполнения"),
   },
   async execute(args, context) {
     const root = (context as any).worktree ?? (context as any).directory ?? "."
@@ -149,4 +149,4 @@ export default tool({
 
     return JSON.stringify({ db: args.db||"(from env)", url: url.replace(/:[^:@]+@/,":***@"), action, note:"Передай sql для query или action schema/listTables" }, null, 2)
   },
-})
+}

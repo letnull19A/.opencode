@@ -1,12 +1,12 @@
 // @ts-nocheck
-import { tool } from "@opencode-ai/plugin"
+import { z } from "zod"
 import path from "path"
-export default tool({
+export default {
   description: "Инициализация тега проекта .devbox-project (NAME=owner/repo, BOARD/LIST дефолты). Обёртка над scripts/task-manager/init.sh — тег из git remote.",
   args: {
-    name: tool.schema.string().optional().describe("Явный тег owner/repo (перекрывает автовывод из git remote)"),
-    force: tool.schema.boolean().optional().describe("Перезаписать .devbox-project, сохранив BOARD/LIST"),
-    remote: tool.schema.string().optional().describe("Git remote для автовывода (default origin)"),
+    name: z.string().optional().describe("Явный тег owner/repo (перекрывает автовывод из git remote)"),
+    force: z.boolean().optional().describe("Перезаписать .devbox-project, сохранив BOARD/LIST"),
+    remote: z.string().optional().describe("Git remote для автовывода (default origin)"),
   },
   async execute(args, context) {
     const root = (context as any).worktree ?? (context as any).directory ?? "."
@@ -22,4 +22,4 @@ export default tool({
     if (proc.exitCode !== 0) throw new Error((out + "\n" + err).trim() || `init failed ${proc.exitCode}`)
     return (out + "\n" + err).trim()
   },
-})
+}

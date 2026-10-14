@@ -1,7 +1,7 @@
 // @ts-nocheck
-import { tool } from "@opencode-ai/plugin"
+import { z } from "zod"
 import path from "path"
-export default tool({
+export default {
   description: "Список открытых Trello-досок (id + name). Обёртка над scripts/task-manager/boards.sh — только чтение, без гаданий.",
   args: {},
   async execute(_, context) {
@@ -14,4 +14,4 @@ export default tool({
     if (proc.exitCode !== 0 && !out.trim()) throw new Error(err || `boards failed ${proc.exitCode}`)
     return out.trim() || err.trim()
   },
-})
+}

@@ -1,12 +1,12 @@
 // @ts-nocheck
-import { tool } from "@opencode-ai/plugin"
+import { z } from "zod"
 
-export default tool({
+export default {
   description: "Классификатор планирования: выбирает подход — new-module (с нуля), update (доработка), decompose (разбиение) и нужен ли react-architect. Принимает заголовок/описание задачи, пробует Jev → heuristic. Возвращает {approach, needs_react, confidence, reason, provider}.",
   args: {
-    title: tool.schema.string().optional().describe("Заголовок задачи"),
-    desc: tool.schema.string().optional().describe("Описание задачи"),
-    has_code: tool.schema.boolean().optional().describe("Есть ли уже код модуля в репо"),
+    title: z.string().optional().describe("Заголовок задачи"),
+    desc: z.string().optional().describe("Описание задачи"),
+    has_code: z.boolean().optional().describe("Есть ли уже код модуля в репо"),
   },
   async execute(args, context) {
     const title = args.title ?? ""
@@ -56,4 +56,4 @@ export default tool({
     const confidence = hasCode || /(создать|новый|декомпоз)/i.test(text) ? 0.8 : 0.6
     return JSON.stringify({ approach, needs_react: needsReact, confidence, reason, provider: "heuristic", has_code: hasCode }, null, 2)
   },
-})
+}

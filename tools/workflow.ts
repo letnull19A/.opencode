@@ -1,15 +1,15 @@
 // @ts-nocheck
-import { tool } from "@opencode-ai/plugin"
+import { z } from "zod"
 import path from "path"
-export default tool({
+export default {
   description: "Движок workflow'ов. Запускает декларации из workflows/<name>/workflow.json через workflows/engine.ts. Guardrails: allowlist/budget/BOARD-lock/preview. Триггер 'новая задача' → workflow new-task 0→1 (validate→classify→recon→plan→create). Триггер 'ci/cd скрипт' → workflow cicd-script (survey→target→classify→plan→scaffold→verify→report, UNIX-way bash для @devops).",
   args: {
-    name: tool.schema.string().describe("Имя workflow (папка в workflows/), default new-task"),
-    input: tool.schema.string().optional().describe("JSON строка {title,desc} или просто title. Минимум title 5 символов и desc ≥20 или шаблон ## Контекст/Что сделать/Критерии"),
-    title: tool.schema.string().optional().describe("Альтернатива input: заголовок задачи (императив до ~80)"),
-    desc: tool.schema.string().optional().describe("Описание по шаблону ## Контекст / ## Что сделать / ## Критерии приёмки"),
-    dryRun: tool.schema.boolean().optional().describe("true = preview без мутаций Trello (default true если не указан)"),
-    json: tool.schema.boolean().optional().describe("Вывод JSON"),
+    name: z.string().describe("Имя workflow (папка в workflows/), default new-task"),
+    input: z.string().optional().describe("JSON строка {title,desc} или просто title. Минимум title 5 символов и desc ≥20 или шаблон ## Контекст/Что сделать/Критерии"),
+    title: z.string().optional().describe("Альтернатива input: заголовок задачи (императив до ~80)"),
+    desc: z.string().optional().describe("Описание по шаблону ## Контекст / ## Что сделать / ## Критерии приёмки"),
+    dryRun: z.boolean().optional().describe("true = preview без мутаций Trello (default true если не указан)"),
+    json: z.boolean().optional().describe("Вывод JSON"),
   },
   async execute(args, context) {
     const root = (context as any).worktree ?? (context as any).directory ?? "."
@@ -33,4 +33,4 @@ export default tool({
     // возвращаем stdout (engine уже печатает JSON)
     return (out+"\n"+err).trim()
   },
-})
+}

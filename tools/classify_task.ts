@@ -1,11 +1,11 @@
 // @ts-nocheck
-import { tool } from "@opencode-ai/plugin"
+import { z } from "zod"
 
-export default tool({
+export default {
   description: "Классификатор task-manager: отличает 'завести задачу' (create) от 'объясни задачу' (explain) и 'аудит/статус' (audit). Возвращает {intent, confidence, reason, provider}. Используется task-manager перед делегированием к сабагентам, чтобы не путать explain vs create.",
   args: {
-    text: tool.schema.string().describe("Текст пользователя целиком (сообщение)"),
-    title: tool.schema.string().optional().describe("Опционально: выделенный заголовок задачи"),
+    text: z.string().describe("Текст пользователя целиком (сообщение)"),
+    title: z.string().optional().describe("Опционально: выделенный заголовок задачи"),
   },
   async execute(args, context) {
     const text = (args.text || args.title || "").trim()
@@ -63,4 +63,4 @@ export default tool({
 
     return JSON.stringify({ intent, confidence, reason, provider: "heuristic" }, null, 2)
   },
-})
+}

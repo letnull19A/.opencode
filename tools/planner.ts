@@ -1,13 +1,13 @@
 // @ts-nocheck
-import { tool } from "@opencode-ai/plugin"
+import { z } from "zod"
 import path from "path"
-export default tool({
+export default {
   description: "Планировщик батчей Trello — лёгкие задачи пачкой + проверка has_fix. Обёртка над scripts/planner/run.sh → JSON {batches,singles,incomplete,heavy} для task-batch.",
   args: {
-    board: tool.schema.string().optional().describe("Точное имя доски, default BOARD из .devbox-project"),
-    tag: tool.schema.string().optional().describe("Метка проекта, default NAME"),
-    all: tool.schema.boolean().optional().describe("Без фильтра — все карточки доски"),
-    limit: tool.schema.number().optional().describe("Макс. карточек (default 100)"),
+    board: z.string().optional().describe("Точное имя доски, default BOARD из .devbox-project"),
+    tag: z.string().optional().describe("Метка проекта, default NAME"),
+    all: z.boolean().optional().describe("Без фильтра — все карточки доски"),
+    limit: z.number().optional().describe("Макс. карточек (default 100)"),
   },
   async execute(args, context) {
     const root = (context as any).worktree ?? (context as any).directory ?? "."
@@ -25,4 +25,4 @@ export default tool({
     if (proc.exitCode !== 0 && !out.trim().startsWith("{")) throw new Error((err || out).trim() || `planner failed ${proc.exitCode}`)
     return out.trim() || err.trim()
   },
-})
+}
