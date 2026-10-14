@@ -26,6 +26,9 @@ issue_provider: github
   `||` / `&&` / `;` цепочек и без страховочных `|| echo ...` (составной вызов
   целиком отклоняется пермишенами, даже если каждая часть разрешена).
   Чтение — через `read`/`glob`, `cat`/`head` — только как fallback.
+  Никогда не начинать команду с `cd <path> && ...`: составной вызов проверяется
+  по частям, `cd` не allowlisted ни у кого → отказ целиком. Смена каталога —
+  параметр `workdir` у bash-тула (и worktree-путь, переданный caller'ом).
 - Issue pipeline: never call `create-issue.sh` directly, never run `create`
   without `preview` + explicit user "yes". Only `@issue-writer` thinks (LLM);
   everything after it is deterministic scripts.
@@ -260,10 +263,33 @@ issue_provider: github
   `push --force/-f`, `reset --hard` с целью, `clean -fd`, `rm -rf`, `npm/pnpm publish`).
   Точный `git reset --hard HEAD` (сброс незакоммиченного) разрешён, `git revert *` разрешён
   (откат только вперёд). Критические `deny` продублированы в правах исполнителей
-  (`build-fast`/`build-smart`/`devops`/`react-fix`/`refactor` — у них свой ask-by-default),
-  потому что per-agent права имеют приоритет над глобальными (`docs/permissions#agents`):
-  глобальный deny без дубля съедается blanket-allow агента. Дефолт OpenCode — permissive
-  (без catch-all всё разрешено), поэтому allowlist без `"*"` запретом не является.
+  (`build-fast`/`build-smart`/`devops`/`react-fix`/`refactor`/`unit-test` — у них свой
+  ask/deny-by-default), потому что per-agent права имеют приоритет над глобальными
+  (`docs/permissions#agents`): глобальный deny без дубля съедается blanket-allow
+  агента (`bash: allow` в frontmatter запрещён — это дыра, снимающая все deny).
+  Дефолт OpenCode — permissive (без catch-all всё разрешено), поэтому allowlist
+  без `"*"` запретом не является.
+  Четыре обязательных инварианта bash-правил; нарушение любого убивает задачу
+  сообщением «Permission denied: shell», а не вопросом пользователю:
+  1. **Шаблон без пробела перед `*`** — `"git status*"`, не `"git status *"`.
+     Сопоставление идёт по строке команды: `"git status *"` требует литеральный
+     пробел и не матчит голую `git status` (V2 такой хвост разрешает, но конфиг
+     должен работать в обеих семантиках).
+  2. **Всё, что агент обязан выполнить по своему промпту, есть в allowlist.**
+     `ask` у субагента без интерактивного клиента = отказ: субагент не может
+     спросить пользователя. Инварианты: `build-smart` обязан коммитить
+     (`git add*`/`git commit*`), `build-fast` обязан искать через graphify,
+     `auto` обязан звать пайплайн-скрипты (`sync`/`push`/`pr`/`tunnel`/`chain`/
+     `security`/`design`/`ci`/`docker-pack`/`ports`/`issue-writer`).
+  3. **Никакого `bash: allow` / `bash: "*": "allow"`** — только deny-first
+     catch-all + точечные allow + продублированные deny.
+  4. **Внешние каталоги — явным `external_directory`.** worktree из
+     `scripts/worktree/run.sh` лежит в `../<repo>-<name>`, то есть вне Location;
+     без `external_directory: {"*": allow}` каждый `read`/`edit`/`bash` в нём
+     упирается в запрос (у субагента = отказ). Выдано `auto`, `build-smart`,
+     `worktree-manager` — остальным не нужно.
+  Составные команды (`&&`, `|`, `;`) проверяются по частям: `cd`, `sudo`, `xargs`
+  не allowlisted нигде, их присутствие в цепочке отклоняет вызов целиком.
   `mcp.trello` (`npx -y
   @delorenj/mcp-server-trello`, ключи только через `{env:TRELLO_API_KEY}` /
   `{env:TRELLO_TOKEN}`) + `mcp.context7` (remote `https://mcp.context7.com/mcp`,
