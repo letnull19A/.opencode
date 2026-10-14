@@ -9,6 +9,7 @@ permission:
     "*": deny
     "bash .opencode/scripts/ci/*": allow
     "bash .opencode/scripts/sync/*": allow
+    "bash .opencode/scripts/ports/*": allow
     "git status *": allow
     "git diff *": allow
     "git log *": allow
@@ -49,7 +50,7 @@ permission:
 2. **Гипотеза 1 — Workflow не триггернулся / упал:** `workflows status` → нет рана на ветке → триггер `on: push`/`workflow_dispatch` не сработал, `if: always()` / `needs` сломан. Есть ран с `conclusion: failure` → `failedSteps[]` → `logs --run <id> --failed-only` → точный стец (`checkout`, `nx-set-shas`, `pnpm`, `docker-build`). Виновник: конкретный `job`/`step` + `logExcerpt` первые 20 строк.
 3. **Гипотеза 2 — Workflow прошёл, но Dokploy не деплоил:** `gh run view <id> --json jobs` покажет `deploy` джобу (`needs: build`, `if: always()`). Нет джобы `deploy` → `docker-build-all.yml` сломан. Есть `deploy` с `success` но `DOKPLOY_WEBHOOKS` пустой / неверный → `curl -POST` не ушёл. Виновник: `vars.DOKPLOY_WEBHOOKS` / `secrets`.
 4. **Гипотеза 3 — Dokploy получил хук, но деплой упал/завис:** `dokploy` MCP → `application_one` / `compose_one` → `deployment` статус `failed`/`running` + `readLogs` (последние 50 строк) + `readTraefikConfig` (домен/порт). Виновник: `Dokploy` (билд образа, `DATABASE_URL`, `S3`, `healthcheck`).
-5. **Гипотеза 4 — Деплой прошёл, но трафик не дошёл:** `readTraefikConfig` / `docker-compose.yml` → порт/домен mismatch, `traefik`/`nginx` не обновился. Виновник: `traefik`.
+5. **Гипотеза 4 — Деплой прошёл, но трафик не дошёл:** `readTraefikConfig` / `docker-compose.yml` → порт/домен mismatch, `traefik`/`nginx` не обновился. Виновник: `traefik`. Если сервис должен слушать локально — `bash .opencode/scripts/ports/run.sh <порт> [--json]`: нет слушателя → сервис не стартовал (виновник: сервис); слушает чужой pid/exe → конфликт порта.
 
 На каждом шаге:
 - Печатай `Шаг N: <гипотеза> → <команда> → <вывод> → вердикт: подтверждает/опровергает`

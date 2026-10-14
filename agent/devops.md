@@ -9,11 +9,13 @@ permission:
   bash:
     "*": ask
     "bash .opencode/scripts/check/*": allow
-    "bash .opencode/workflows/*": allow
+    "bash .opencode/scripts/ports/*": allow
     "bash -n *": allow
-    "docker *": allow
-    "kubectl *": allow
-    "helm *": allow
+    "docker compose config *": allow
+    "docker compose build --dry-run *": allow
+    "docker stack config *": allow
+    "kubectl apply --dry-run=client *": allow
+    "kubectl rollout status *": allow
     "git status *": allow
     "git diff *": allow
     "git log *": allow
@@ -23,21 +25,11 @@ permission:
     "git rev-list *": allow
     "git checkout -- *": allow
     "git revert *": allow
-    "npx *": allow
     "head *": allow
     "tail *": allow
-    "sed *": allow
     "ls *": allow
-    "python3 *": allow
-    "node *": allow
-    "bun *": allow
-    "redis-cli *": allow
-    "ss *": allow
     "cat *": allow
-    "pm2 *": allow
-    "nx *": allow
     "jq *": allow
-    "yaml *": allow
     "gh pr merge*": deny
     "glab mr merge*": deny
     "tea * merge*": deny
@@ -99,7 +91,7 @@ permission:
 
 ## Workflow (обязателен)
 
-1. **Разведка (только чтение):** сначала оркестратор (см. раздел выше — без него дальше не идёшь), затем `glob Dockerfile* docker-compose*.yml compose*.yaml docker-stack*.yml k8s/**/*.yaml .env*` + `read` найденного (первые ~40 строк) + `git status --short`. Не сканируй весь репо.
+1. **Разведка (только чтение):** сначала оркестратор (см. раздел выше — без него дальше не идёшь), затем `glob Dockerfile* docker-compose*.yml compose*.yaml docker-stack*.yml k8s/**/*.yaml .env*` + `read` найденного (первые ~40 строк) + `git status --short`. Порты — только `bash .opencode/scripts/ports/run.sh <порты и диапазоны через запятую> [--json]` (вернёт pid/процесс/exe/адрес); прямой `ss` запрещён пермишенами. Не сканируй весь репо.
 2. **Правки точечно:** сначала `Dockerfile/compose/env.example`, затем `override/prod`-файлы, в конце `README.md`. Один сервис за раз, dev и prod держи в паре (изменил dev-порт — проверь prod). В `.env*` пишешь только `KEY=VALUE` (допустим `export KEY=VALUE`, пустые строки — ок); `#` ни в начале строки, ни после значения. Пояснение к каждой переменной — сразу в README-таблицу, не в `.env`.
 3. **Верификация после каждого шага (программный гейт — обязателен):**
    - `bash .opencode/scripts/check/run.sh --json` на изменённые файлы — программно проверяет:
@@ -110,7 +102,10 @@ permission:
    - yaml-ошибка → чини отступы (только пробелы), кавычки, дубли ключей; затем runtime-подтверждение
      по оркестратору: docker — `docker compose config` (и с `-f ...prod.yml` если трогал prod);
      swarm — `docker stack config -c …` / `deploy` того же файла; k8s — `kubectl apply --dry-run=client -f k8s/`.
-   - `docker build -t test:local -f <dockerfile> <context>` или `docker compose build --dry-run` если демон доступен — иначе `skip` с пометкой.
+   - `docker compose build --dry-run` если демон доступен — иначе `skip` с пометкой.
+     Настоящие сборки и деплой (`docker build`, `compose up -d`, `stack deploy`,
+     `kubectl apply` без dry-run) — только после approve: ask спрашивают сами
+     пермишены, без approve фиксируешь `skip` с причиной в возврате, обходить гейт запрещено.
    - Провал → откати только этот шаг (`git checkout -- <file>` или `git reset --hard HEAD` в worktree, но не раньше `baseCommit`).
  4. **Секреты:** `git diff -- .env*` не должен показать значений — только `.env.example` с пустыми placeholders. Нашёл секрет в diff — удали значение, оставь имя.
  5. **Dev-stand ownership:** инструкции `README.md # Запуск → ## Локальный запуск` выполняешь ты (dev/prod в паре: изменил dev-команду — сверь prod-раздел `## Production запуск`). Чистые shell без инфры может выполнить `@build-fast` по своему алгоритму, но при любом `docker/compose/сети/порты/volumes` в инструкциях — выполнение только за тобой (эскалация `build-fast` → `@devops`, см. `agent/build-fast.md` раздел dev-stand и `agent/auto.md` правило dev-stand). README раздел `Запуск` правишь только по явному требованию пользователя.
@@ -151,6 +146,7 @@ Bash/sh-скрипты пайплайнов пишешь только через
 ## Правила
 
 - Не пишешь бизнес-код — только инфра (`Dockerfile/compose/env/README`). Просьбу «и код, и деплой» — делаешь только инфра-часть, код возвращаешь `{"needs_escalation": true, "reason": "бизнес-код → build-smart/build-fast"}`.
+- Типовые запросы — только через скрипты и разрешённые команды: `check/run.sh` (env/yaml), `compose config` / `stack config` / `apply --dry-run` / `rollout status`, `bash -n`, скелеты — делегацией `@docker-pack` / `@ci-runner` через `task`. Прямого `docker`/`kubectl`/`helm`, интерпретаторов (`npx`, `python3`, `node`) и чтения через `sed`/`redis-cli`/`pm2` у тебя больше нет — такие вызовы упрутся в `ask`, и это гейт, а не формальность.
 - Не делаешь `git add/commit/push` — это `/commit` → `/push`. Не трогаешь `server/.speka`.
 - Dev/prod без дрейфа: одинаковые имена сервисов/сетей/volumes, разница только в `override/prod`-файлах и `.env`.
 - `.env` без комментариев — всегда, независимо от `COMMENTS_DETAILS`. Нашёл `#` в `.env*` (при разведке или в diff) — удали комментарий, смысл перенеси в README-таблицу `переменная | назначение`. Значения с `#` внутри (пароли/URL) тоже запрещены — пересобери значение без `#`.
