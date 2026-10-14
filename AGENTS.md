@@ -304,12 +304,30 @@ issue_provider: github
   + `mcp.postgres` (local `mcp-postgres` на `DATABASE_URL`/host-env; сервер даёт чтение,
   запись идёт только через `tools/postgres.ts` с enforced `permissions: read|dml|ddl`
   — мульти-statement запрещены всегда, таймаут 10s, обрезка вывода).
+- `tools/*.ts` — определения 23 кастомных тулов пака (классификаторы, скрипты
+  task-manager/planner/commit-trello/git-changes, graphify, check, worktree, tunnel,
+  workflow, postgres). Формат модуля: `export default { description, args /* zod */, execute }`.
+  **V1-хелпер `tool()` из `@opencode-ai/plugin` больше не используется** — в v2
+  автозагрузки каталога тулов нет, регистрирует их плагин.
+- `plugins/pack-tools/index.ts` — единственная точка регистрации тулов в v2
+  (`.opencode/plugins/` загружается автоматически). Плагин конвертирует zod-`args`
+  каждого тула в JSON Schema `input` (опциональность — через `safeParse`, `$schema`
+  вырезается), оборачивает `execute` в V2-контракт `{content}`, собирает
+  V1-совместимый контекст (`worktree`/`directory`) из контекста вызова → сессии
+  (`ctx.session.get().location.directory`) → `ctx.location.directory`.
+  Права на тулы — действие `tool` с ресурсом-именем тула
+  (в `agent/*.md` это `permission.tool.<name>`).
+  Проверка регистрации без модели: `bun plugins/pack-tools/verify.ts`
+  (`PACK_TOOLS_TEST_ROOT=<корень consumer-репо>` — для скриптовых тулов).
+  Оговорка: `opencode reload` в v2.0.29 падает с `TypeError: t is not a function`
+  при перерегистрации тулов (воспроизводится и на минимальном постороннем плагине) —
+  это баг апстрима; после правки тулов нужен перезапуск сессии/сервиса, не reload.
   Честная оговорка: MCP-инструменты в OpenCode allow-by-default, per-tool/per-agent
   запреты для них не заведены — mitigation сейчас = сужение поверхности (теги+redact)
   + чтение секретов запрещено контрактами; включать `all`/новые серверы — только
   осознанно. Секреты
   в репозиторий не коммитить). Root `package.json`
-  has only `@opencode-ai/plugin`, no scripts.
+  depends only on `zod` (runtime схем тулов), no scripts.
 
 ## Departments (отделы)
 
