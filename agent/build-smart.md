@@ -52,6 +52,8 @@ permission:
     "yarn*": allow
     "bun*": allow
     "node*": allow
+    "nx*": allow
+    "pm2*": allow
     "pip*": allow
     "poetry*": allow
     "python*": allow

@@ -44,6 +44,8 @@ permission:
     "yarn*": allow
     "bun*": allow
     "node*": allow
+    "nx*": allow
+    "pm2*": allow
     "python3*": allow
     "make*": allow
     "gh pr merge*": deny
