@@ -59,6 +59,7 @@ permission:
     "git worktree*": allow
     "git checkout --*": allow
     "git restore*": allow
+    "git stash*": deny
   # worktree (`../<repo>-<name>`) лежит вне Location — без этого каждая
   # команда в нём спрашивает права вместо выполнения.
   external_directory:

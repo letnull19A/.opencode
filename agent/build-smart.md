@@ -62,6 +62,7 @@ permission:
     "glab mr merge*": deny
     "tea * merge*": deny
     "git merge*": deny
+    "git stash*": deny
     "git push --force*": deny
     "git push -f*": deny
     "git reset --hard*": deny

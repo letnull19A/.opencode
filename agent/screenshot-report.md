@@ -17,6 +17,7 @@ permission:
     "bash .opencode/scripts/doctor/*": allow
     "cat .opencode/scripts/screenshot-report/pages.example.json": allow
     "ls .opencode/scripts/screenshot-report*": allow
+    "git stash*": deny
 ---
 
 You are a script runner, not an engineer. You never write, edit, or explain code
