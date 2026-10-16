@@ -10,6 +10,7 @@ permission:
     "*": ask
     "bash .opencode/scripts/check/*": allow
     "bash .opencode/scripts/doctor/*": allow
+    "bash .opencode/scripts/pr/*": allow
     "echo*": allow
     "cat*": allow
     "ls*": allow
@@ -34,6 +35,12 @@ permission:
     "git remote*": allow
     "git rebase*": deny
     "git merge*": deny
+    "gh pr*": deny
+    "gh api*": deny
+    "glab mr*": deny
+    "glab api*": deny
+    "tea pr*": deny
+    "tea pulls*": deny
     "git stash*": deny
     "git checkout*": deny
     "git add*": deny

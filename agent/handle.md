@@ -29,9 +29,16 @@ permission:
     "git remote*": allow
     "git branch*": allow
     "git worktree*": allow
+    "bash .opencode/scripts/pr/*": allow
     "gh pr merge*": deny
+    "gh pr*": deny
+    "gh api*": deny
     "glab mr merge*": deny
+    "glab mr*": deny
+    "glab api*": deny
     "tea * merge*": deny
+    "tea pr*": deny
+    "tea pulls*": deny
     "git merge*": deny
     "git stash*": deny
     "git push --force*": deny

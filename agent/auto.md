@@ -60,6 +60,12 @@ permission:
     "git checkout --*": allow
     "git restore*": allow
     "git stash*": deny
+    "gh pr*": deny
+    "gh api*": deny
+    "glab mr*": deny
+    "glab api*": deny
+    "tea pr*": deny
+    "tea pulls*": deny
   # worktree (`../<repo>-<name>`) лежит вне Location — без этого каждая
   # команда в нём спрашивает права вместо выполнения.
   external_directory:
@@ -127,7 +133,7 @@ permission:
     - В лог добавляй `review: <depth> <verdict> (blockers: N)` рядом со строкой `classify_build`.
 5c. **Внешний PR-гейт — замечания ревьюеров (доработка по кругу):**
     - PR принимает только человек (мерж — никогда за агента). После `/push` и перед `done` сверяйся только со `scripts/pr/status-pr.sh --branch <branch>` (ЕДИНСТВЕННЫЙ источник правды, не память).
-    - `LIFECYCLE: CHANGES_REQUESTED` (или `CONFLICTS` / `CHECKS_FAILING`) — задача уходит на доработку, а не в `done`: забери текст замечаний через `scripts/pr/comments.sh --branch <branch>` (read-only; нерешённые треды идут первыми — их чинить обязательно) и верни ту же карточку + findings тому же исполнителю в тот же worktree. Лимит общий с шагом 5b — макс 2 возврата на карточку суммарно; после 2-го провала — стоп, отдай человеку findings + diff + `PR_URL:`.
+    - `LIFECYCLE: CHANGES_REQUESTED` (или `CONFLICTS` / `CHECKS_FAILING`) — задача уходит на доработку, а не в `done`: забери текст замечаний через `scripts/pr/comments.sh --branch <branch>` (read-only; нерешённые треды идут первыми — их чинить обязательно) и верни ту же карточку + findings тому же исполнителю в тот же worktree. Сырые `gh/glab/tea/curl` к PR запрещены deny-политикой — только скрипты, импровизация с `gh api graphql` руками приравнивается к нарушению. Лимит общий с шагом 5b — макс 2 возврата на карточку суммарно; после 2-го провала — стоп, отдай человеку findings + diff + `PR_URL:`.
     - Исполнитель на доработке: правит замечания в том же worktree → `check` → `/commit` → `/push` → ты повторяешь `status-pr.sh`.
     - `APPROVED` — ждёшь мержа человеком (не мержишь сам, кнопку жмёт только пользователь); `MERGED` — идёшь в `done` (`worktree done --name` чистит и подтягивает `base`).
     - В лог добавляй `pr: <lifecycle> (rework: N)` рядом со строкой `review:`.

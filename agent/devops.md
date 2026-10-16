@@ -14,6 +14,7 @@ permission:
     "bash .opencode/scripts/ports/*": allow
     "bash .opencode/scripts/worktree/*": allow
     "bash .opencode/scripts/sync/*": allow
+    "bash .opencode/scripts/pr/*": allow
     "bash -n*": allow
     "docker compose config*": allow
     "docker compose build --dry-run*": allow
@@ -55,8 +56,14 @@ permission:
     "python3*": allow
     "make*": allow
     "gh pr merge*": deny
+    "gh pr*": deny
+    "gh api*": deny
     "glab mr merge*": deny
+    "glab mr*": deny
+    "glab api*": deny
     "tea * merge*": deny
+    "tea pr*": deny
+    "tea pulls*": deny
     "git merge*": deny
     "git stash*": deny
     "git push --force*": deny

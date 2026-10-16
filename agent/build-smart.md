@@ -19,6 +19,7 @@ permission:
     "bash .opencode/scripts/graphify/*": allow
     "bash .opencode/scripts/worktree/*": allow
     "bash .opencode/scripts/sync/*": allow
+    "bash .opencode/scripts/pr/*": allow
     "git status*": allow
     "git diff*": allow
     "git log*": allow
@@ -62,8 +63,14 @@ permission:
     "go*": allow
     "cargo*": allow
     "gh pr merge*": deny
+    "gh pr*": deny
+    "gh api*": deny
     "glab mr merge*": deny
+    "glab mr*": deny
+    "glab api*": deny
     "tea * merge*": deny
+    "tea pr*": deny
+    "tea pulls*": deny
     "git merge*": deny
     "git stash*": deny
     "git push --force*": deny

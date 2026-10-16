@@ -30,6 +30,12 @@ permission:
     "git worktree*": allow
     "git checkout*": allow
     "git switch*": allow
+    "gh pr*": deny
+    "gh api*": deny
+    "glab mr*": deny
+    "glab api*": deny
+    "tea pr*": deny
+    "tea pulls*": deny
   # worktree (`../<repo>-<name>`) лежит вне Location — иначе любая команда
   # в нём (status/diff/log) упирается в запрос внешнего каталога.
   external_directory:
