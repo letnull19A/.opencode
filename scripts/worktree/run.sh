@@ -7,13 +7,27 @@
 #   bash .opencode/scripts/worktree/run.sh list [--json]
 #   bash .opencode/scripts/worktree/run.sh status --name <name> [--json]
 #   bash .opencode/scripts/worktree/run.sh remove --name <name> [--force] [--json]
+#   bash .opencode/scripts/worktree/run.sh done --name <name> [--branch <branch>] [--base <base>] [--remote <name>] [--keep-branch] [--force] [--json]
 #   bash .opencode/scripts/worktree/run.sh prune [--json]
+#
+#   done — завершение жизненного цикла задачи: гейт PR (только MERGED,
+#   CLOSED — только с --force) + чистый worktree → удалить worktree →
+#   удалить локальную ветку (если вмержена) → подтянуть base в основном
+#   репозитории (fetch + rebase без merge-коммитов). Вызывать из основного
+#   репозитория, не изнутри самого worktree.
 #
 #   --name: идентификатор worktree, [A-Za-z0-9._-]+, используется как суффикс пути и ветки по умолчанию
 #   --branch: имя git ветки (по умолчанию = <name>). Если ветка существует — чекаут, иначе создаётся от --from
-#   --from: база для новой ветки (по умолчанию HEAD, если есть origin/dev — dev, иначе HEAD)
+#   --from: база для новой ветки (по умолчанию центральная dev-ветка:
+#     dev → origin/dev → develop → origin/develop; нет обеих — скрипт
+#     создаст локальный dev от main, main не трогает, ничего не пушит)
 #   --path: кастомный путь worktree (по умолчанию ../<basename>-<name> рядом с ROOT)
-#   --force: для remove — удалить даже с незакоммиченными изменениями
+#   --force: для remove — удалить даже с незакоммиченными изменениями;
+#     для done — также разрешить CLOSED-PR и удаление невмерженной ветки (-D)
+#   --base: целевая ветка для done-синка (по умолчанию центральная dev-ветка;
+#     main — только явным --base, PR в main создаёт только пользователь)
+#   --remote: git remote для done (по умолчанию origin)
+#   --keep-branch: для done — не удалять локальную ветку после очистки
 #   --json: только JSON на stdout (иначе JSON + human таблица на stderr)
 
 set -euo pipefail
@@ -23,7 +37,7 @@ need_cmd() { command -v "$1" >/dev/null 2>&1 || { echo "worktree: нужен '$1
 need_cmd git
 need_cmd python3
 
-NAME=""; BRANCH=""; FROM=""; CUSTOM_PATH=""; FORCE=0; JSON_ONLY=0; CMD=""
+NAME=""; BRANCH=""; BASE=""; REMOTE="origin"; FROM=""; CUSTOM_PATH=""; FORCE=0; JSON_ONLY=0; KEEP_BRANCH=0; CMD=""
 
 usage() {
   echo "Usage:"
@@ -31,6 +45,7 @@ usage() {
   echo "  worktree list [--json]"
   echo "  worktree status --name <name> [--json]"
   echo "  worktree remove --name <name> [--force] [--json]"
+  echo "  worktree done --name <name> [--branch <branch>] [--base <base>] [--remote <name>] [--keep-branch] [--force] [--json]"
   echo "  worktree prune [--json]"
 }
 
@@ -38,12 +53,15 @@ usage() {
 if [[ $# -eq 0 ]]; then usage >&2; exit 1; fi
 if [[ "$1" == "-h" || "$1" == "--help" ]]; then usage; exit 0; fi
 CMD="$1"; shift
-case "$CMD" in create|list|status|remove|prune) ;; *) echo "worktree: неизвестная команда '$CMD'" >&2; usage >&2; exit 1 ;; esac
+case "$CMD" in create|list|status|remove|done|prune) ;; *) echo "worktree: неизвестная команда '$CMD'" >&2; usage >&2; exit 1 ;; esac
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --name) NAME="${2:?--name требует значение}"; shift 2 ;;
     --branch) BRANCH="${2:?--branch требует имя ветки}"; shift 2 ;;
+    --base) BASE="${2:?--base требует имя ветки}"; shift 2 ;;
+    --remote) REMOTE="${2:?--remote требует имя remote}"; shift 2 ;;
+    --keep-branch) KEEP_BRANCH=1; shift ;;
     --from) FROM="${2:?--from требует базу}"; shift 2 ;;
     --path) CUSTOM_PATH="${2:?--path требует путь}"; shift 2 ;;
     --force) FORCE=1; shift ;;
@@ -57,13 +75,21 @@ ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 ROOT="${ROOT%/}"
 BASENAME="$(basename "$ROOT")"
 PARENT_DIR="$(dirname "$ROOT")"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # ---------- validation ----------
 NAME_RE='^[A-Za-z0-9._-]+$'
-if [[ "$CMD" == "create" || "$CMD" == "status" || "$CMD" == "remove" ]]; then
+if [[ "$CMD" == "create" || "$CMD" == "status" || "$CMD" == "remove" || "$CMD" == "done" ]]; then
   [[ -n "$NAME" ]] || { echo "worktree: укажи --name" >&2; usage >&2; exit 1; }
   [[ "$NAME" =~ $NAME_RE ]] || { echo "worktree: --name '$NAME' — только буквы/цифры . _ -" >&2; exit 1; }
 fi
+
+default_done_base() {
+  # база для done-синка: явный --base > центральная dev-ветка.
+  # main — только явным --base (PR в main создаёт только пользователь).
+  if [[ -n "$BASE" ]]; then echo "$BASE"; return; fi
+  ensure_central_branch
+}
 
 # ---------- git helpers ----------
 git_worktree_list_json() {
@@ -145,10 +171,29 @@ for t in trees:
 }
 
 default_branch() {
-  # определяем базу: --from > origin/dev > dev > HEAD
+  # определяем базу для create: явный --from > центральная dev-ветка.
+  # main здесь никогда не дефолт: работа идёт только на dev/develop,
+  # PR в main создаёт только пользователь.
   if [[ -n "$FROM" ]]; then echo "$FROM"; return; fi
-  if git rev-parse --verify --quiet "origin/dev" >/dev/null; then echo "origin/dev"; return; fi
-  if git rev-parse --verify --quiet "dev" >/dev/null; then echo "dev"; return; fi
+  ensure_central_branch
+}
+
+ensure_central_branch() {
+  # Центральная ветка репозитория: dev > develop.
+  # Нет обеих — создать локальный dev от main (только локально, без push).
+  # Печатает имя ветки на stdout, пояснения — на stderr.
+  if git rev-parse --verify --quiet "refs/heads/dev" >/dev/null; then echo "dev"; return; fi
+  if git rev-parse --verify --quiet "refs/remotes/$REMOTE/dev" >/dev/null; then echo "dev"; return; fi
+  if git rev-parse --verify --quiet "refs/heads/develop" >/dev/null; then echo "develop"; return; fi
+  if git rev-parse --verify --quiet "refs/remotes/$REMOTE/develop" >/dev/null; then echo "develop"; return; fi
+  local src=""
+  if git rev-parse --verify --quiet "refs/heads/main" >/dev/null; then src="main";
+  elif git rev-parse --verify --quiet "refs/remotes/$REMOTE/main" >/dev/null; then src="$REMOTE/main";
+  else src="HEAD"; fi
+  echo "== центральной ветки dev/develop нет — создаю локальный dev от $src (main не трогаю, без push) ==" >&2
+  if git branch dev "$src" 2>&1 | head -n 3 >&2; then echo "dev"; return; fi
+  if git rev-parse --verify --quiet "refs/heads/dev" >/dev/null; then echo "dev"; return; fi
+  echo "worktree: не смог создать dev — работаю от HEAD" >&2
   echo "HEAD"
 }
 
@@ -325,10 +370,123 @@ do_prune() {
   echo "$json" | python3 -c 'import json,sys; trees=json.load(sys.stdin); print(json.dumps({"pruned":True,"worktrees":trees}, ensure_ascii=False, indent=2))'
 }
 
+do_done() {
+  # Завершение жизненного цикла задачи. Гейты (fail-closed):
+  #   1. worktree чист (иначе сначала /commit, либо --force с потерей незакоммиченного)
+  #   2. PR ветки в терминальном состоянии (MERGED; CLOSED — только с --force)
+  # Дальше: удалить worktree → удалить локальную ветку (если вмержена)
+  # → подтянуть base в основном репозитории (fetch + rebase, без merge-коммитов).
+  # Здесь НЕТ merge, --force-пуша, stash, reset --hard, checkout . — как и в sync.
+  local wt_path
+  wt_path="$(resolve_worktree_path "$NAME" || true)"
+  if [[ -z "$wt_path" ]]; then
+    echo "worktree done: не найден worktree с именем '$NAME' (проверь list)" >&2; exit 1
+  fi
+  if [[ "$ROOT" == "$wt_path" ]]; then
+    echo "worktree done: запущен изнутри самого worktree — перейди в основной репозиторий и повтори" >&2; exit 1
+  fi
+  local wt_branch="$BRANCH"
+  if [[ -z "$wt_branch" ]]; then
+    wt_branch="$(git -C "$wt_path" rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+  fi
+  if [[ -z "$wt_branch" || "$wt_branch" == "HEAD" ]]; then
+    echo "worktree done: не смог определить ветку worktree (detached?) — укажи --branch явно" >&2; exit 1
+  fi
+
+  # 1. Чистота worktree.
+  local dirty
+  dirty="$(git -C "$wt_path" status --porcelain 2>/dev/null || true)"
+  if [[ -n "$dirty" && "$FORCE" -eq 0 ]]; then
+    echo "worktree done: в worktree есть незафиксированные изменения — сначала /commit, либо повтори с --force (незакоммиченное будет потеряно)" >&2
+    echo "$dirty" >&2
+    exit 1
+  fi
+
+  # 2. PR-гейт: только терминальное состояние (read-only проверка).
+  if [[ ! -x "$SCRIPT_DIR/../pr/status-pr.sh" ]]; then
+    echo "worktree done: нет scripts/pr/status-pr.sh — не могу проверить PR, стоп" >&2; exit 1
+  fi
+  local status_out="" lifecycle=""
+  status_out="$(bash "$SCRIPT_DIR/../pr/status-pr.sh" --branch "$wt_branch" 2>/dev/null || true)"
+  lifecycle="$(echo "$status_out" | grep -E '^LIFECYCLE: ' | awk '{print $2}' || true)"
+  if [[ "$lifecycle" != "MERGED" && ! ("$lifecycle" == "CLOSED" && "$FORCE" -eq 1) ]]; then
+    echo "worktree done: PR ветки '$wt_branch' не завершён (LIFECYCLE: ${lifecycle:-unknown}) — чищу только после MERGED (CLOSED — только с --force)" >&2
+    echo "$status_out" >&2
+    exit 1
+  fi
+  echo "== PR-гейт пройден: $wt_branch → $lifecycle ==" >&2
+
+  # Base резолвим только после гейтов: ensure_central_branch может
+  # создать локальный dev, а до пройденных гейтов сайд-эффектов быть не должно.
+  local base
+  base="$(default_done_base)"
+  if [[ -z "$base" ]]; then
+    echo "worktree done: не смог определить base-ветку — укажи --base явно" >&2; exit 1
+  fi
+
+  # 3. Удалить worktree.
+  echo "== удаляю worktree '$NAME' ($wt_path) ==" >&2
+  local rm_args=("$wt_path")
+  [[ "$FORCE" -eq 1 ]] && rm_args+=("--force")
+  if ! git worktree remove "${rm_args[@]}" 2>&1 | tee /tmp/wt_remove.log >&2; then
+    echo "worktree done: не смог удалить worktree" >&2; exit 1
+  fi
+  git worktree prune 2>&1 | head >&2 || true
+
+  # 4. Удалить локальную ветку — только если её коммиты уже на remote base.
+  local branch_deleted=0
+  if [[ "$KEEP_BRANCH" -eq 1 ]]; then
+    echo "keep-branch: ветку '$wt_branch' оставляю по флагу" >&2
+  elif [[ "$wt_branch" == "$base" ]]; then
+    echo "ветка worktree совпадает с base ($base) — удалять нечего" >&2
+  else
+    git fetch "$REMOTE" 2>&1 | head -n 5 >&2 || true
+    if git merge-base --is-ancestor "$wt_branch" "$REMOTE/$base" 2>/dev/null; then
+      git branch -D "$wt_branch" 2>&1 | head -n 3 >&2 && branch_deleted=1 || true
+    elif [[ "$FORCE" -eq 1 ]]; then
+      echo "ветка '$wt_branch' не вмержена в $REMOTE/$base — --force: удаляю через -D" >&2
+      git branch -D "$wt_branch" 2>&1 | head -n 3 >&2 && branch_deleted=1 || true
+    else
+      echo "hint: ветка '$wt_branch' не вмержена в $REMOTE/$base — оставляю (проверь diff, удали вручную: git branch -D $wt_branch)" >&2
+    fi
+  fi
+
+  # 5. Подтянуть base в основном репозитории (только если он уже на base).
+  local synced=0
+  local cur
+  cur="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+  if [[ "$cur" == "$base" ]]; then
+    if [[ -n "$(git status --porcelain 2>/dev/null || true)" ]]; then
+      echo "(i) В основном репозитории есть незафиксированные изменения — переживут синк через --autostash." >&2
+    fi
+    if git pull --rebase --autostash "$REMOTE" "$base" 2>&1 | tail -n 5 >&2; then
+      synced=1
+    else
+      echo "worktree done: worktree удалён, а подтянуть $base не смог (конфликт?) — разрешение вручную:" >&2
+      echo "  1. git status — какие файлы в конфликте; правь их." >&2
+      echo "  2. git add <файлы> && git rebase --continue (повторять до конца)" >&2
+      echo "  3. Либо откат синка: git rebase --abort" >&2
+    fi
+  else
+    git fetch "$REMOTE" 2>&1 | head -n 5 >&2 || true
+    echo "hint: основной репозиторий на ветке '$cur', а не на $base — подтяни вручную: git switch $base && bash .opencode/scripts/sync/run.sh" >&2
+  fi
+
+  python3 -c 'import json,sys; print(json.dumps({"done":sys.argv[1],"path":sys.argv[2],"branch":sys.argv[3],"base":sys.argv[4],"pr_lifecycle":sys.argv[5],"removed":True,"branch_deleted":sys.argv[6]=="1","synced":sys.argv[7]=="1"}, ensure_ascii=False))' "$NAME" "$wt_path" "$wt_branch" "$base" "$lifecycle" "$branch_deleted" "$synced"
+  if [[ $JSON_ONLY -eq 0 ]]; then
+    if [[ "$synced" -eq 1 ]]; then
+      echo "hint: жизненный цикл '$NAME' завершён — worktree удалён, base '$base' подтянут" >&2
+    else
+      echo "hint: жизненный цикл '$NAME' завершён — worktree удалён (синк base см. выше)" >&2
+    fi
+  fi
+}
+
 case "$CMD" in
   create) do_create ;;
   list) do_list ;;
   status) do_status ;;
   remove) do_remove ;;
+  done) do_done ;;
   prune) do_prune ;;
 esac

@@ -14,6 +14,7 @@ permission:
     "tail*": allow
     "jq*": allow
     "bash .opencode/scripts/worktree/*": allow
+    "bash .opencode/scripts/pr/*": allow
     "bash .opencode/scripts/doctor/*": allow
     "bash .opencode/scripts/task-manager/*": allow
     "bash .opencode/scripts/commit-trello/*": allow
@@ -41,7 +42,7 @@ permission:
 
 ## Workflow
 
-Следуй `skills/worktree-manager/SKILL.md` — создаёшь `create` сразу по просьбе (вопросы только про недостающий `--name`), `list`/`status` — чтение, `remove` — сразу (с `--force` только если пользователь сказал или `status` показал `dirty` и пользователь подтвердил).
+Следуй `skills/worktree-manager/SKILL.md` — создаёшь `create` сразу по просьбе (вопросы только про недостающий `--name`), `list`/`status` — чтение, `remove` — сразу (с `--force` только если пользователь сказал или `status` показал `dirty` и пользователь подтвердил), `done` — завершение жизненного цикла (PR-гейт `MERGED` + чистый worktree, дальше скрипт сам чистит и подтягивает `base`).
 
 Ретранслируй JSON из скрипта (path/branch/commit) и подсказывай `cd <path> && opencode` для параллельной сессии. Для работы в worktree делегируй задачи с `workdir: <path>`.
 

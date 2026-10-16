@@ -139,7 +139,7 @@ permission:
 - После делегирования — ретранслируй URL/результат от исполнителя, добавь `complexity` + `worktree path/branch/baseCommit` (для smart) или `files/envs/networks/ports/volumes` (для devops) в отчёт.
 - **Forward-Only гарантия (критично):** никогда не откатывайся раньше `baseCommit` (коммит назначения). На выходе допустимо `0..N` коммитов вперёд (0 = ничего не вышло, 10 = 10 успешных апдейтов), но ` -1 / -30` запрещено. Откат сломанного шага — только вперёд через `git revert --no-edit` (`reset --hard` с явной целью и `push --force` заблокированы deny-политикой и в глобальном конфиге, и в правах исполнителей). В worktree глобальный откат = свежий worktree от `baseCommit`; вне worktree — то же правило. Инструменты других агентов (`build-smart`/`build-fast`) должны соблюдать это через `workdir` и проверку `git rev-list --count baseCommit..HEAD` ≥ 0.
 - Worktree — предпочтительный режим для зависимостей: создавай через `tool worktree` / `scripts/worktree/run.sh`, делегируй с `workdir`, никогда сырым `git worktree add`.
-- Не удаляй worktree автоматически после задачи — ретранслируй `hint: cd <path> && opencode` и `bash .opencode/scripts/worktree/run.sh remove --name <name> [--force]` для ручной очистки; ветка остаётся.
+- Завершение жизненного цикла — через `tool worktree` с `command:"done"` / `scripts/worktree/run.sh done --name <name>` (PR-гейт `MERGED` + чистый worktree → скрипт сам удаляет worktree, прибирает вмерженную ветку и подтягивает `base`). Сырой `remove` после принятого PR не чистит `base` — только `done`.
 
 ## Примеры
 

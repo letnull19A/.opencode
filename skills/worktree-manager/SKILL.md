@@ -15,7 +15,8 @@ description: Управляет git worktree для параллельной р�
 1. **Создать:** `bash .opencode/scripts/worktree/run.sh create --name <name> [--branch <branch>] [--from <base>] [--json]`
    - `--name` — [A-Za-z0-9._-] — суффикс пути `../<repo>-<name>` и ветки по умолчанию
    - `--branch` — имя ветки (по умолчанию = `<name>`); если существует — чекаут
-   - `--from` — база (по умолчанию `origin/dev` → `dev` → `HEAD`)
+   - `--from` — база (по умолчанию центральная `dev`: `dev → origin/dev → develop → origin/develop`; нет обеих — скрипт создаст локальный `dev` от `main`, без push)
+   - Центральная ветка — всегда `dev`/`develop`, работа идёт только на ней; `main` агенты не трогают (редкие релизы), PR в `main` создаёт только пользователь
    - Скрипт сам: `git worktree add` + `submodule update --init` (подтянет `.opencode`)
    - Ретранслируй `path`/`branch`/`commit` из JSON, подскажи `cd <path> && opencode`
 
@@ -25,7 +26,12 @@ description: Управляет git worktree для параллельной р�
 
 4. **Удалить:** `bash .opencode/scripts/worktree/run.sh remove --name <name> [--force] [--json]` — удаляет worktree, ветка остаётся (удали `git branch -D <branch>` только по явной просьбе)
 
-5. **Prune:** `bash .opencode/scripts/worktree/run.sh prune` — чистит битые записи после ручного `rm -rf`
+5. **Завершить (done):** `bash .opencode/scripts/worktree/run.sh done --name <name> [--branch <branch>] [--base <base>] [--remote <name>] [--keep-branch] [--force] [--json]` — конец жизненного цикла задачи. Гейты (fail-closed, без обходов):
+   - worktree чист (грязный без `--force` — стоп: сначала `/commit`);
+   - PR ветки в `MERGED` (`CLOSED` — только с `--force`, иначе стоп с выводом `status-pr.sh`);
+   - дальше сам: удалить worktree → удалить локальную ветку (только если её коммиты уже на `remote/base`, иначе оставляет + hint; `--keep-branch` — оставить всегда) → подтянуть `base` в основном репозитории (`fetch` + `pull --rebase --autostash`, без merge-коммитов; если основной репозиторий не на `base` — только `fetch` + hint). Вызывать из основного репозитория, не изнутри worktree.
+
+6. **Prune:** `bash .opencode/scripts/worktree/run.sh prune` — чистит битые записи после ручного `rm -rf`
 
 ## Правила
 
@@ -35,6 +41,7 @@ description: Управляет git worktree для параллельной р�
 * Trello: `.devbox` наследуется, `BOARD/LIST` общие — переопределяй только если пользователь просит другой лист
 * Никогда `git worktree add` руками через `bash` — только скрипт (иначе пропустишь сабмодули/JSON)
 * Не удаляй ветку автоматически при `remove` — только worktree
+* Завершение задачи — только через `done` (PR-гейт `MERGED` + чистый worktree): `done` сам удалит worktree, приберет вмерженную ветку и подтянет `base`; сырой `remove` после принятого PR — только если `done` недоступен, и тогда подтяни `base` через `sync/run.sh` вручную
 
 ## Примеры
 
