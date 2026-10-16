@@ -15,6 +15,9 @@
 #   --format     только prettier/oxfmt
 #   --all        то же что без флагов — все проверки
 # env (.env*) и yaml (*.yml/*.yaml) проверяются всегда, флагами не отключаются.
+# compose-файлы (*compose*.yml/yaml): каждый сервис с build: обязан иметь
+# image: (образ из registry, CI его уже публикует) либо маркер исключения
+# `# local-build: <причина>` — иначе ошибка compose.
 #   --json       только JSON на stdout (по умолчанию JSON + human summary на stderr)
 #   --staged     только staged (git diff --cached), по умолчанию все незакоммиченные (staged+unstaged+untracked)
 #
@@ -85,7 +88,7 @@ if [[ -s "$TMPDIR/changed_raw.txt" ]]; then
 fi
 
 if [[ ! -s "$TMPDIR/changed.txt" ]]; then
-  JSON='{"files":[],"totals":{"typecheck":{"passed":true,"errors":0},"lint":{"passed":true,"errors":0},"format":{"passed":true,"errors":0},"env":{"passed":true,"errors":0},"yaml":{"passed":true,"errors":0}},"typecheck":[],"lint":[],"format":[],"env":[],"yaml":[],"summary":"no changed files"}'
+  JSON='{"files":[],"totals":{"typecheck":{"passed":true,"errors":0},"lint":{"passed":true,"errors":0},"format":{"passed":true,"errors":0},"env":{"passed":true,"errors":0},"yaml":{"passed":true,"errors":0},"compose":{"passed":true,"errors":0}},"typecheck":[],"lint":[],"format":[],"env":[],"yaml":[],"compose":[],"summary":"no changed files"}'
   echo "$JSON"
   [[ $JSON_ONLY -eq 0 ]] && echo "check: нет изменённых файлов" >&2
   exit 0
@@ -556,10 +559,207 @@ else
   YAML_PASSED=true
 fi
 
+# ---------- compose-image (образы из registry, а не пересборка) ----------
+# Правило: сервис с build:, но без image: — ошибка. Если CI собирает и
+# публикует образ, compose обязан ссылаться на опубликованный image:,
+# а не собирать локально заново (5 из 6 на image + 1 на build = баг).
+# Исключение — локальный сервис без CI-публикации: пометь его комментарием
+# `# local-build: <причина>` у заголовка сервиса (и зафиксируй в README).
+# Плюс сетевая гигиена: критичное хранилище без auth по умолчанию
+# (redis/postgres/mongo/rabbit/kafka/...) с опубликованными наружу портами —
+# тоже ошибка (убери ports: либо бинд 127.0.0.1; исключение —
+# `# public-ports: <причина>`).
+COMPOSE_ERRORS="$TMPDIR/compose.json"
+echo "[]" > "$COMPOSE_ERRORS"
+COMPOSE_PASSED=true
+COMPOSE_COUNT=0
+grep -E '\.(yaml|yml)$' "$TMPDIR/changed.txt" > "$TMPDIR/compose_all.txt" || true
+> "$TMPDIR/compose.txt"
+while IFS= read -r f; do
+  [[ -z "$f" ]] && continue
+  case "$(basename "$f" | tr 'A-Z' 'a-z')" in
+    *compose*) echo "$f" >> "$TMPDIR/compose.txt" ;;
+  esac
+done < "$TMPDIR/compose_all.txt"
+if [[ -s "$TMPDIR/compose.txt" ]]; then
+  python3 - "$TMPDIR/compose.txt" "$COMPOSE_ERRORS" << 'PY'
+import json, sys, re
+list_path, out_path = sys.argv[1], sys.argv[2]
+files = [l.strip() for l in open(list_path, encoding='utf-8', errors='ignore') if l.strip()]
+try:
+    import yaml as _yaml
+    HAVE_YAML = True
+except ImportError:
+    HAVE_YAML = False
+re_keyline = re.compile(r"^(\s*)([^\s#][^:]*?)\s*:(?:\s|$|#)")
+re_flag = re.compile(r"^\s*(image|build)\s*:")
+errs = []
+
+def scan_services(lines):
+    # Возвращает список сервисов: {name, head(0-based), image, build, marker,
+    #   image_name, ports[{text, line}], marker_public}.
+    # services: → заголовки на первом более глубоком отступе; блок — до
+    # следующего заголовка того же уровня или строки с отступом <= services:.
+    svcs = []
+    s_idx = None
+    s_ind = 0
+    for i, raw in enumerate(lines):
+        line = raw.rstrip('\n').rstrip('\r')
+        if not line.strip() or line.strip().startswith('#'):
+            continue
+        m = re_keyline.match(line)
+        if m and m.group(2).strip() == 'services' and not line.strip().startswith('-'):
+            s_idx = i
+            s_ind = len(m.group(1))
+            break
+    if s_idx is None:
+        return []
+    re_imgval = re.compile(r"^\s*image\s*:\s*(.+?)\s*$")
+    h_ind = None
+    cur = None
+    in_ports = False
+    ports_ind = 0
+    dash_ind = 0
+    def new_cur(name, i, rest):
+        return {'name': name, 'head': i,
+                'image': bool(re.search(r'(?:^|\s)image\s*:', rest)),
+                'build': bool(re.search(r'(?:^|\s)build\s*:', rest)),
+                'marker': ('local-build' in rest),
+                'image_name': '', 'ports': [], 'marker_public': ('public-ports' in rest)}
+    def flush():
+        if cur is not None:
+            svcs.append(cur)
+    for i in range(s_idx + 1, len(lines)):
+        raw = lines[i]
+        line = raw.rstrip('\n').rstrip('\r')
+        stripped = line.strip()
+        if not stripped:
+            continue
+        if stripped.startswith('#'):
+            if cur is not None:
+                if 'local-build' in stripped:
+                    cur['marker'] = True
+                if 'public-ports' in stripped:
+                    cur['marker_public'] = True
+            continue
+        m = re.match(r'^(\s*)\S', line)
+        ind = len(m.group(1)) if m else 0
+        km = re_keyline.match(line)
+        if h_ind is None:
+            if km and ind > s_ind:
+                h_ind = ind
+            else:
+                continue
+        if km and ind == h_ind:
+            flush()
+            rest = line.split(':', 1)[1]
+            cur = new_cur(km.group(2).strip(), i, rest)
+            in_ports = False
+            continue
+        if ind <= s_ind:
+            break  # следующий top-level ключ — сервисы кончились
+        if cur is None:
+            continue
+        if 'public-ports' in line:
+            cur['marker_public'] = True
+        if in_ports:
+            dm = re.match(r'^(\s*)-\s+(.*)$', line)
+            if dm and len(dm.group(1)) > ports_ind:
+                dash_ind = len(dm.group(1))
+                cur['ports'].append({'text': dm.group(2), 'line': i + 1})
+                continue
+            if ind > dash_ind and cur['ports']:
+                # продолжение long-syntax записи (target/published/host_ip)
+                cur['ports'][-1]['text'] += ' ' + stripped
+                continue
+            in_ports = False
+            # строка вышла из ports: — обработать как обычный ключ ниже
+        pm = re_keyline.match(line)
+        if pm and pm.group(2).strip() == 'ports':
+            in_ports = True
+            ports_ind = ind
+            dash_ind = ind
+            continue
+        im = re_imgval.match(line)
+        if im:
+            cur['image'] = True
+            cur['image_name'] = im.group(1).split('#')[0].strip().strip('"\'')
+            continue
+        fm = re_flag.match(line)
+        if fm:
+            cur[fm.group(1)] = True
+        if 'local-build' in line:
+            cur['marker'] = True
+    flush()
+    return svcs
+
+CRITICAL = ('redis', 'valkey', 'memcached', 'postgres', 'mysql', 'mariadb',
+            'mongo', 'rabbit', 'kafka', 'elastic', 'clickhouse', 'cassandra',
+            'couchdb', 'neo4j', 'nats', 'etcd', 'zookeeper', 'consul')
+
+def is_public(entry):
+    # long-syntax с host_ip 127.0.0.1/localhost или short "127.0.0.1:h:c" —
+    # локальная отладка, не публикация; всё остальное в ports: — наружу.
+    t = entry.strip()
+    if 'host_ip' in t:
+        m = re.search(r'host_ip\s*:\s*([^\s]+)', t)
+        return not (m and m.group(1).strip('"\'') in ('127.0.0.1', 'localhost'))
+    if 'published' in t:
+        return True
+    t2 = re.sub(r'\s+', '', t).strip('"\'')
+    if t2.startswith('127.0.0.1:') or t2.startswith('localhost:'):
+        return False
+    return True
+
+for f in files:
+    try:
+        with open(f, encoding='utf-8', errors='ignore') as fh:
+            text = fh.read()
+    except FileNotFoundError:
+        continue
+    lines = text.splitlines()
+    if HAVE_YAML:
+        try:
+            doc = _yaml.safe_load(text)
+        except Exception:
+            continue  # синтаксис уже отчитан yaml-проверкой выше
+        if not isinstance(doc, dict) or not isinstance(doc.get('services'), dict):
+            continue  # структуру уже отчитала yaml-проверка выше
+    for s in scan_services(lines):
+        if s['build'] and not s['image'] and not s['marker']:
+            errs.append({
+                "file": f,
+                "line": s['head'] + 1,
+                "service": s['name'],
+                "message": f"сервис '{s['name']}' с build: но без image: — CI уже собирает и публикует образ, в compose должен быть image: <registry>/<name>:<tag>; либо пометь исключение '# local-build: <причина>' у сервиса (локальный сервис без CI-публикации)",
+                "raw": lines[s['head']].strip()[:200],
+            })
+        hay = (s['name'] + ' ' + s.get('image_name', '')).lower()
+        if any(k in hay for k in CRITICAL) and not s.get('marker_public'):
+            bad = [p for p in s['ports'] if is_public(p['text'])]
+            if bad:
+                shown = ', '.join(p['text'].strip()[:60] for p in bad[:3])
+                errs.append({
+                    "file": f,
+                    "line": bad[0]['line'],
+                    "service": s['name'],
+                    "message": f"сервис '{s['name']}' (критичное хранилище без auth по умолчанию) публикует порты наружу [{shown}] — убери ports: (общение только внутри docker-сети) или забинди на 127.0.0.1 для локальной отладки; наружу открывай только edge-сервисы (gateway/LB). Исключение — пометь '# public-ports: <причина>' у сервиса",
+                    "raw": lines[bad[0]['line'] - 1].strip()[:200],
+                })
+with open(out_path, 'w', encoding='utf-8') as o:
+    json.dump(errs, o, ensure_ascii=False)
+PY
+  COMPOSE_COUNT="$(python3 -c 'import json; print(len(json.load(open("'"$COMPOSE_ERRORS"'",encoding="utf-8"))))' 2>/dev/null || echo 0)"
+  [[ "$COMPOSE_COUNT" -eq 0 ]] && COMPOSE_PASSED=true || COMPOSE_PASSED=false
+else
+  echo "[]" > "$COMPOSE_ERRORS"
+  COMPOSE_PASSED=true
+fi
+
 # ---------- итоговый JSON ----------
 FILES_JSON="$(python3 -c 'import json; print(json.dumps([l.strip() for l in open("'"$TMPDIR/changed.txt"'",encoding="utf-8") if l.strip()], ensure_ascii=False))' 2>/dev/null || echo '[]')"
 
-JSON_OUT="$(python3 - "$FILES_JSON" "$TC_ERRORS" "$LINT_ERRORS" "$FMT_ERRORS" "$ENV_ERRORS" "$YAML_ERRORS" << 'PY'
+JSON_OUT="$(python3 - "$FILES_JSON" "$TC_ERRORS" "$LINT_ERRORS" "$FMT_ERRORS" "$ENV_ERRORS" "$YAML_ERRORS" "$COMPOSE_ERRORS" << 'PY'
 import json, sys
 files=json.loads(sys.argv[1])
 tc=json.load(open(sys.argv[2],encoding='utf-8'))
@@ -567,12 +767,14 @@ lint=json.load(open(sys.argv[3],encoding='utf-8'))
 fmt=json.load(open(sys.argv[4],encoding='utf-8'))
 env=json.load(open(sys.argv[5],encoding='utf-8'))
 yml=json.load(open(sys.argv[6],encoding='utf-8'))
+comp=json.load(open(sys.argv[7],encoding='utf-8'))
 tc_pass=len(tc)==0
 lint_pass=len(lint)==0
 fmt_pass=len(fmt)==0
 env_pass=len(env)==0
 yml_pass=len(yml)==0
-all_pass=tc_pass and lint_pass and fmt_pass and env_pass and yml_pass
+comp_pass=len(comp)==0
+all_pass=tc_pass and lint_pass and fmt_pass and env_pass and yml_pass and comp_pass
 if not files:
     summary="no changed files"
 elif all_pass:
@@ -584,6 +786,7 @@ else:
     if not fmt_pass: parts.append(f"format: {len(fmt)} files")
     if not env_pass: parts.append(f"env: {len(env)} errors")
     if not yml_pass: parts.append(f"yaml: {len(yml)} errors")
+    if not comp_pass: parts.append(f"compose: {len(comp)} errors")
     summary=", ".join(parts) + f" in {len(files)} changed files"
 out={
     "files": files,
@@ -593,6 +796,7 @@ out={
         "format": {"passed": fmt_pass, "errors": len(fmt)},
         "env": {"passed": env_pass, "errors": len(env)},
         "yaml": {"passed": yml_pass, "errors": len(yml)},
+        "compose": {"passed": comp_pass, "errors": len(comp)},
         "all_passed": all_pass
     },
     "typecheck": tc,
@@ -600,8 +804,9 @@ out={
     "format": fmt,
     "env": env,
     "yaml": yml,
+    "compose": comp,
     "summary": summary,
-    "hint": "typecheck/lint/format/env/yaml — массивы ошибок; files — проверенные незакоммиченные файлы; totals — сводка. Запускай только на changed файлах, экономит память."
+    "hint": "typecheck/lint/format/env/yaml/compose — массивы ошибок; files — проверенные незакоммиченные файлы; totals — сводка. Запускай только на changed файлах, экономит память."
 }
 print(json.dumps(out, ensure_ascii=False, indent=2))
 PY
@@ -616,6 +821,7 @@ if j["lint"]: print(f"lint errors: {len(j[\"lint\"])}", file=sys.stderr)
 if j["format"]: print(f"format errors: {len(j[\"format\"])}", file=sys.stderr)
 if j.get("env"): print(f"env errors: {len(j[\"env\"])}", file=sys.stderr)
 if j.get("yaml"): print(f"yaml errors: {len(j[\"yaml\"])}", file=sys.stderr)
+if j.get("compose"): print(f"compose errors: {len(j[\"compose\"])}", file=sys.stderr)
 ' "$JSON_OUT" 2>/dev/null || echo "summary: $(echo "$JSON_OUT" | python3 -c 'import json,sys; print(json.load(sys.stdin)["summary"])')" >&2
 fi
 

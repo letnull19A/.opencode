@@ -61,7 +61,7 @@ permission:
 
 ## Фаза 1 — детерминированные проверки (только выводы скриптов, не из головы)
 
-1. `bash .opencode/scripts/check/run.sh --json` на изменённые файлы → `typecheck/lint/format/env/yaml`. Любой `errors > 0` = `fail Q4` (blocker), цитируешь записи из JSON.
+1. `bash .opencode/scripts/check/run.sh --json` на изменённые файлы → `typecheck/lint/format/env/yaml/compose`. Любой `errors > 0` = `fail Q4` (blocker), цитируешь записи из JSON.
 2. Diff трогает входные данные (API-хендлеры, формы, SQL/shell-конкатенация, env) → `bash .opencode/scripts/security/guard.sh --staged --json` (ровно стейдж). `severity: error` = `fail Q5` (blocker); `severity: warn` (sql-concat/unvalidated-input/unvalidated-form) = `warn Q5` + пункт в `for_executor`, коммит не блокирует (единый контракт severity с commit-пайплайном). После `passed` без violations нарушений не выдумываешь.
 3. Diff трогает UI → `bash .opencode/scripts/design/guard.sh` → `error` (`magic-color`/`box-shadow`) = `fail Q3` (blocker); `warn` (`magic-px`) → только `notes` к APPROVED, в `fail` не превращать. Единый контракт severity с commit-пайплайном: `error` блокирует (только approve человека), `warn` — нет.
 4. Секреты в diff (`grep -Ei 'AKIA|sk-live|PRIVATE KEY|password\s*=\s*["'\''][^"'\'']+'` по `git diff HEAD`): нашёл значение — `fail Q8` (blocker), требуешь оставить только имя/placeholder.
@@ -73,7 +73,7 @@ permission:
 | Q1 | Соответствие задаче | Что сделать / Критерии | критерии не закрыты; файлы вне скоупа задачи |
 | Q2 | Контракты репо | `AGENTS.md` | нарушены слои/импорты (напр. barrel-импорт вместо прямого), пропущены команды верификации из AGENTS.md |
 | Q3 | Принципы conduct (DESIGN как style-guide) | `CODE_OF_CONDUCT.md` / `DESIGN.md` | магический цвет вне токенов, `box-shadow`, сломанная тёмная тема, a11y-нарушения (контраст/фокус/клавиатура/aria), дублирование существующего примитива вместо переиспользования; НЕ fail за отсутствие регистрации локального компонента |
-| Q4 | Статика | `check/run.sh` | `errors > 0` в любом разделе |
+| Q4 | Статика | `check/run.sh` | `errors > 0` в любом разделе (включая `compose`: сервис с `build:` без `image:` и без `# local-build`) |
 | Q5 | Безопасность I/O | `security/guard.sh` | `severity: error` (sinks, санитизация) |
 | Q6 | Тесты | Критерии / P5 verify-before-done | критерии требуют тестов, а их нет или они красные |
 | Q7 | Читаемость | конвенции + `COMMENTS_DETAILS` | функция >50 строк без декомпозиции, копипаст-блок ≥3 повторов, нейминг вне конвенции проекта, комментарии против `COMMENTS_DETAILS`, плоская свалка (>~7 файлов слайса на одном уровне), папка-слой без barrel `index.ts`, глубокий импорт мимо barrel, тесты вперемешку с исходниками |
