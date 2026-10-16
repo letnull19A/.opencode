@@ -324,6 +324,8 @@ fi
 # ---------- env (программная валидация .env*) ----------
 # Правило: .env* содержит только KEY=VALUE (допустим `export KEY=VALUE` и пустые строки).
 # Любые пояснения — в README.md ## Окружение, а не в .env.
+# Вложенные дефолты ${VAR:-${...}} запрещены (Docker их не интерполирует) —
+# только ${VAR} или ${VAR:-плоский-литерал}.
 # Исключение: файлы `*.example` — документационные шаблоны (dotenv/compose их как
 # runtime-env никогда не грузят: compose читает `.env`, dotenv грузит `.env`);
 # комментарии и prod/local-дубли в шаблоне intentional — для них пропускаются
@@ -375,6 +377,8 @@ for f in files:
                     if is_template:
                         continue
                     errs.append({"file": f, "line": i, "message": "инлайн-комментарий в .env запрещён — перенеси в README.md ## Окружение", "raw": line.strip()[:200]})
+                if re.search(r'\$\{[A-Za-z_][A-Za-z0-9_]*:-[^}]*\$\{', line):
+                    errs.append({"file": f, "line": i, "message": "вложенный дефолт ${VAR:-${...}} запрещён — Docker не интерполирует вложенность: либо ${VAR}, либо ${VAR:-плоский-литерал}", "raw": line.strip()[:200]})
     except FileNotFoundError:
         continue
 with open(out_path, 'w', encoding='utf-8') as o:
@@ -391,6 +395,8 @@ fi
 # Слои: 1) PyYAML safe_load если модуль доступен — полный парсинг;
 # 2) иначе stdlib-эвристики: табы (YAML их запрещает), дубли ключей маппинга
 # с учётом sequence-скоупов (`- ` элементы), баланс скобок/кавычек вне `#`-комментариев.
+# Плюс всегда (обе ветки): regex-скан вложенных дефолтов ${VAR:-${...}} —
+# YAML-парсер их не ловит (синтаксис валиден), а Docker не интерполирует.
 # Для compose-файлов (имя содержит `compose`): обязательный top-level `services:`.
 YAML_ERRORS="$TMPDIR/yaml.json"
 echo "[]" > "$YAML_ERRORS"
@@ -410,6 +416,7 @@ except ImportError:
 errs = []
 re_keyline = re.compile(r"^(\s*)([^:#'\"\s?!*&%|>\-][^:]*?)\s*:(?:\s|$)")
 re_dash = re.compile(r"^(\s*)-\s+(.*)$")
+re_nested = re.compile(r'\$\{[A-Za-z_][A-Za-z0-9_]*:-[^}]*\$\{')
 
 def strip_comment(s):
     q = None
@@ -531,6 +538,9 @@ for f in files:
         continue
     lines = text.splitlines()
     is_compose = 'compose' in os.path.basename(f).lower()
+    for _ln, _raw in enumerate(lines, 1):
+        if re_nested.search(strip_comment(_raw)):
+            errs.append({"file": f, "line": _ln, "message": "вложенный дефолт ${VAR:-${...}} запрещён — Docker не интерполирует вложенность: либо ${VAR}, либо ${VAR:-плоский-литерал}", "raw": _raw.strip()[:200]})
     if HAVE_YAML:
         try:
             doc = _yaml.safe_load(text)
