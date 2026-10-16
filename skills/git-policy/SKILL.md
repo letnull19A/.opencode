@@ -8,8 +8,11 @@ description: Git discipline for committing agents — linear history, no merges 
 - Merge не применять никогда: ни `git merge`, ни merge-коммитов (`--no-ff`
   тоже запрещён). История — только линейная.
 - Rebase сильнее merge: синхронизация с remote и перенос изменений между
-  ветками — только через rebase (`git pull --rebase --autostash`,
-  `git rebase`), без merge-коммитов.
+  ветками — только через rebase, без merge-коммитов. Своя ветка со своим
+  upstream — `scripts/sync/run.sh` (`pull --rebase --autostash`); пересадка
+  на свежую базу (ветка отстала от `dev`) — `scripts/sync/rebase.sh --onto`.
+  Сырой `git rebase` запрещён всем агентам — только эти два скрипта
+  (линейно, autostash, конфликт — стоп без самолечения).
 
 ## No-stash rule (обязательно)
 

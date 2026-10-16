@@ -29,6 +29,7 @@ permission:
     "touch*": allow
     "rm*": allow
     "bash .opencode/scripts/doctor/*": allow
+    "bash .opencode/scripts/sync/*": allow
     "git status*": allow
     "git diff*": allow
     "git log*": allow

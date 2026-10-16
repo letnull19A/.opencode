@@ -132,6 +132,7 @@ permission:
     - `APPROVED` — ждёшь мержа человеком (не мержишь сам, кнопку жмёт только пользователь); `MERGED` — идёшь в `done` (`worktree done --name` чистит и подтягивает `base`).
     - В лог добавляй `pr: <lifecycle> (rework: N)` рядом со строкой `review:`.
 6. **Ротация и обратная связь:**
+    - Если ветка исполнителя отстала от базы (`behind > 0`, конфликт — следствие порядка) — исполнитель пересаживается сам через `scripts/sync/rebase.sh --onto <base>` (сырой `git rebase` запрещён); чистый конфликт по содержанию — `task` → `@conflict-resolver`.
     - Если `build-fast` вернул `{"needs_escalation": true}` с devops-причиной — переключи эту же карточку на `@devops` (без worktree, devops работает напрямую).
     - Если `build-fast` вернул `{"needs_escalation": true}` с dependency-причиной — переключи на `@build-smart` (создай worktree перед повтором).
     - Если `build-smart`/`devops` вернул `{"can_downgrade": true}` — следующую карточку из той же серии отдай `build-fast` (можешь перевызвать `classify_build` с обновлённым `level`). Для dependency/devops-серии downgrade запрещён внутри серии — всегда smart/devops соответственно.

@@ -13,6 +13,7 @@ permission:
     "bash .opencode/scripts/doctor/*": allow
     "bash .opencode/scripts/ports/*": allow
     "bash .opencode/scripts/worktree/*": allow
+    "bash .opencode/scripts/sync/*": allow
     "bash -n*": allow
     "docker compose config*": allow
     "docker compose build --dry-run*": allow
