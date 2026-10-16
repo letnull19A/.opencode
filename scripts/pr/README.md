@@ -66,6 +66,13 @@
   только при `CONFLICTS: no`. `--short` — одна строка
   `PR_STATUS: <stage> | conflicts: … | checks: … | reviews: …` для вставки
   в вывод `/push`/`/sync` (контекст PR обновляется сам после каждой операции).
+- `comments.sh [--branch <name>] [--json]` — read-only чтение замечаний
+  ревьюеров (нерешённые треды первыми, затем ревью, затем общие комментарии;
+  нет замечаний — `(no review comments)`, exit 0). Пара к `status-pr.sh`:
+  при `CHANGES_REQUESTED` агент забирает текст замечаний этим скриптом
+  и возвращает задачу исполнителю на доработку (см. `agent/auto.md` шаг 5c).
+  PR принимает только человек; github — треды через GraphQL (`gh api graphql`),
+  gitlab/bitbucket — best effort, gitea — честный exit 1 (читать в UI).
 - Провайдер определяется через `../issue-writer/detect-provider.sh`
   (`issue_provider:` в `AGENTS.md` или автодетект по `origin`).
   CLI как в `issue-writer`: `gh` / `glab` / `tea` / REST bitbucket.
