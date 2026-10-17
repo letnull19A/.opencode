@@ -14,6 +14,8 @@ permission:
     "tail*": allow
     "jq*": allow
     "bash .opencode/scripts/doctor/*": allow
+    "bash .opencode/scripts/security/*": allow
+    "bash .opencode/scripts/design/*": allow
     "bash .opencode/scripts/git-changes/*": allow
     "bash .opencode/scripts/commit-trello/*": allow
     "git status*": allow
