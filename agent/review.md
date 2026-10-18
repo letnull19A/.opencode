@@ -100,6 +100,7 @@ permission:
 - Проверка: сверь `reuse`-блок с diff. Нет `reuse`-блока при новом файле/экспорте → `fail Q-reuse`. Есть блок, но `found` содержит живого кандидата, а код всё равно дублирует → `fail Q-reuse`. Спорный случай — сам выполни 1 точечный `bash .opencode/scripts/graphify/run.sh search --query "<имя>" --mode both --limit 10 --json` по имени новой сущности; дубликат подтвердился → `fail`.
 - Доказательство: пара `новый file:line` + `существующий path:line — что дублируется` (цитата обеих сторон). Без пары — нет нарушения.
 - `severity`: `fail Q-reuse` = `major` при `fast`; при `deep` (дубль в `shared`/пакете или ≥2 дублированных сущностей) = `blocker`. `warn` — только если кандидат отдалённый (совпадение имён без совпадения семантики) → `notes` к APPROVED.
+- Shared-пакет из таблицы «Открыт к правкам» (consumer-`AGENTS.md`): diff копирует его сущность в consumer с нуля вместо делегирования → `fail Q-reuse` с `for_executor: "делегируй правку в <пакет> (<github>), дубликат из consumer удали"`; severity как у обычного дубля (`major` при `fast`, `blocker` при `deep` shared).
 - Права не расширяются: проверка — только чтением (`read`/`glob`/`grep` + `check/run.sh` + `graphify/run.sh search`); `edit: deny` сохраняется, код не правишь, guard-флаги не отключаешь.
 
 ### Q-reuse dry-run (самопроверка правила на дубле хелпера)

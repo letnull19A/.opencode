@@ -48,6 +48,7 @@ permission:
 2b. **Reuse-first (обязательно до декомпозиции):**
     - Для каждой планируемой сущности выполни reuse-поиск (Фронт 2 первым): `bash .opencode/scripts/graphify/run.sh search --query "<имя>" --mode file --limit 10 --json` + `search --query "<символ>" --mode content --limit 10 --json` (fallback — `grep` + `glob`).
     - Кандидат найден → тип карточки `add` превращается в `update` (расширить/скомпоновать, не дублировать), в `desc` укажи `Reuse: <path:line — что переиспользуем>`; ничего не найдено → в план пиши `created_new_why`.
+    - Кандидат из внешнего пакета (таблица «Открыт к правкам» в consumer-`AGENTS.md`), а задаче нужно МЕНЯТЬ этот код → карточка не `add`/`update`, а `delegate` (работа в другом проекте, `Blocked by:` на него) + `reuse`-блок с `delegated_to: "<пакет> <github>"`; пакета нет в таблице → планируй адаптацию в consumer (wrap), код пакета не трогаем.
     - В Блок 2 JSON добавь на верхнем уровне `reuse: {queries: [...], found: [...], reused|created_new_why: "..."}`. Без `reuse`-блока план неполон.
 3. **Оценка сложности (обязательно перед декомпозицией — без неё не идёшь дальше):**
    - Считай по 5 индикаторам из `skills/evol-plan/SKILL.md:2` (масштаб `files/cards`, связность `deps/fan-out`, тип `add/update/delete/decompose`, неопределённость `unknowns/spec`, риск `breaking/data`)

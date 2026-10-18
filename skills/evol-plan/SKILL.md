@@ -101,7 +101,7 @@ description: Составляет план, заточенный под запи
     - Проверь каждую: заголовок императив + контекст не пустой + шаги нумерованы + критерии чек-боксами + связи только с реальными URL.
     - Проверь чек-листы: если в `## Что сделать` 2+ пункта одного результата — вынеси их в `items` для `checklist.sh`.
     - Проверь дубли: `dump.sh` — нет карточки с таким же заголовком в том же листе → если есть, добавь уточнение `(часть 2)` или свяжи `Blocked by:`.
-    - **Reuse-first:** для каждой сущности — reuse-поиск graphify (Фронт 2 первым: `search --query "<имя>" --mode file` + `search --query "<символ>" --mode content`, fallback `grep`/`glob`); кандидат найден → тип карточки `add` становится `update` (`Reuse: <path:line>` в `desc`), в JSON — верхний `reuse: {queries, found, reused|created_new_why}`; без `reuse`-блока план неполон.
+    - **Reuse-first:** для каждой сущности — reuse-поиск graphify (Фронт 2 первым: `search --query "<имя>" --mode file` + `search --query "<символ>" --mode content`, fallback `grep`/`glob`); кандидат найден → тип карточки `add` становится `update` (`Reuse: <path:line>` в `desc`), в JSON — верхний `reuse: {queries, found, reused|created_new_why}`; без `reuse`-блока план неполон. Кандидат из shared-пакета (таблица «Открыт к правкам» в consumer-`AGENTS.md`) + нужна его модификация → карточка `delegate` с `delegated_to: "<пакет> <github>"`; сторонние пакеты без таблицы — только wrap в consumer.
 
 ## Вывод — формат для отдачи @task-manager (строго соблюдай)
 
