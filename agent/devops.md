@@ -164,7 +164,7 @@ Bash/sh-скрипты пайплайнов пишешь только через
    шаг `target` нормализует цель `{pipeline: ci-gate|build-push|deploy|full, registry, image,
    deploy: none|ssh|compose|kubectl, orchestrator: docker|swarm|k8s}`
    и считает `gaps` (нет Dockerfile/CI-yaml/манифестов/тестов/доступов/оркестратора).
-2. **Классификатор шага `classify`** (Jev → heuristic) даёт `pipeline_type`, сложность и
+2. **Классификатор шага `classify`** (heuristic) даёт `pipeline_type`, сложность и
    `agents` — их и задействуешь для точности, а не гадаешь сам:
    `@recon` (углубить actual-state), `@evol-plan` (ревью плана стадий),
    `@docker-pack` (gap dockerfile), `@ci-runner` (gap ci-yaml, триггерный workflow),

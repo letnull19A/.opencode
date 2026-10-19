@@ -493,6 +493,7 @@ bash .opencode/scripts/design/guard.sh          # guardrail незакоммич
   расширить: `all`/`core`/`deploy`/`databases`/`git` или точечно через
   `DOKPLOY_ENABLED_TAGS=project,application,postgres`.
   (also only via `{env:...}`, never committed).
+- Jev — System One от TypeSafe (не chat-модель: в таблице AI SDK прочерк, провайдером opencode через `model:` его подключить нельзя — строка `model: jev/...` нерабочая). Интеграция — прямой HTTPS из `tools/classify_build.ts` на `https://opencode.ai/inference/systemone/v1/systemone` контрактом `{model:"jev-1.13-free", state, questions}` (`builder`: choice из 4 билдеров+unknown, `needs_tunnel`: noul; ответ `answers.*.{choice,confidence,probabilities}/{noul}`), ключ `OPENCODE_API_KEY` (консоль, тот же что в `/connect`, fallback `JEV_API_KEY`); модель `jev-1.13-free` бесплатная. Детерминированные правила (devops/dependency) выполняются в туле ДО Jev и имеют приоритет.
 
 ## Tests rule
 

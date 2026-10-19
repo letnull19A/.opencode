@@ -40,12 +40,12 @@ permission:
 
 ## Классификатор (обязательно перед делегированием)
 
-Перед любым `task` к сабагентам вызови `tool classify_task {text: $ARGUMENTS}` (Jev→heuristic):
+Перед любым `task` к сабагентам вызови `tool classify_task {text: $ARGUMENTS}` (heuristic):
 - `intent: create` → твоя ветка create ниже (создание карточки) или `task-batch` для батчей.
 - `intent: explain` → делегируй `task → @task-explain` (передай весь текст вопроса + board из `.devbox`), сам `create` не трогаешь.
 - `intent: audit` → делегируй `task → @task-audit` (как в разделе Аудит).
 - `intent: move` → ветка Перемещение.
-Доверие: `confidence≥0.7` — следуй intent; `<0.5` — спроси уточняющий вопрос через `question` tool. Fallback без Jev — heuristic выше. Это чтобы не путать «заведи задачу X» (create) и «объясни задачу X» (explain).
+Доверие: `confidence≥0.7` — следуй intent; `<0.5` — спроси уточняющий вопрос через `question` tool. Fallback — heuristic. Это чтобы не путать «заведи задачу X» (create) и «объясни задачу X» (explain).
 
 ## Workflow (все команды — из корня проекта)
 

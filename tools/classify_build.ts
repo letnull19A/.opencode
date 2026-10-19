@@ -2,7 +2,7 @@
 import { z } from "zod"
 
 export default {
-  description: "Классификатор build+preview: выбирает build-fast (low), build-smart (medium/high), devops (инфра/деплои) или build (default fallback) и needs_tunnel (нужен ли preview-тоннель). Принимает complexity/risk от evol-plan или сырые поля задачи, пробует Jev → fallback на эвристику → build по умолчанию. Возвращает JSON {builder, confidence, reason, provider, needs_tunnel, tunnel_reason}.",
+  description: "Классификатор build+preview: выбирает build-fast (low), build-smart (medium/high), devops (инфра/деплои) или build (default fallback) и needs_tunnel (нужен ли preview-тоннель). Принимает complexity/risk от evol-plan или сырые поля задачи. Применяет детерминированные правила, затем Jev (systemone choice) → fallback на эвристику → build по умолчанию. Возвращает JSON {builder, confidence, reason, provider, needs_tunnel, tunnel_reason}.",
   args: {
     title: z.string().optional().describe("Заголовок задачи / карточки Trello"),
     desc: z.string().optional().describe("Описание задачи (## Что сделать / Критерии)"),
@@ -80,7 +80,7 @@ export default {
       return { needs: false, reason: "no preview keyword" }
     })()
 
-    // devops override — до Jev и до эвристики, наравне с dependency (инфра-интент шире кодового)
+    // devops override — до эвристики, наравне с dependency (инфра-интент шире кодового)
     if (isDevopsTask) {
       return JSON.stringify(
         {
@@ -99,7 +99,7 @@ export default {
       )
     }
 
-    // dependency override — до Jev и до эвристики, т.к. Jev может не знать про это правило
+    // dependency override — до эвристики
     if (isDependencyTask) {
       return JSON.stringify(
         {
@@ -118,29 +118,26 @@ export default {
       )
     }
 
-    const jevUrl = process.env.JEV_API_URL
-    const jevKey = process.env.JEV_API_KEY || process.env.OPENROUTER_API_KEY
-    if (jevUrl && jevKey) {
-      try {
-        const res = await fetch(jevUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${jevKey}` },
-          body: JSON.stringify({ task: input }),
-        })
-        if (res.ok) {
-          const j = await res.json()
-          if (j.builder === "build-fast" || j.builder === "build-smart" || j.builder === "build" || j.builder === "devops") {
-            const conf = j.confidence ?? 0.85
-            if (conf >= 0.5) return JSON.stringify({ builder: j.builder, confidence: conf, reason: j.reason ?? "jev", provider: "jev", needs_tunnel: j.needs_tunnel ?? needsTunnelHeuristic.needs, tunnel_reason: j.tunnel_reason ?? needsTunnelHeuristic.reason, input }, null, 2)
-          }
-          if (j.builder === "unknown" || (j.confidence !== undefined && j.confidence < 0.5)) {
-            // Jev не смог определить — откат к эвристике/build
-          } else if (j.builder) {
-            return JSON.stringify({ builder: j.builder, confidence: j.confidence ?? 0.85, reason: j.reason ?? "jev", provider: "jev", needs_tunnel: j.needs_tunnel ?? needsTunnelHeuristic.needs, tunnel_reason: j.tunnel_reason ?? needsTunnelHeuristic.reason, input }, null, 2)
-          }
-        }
-      } catch {}
-    }
+    // ——— Jev (System One choice) — после детерминированных правил, до эвристики ———
+    // Не-enum/unknown/conf<0.5/не-ok/исключение — молча дальше в эвристику
+    const sysKey = process.env.OPENCODE_API_KEY || process.env.JEV_API_KEY;
+    if (sysKey) { try {
+      const state = [`Задача: ${input.title}`, input.desc, `Сложность: ${input.level} (score ${input.score}), файлов: ${input.files}, зависимостей: ${input.deps}, тип: ${input.type}, unknowns: ${input.unknowns}, риск: ${input.risk_level} (${input.risk_score}/8)`].filter(s => s && s.trim()).join("\n");
+      const res = await fetch("https://opencode.ai/inference/systemone/v1/systemone", { method:"POST", headers:{"Content-Type":"application/json", Authorization:`Bearer ${sysKey}`}, body: JSON.stringify({ model:"jev-1.13-free", state, questions:{
+        builder:{type:"choice", instructions:"Какой исполнитель должен делать задачу?", criteria:{
+          "build-fast":"мелкая определённая задача: 1-2 файла, низкая сложность и риск, без зависимостей",
+          "build-smart":"сложная задача: интеграция, много файлов, зависимости, высокий риск — вдумчивая работа с проверками",
+          "devops":"инфраструктура и деплой: docker, compose, сети, порты, окружения dev/prod, CI/CD-скрипты",
+          "build":"не удалось определить подходящего исполнителя",
+          "unknown":"задача непонятна, данных недостаточно"}},
+        needs_tunnel:{type:"noul", instructions:"Просит ли задача явно показать результат через публичную preview-ссылку (tunnel/preview)?"}}}) });
+      if (res.ok) { const j = await res.json(); const b = j && j.answers && j.answers.builder;
+        if (b && ["build-fast","build-smart","devops","build"].indexOf(b.choice) !== -1 && b.choice !== "unknown") {
+          const conf = (typeof b.confidence === "number") ? b.confidence : 0.85;
+          const t = j.answers && j.answers.needs_tunnel;
+          const tun = (t && typeof t.noul === "number") ? t.noul >= 0.5 : needsTunnelHeuristic.needs;
+          if (conf >= 0.5) return JSON.stringify({builder:b.choice, confidence:conf, reason:"jev choice "+b.choice+" ("+conf+")", provider:"jev", needs_tunnel:tun, tunnel_reason: tun ? "jev: preview запрошен" : needsTunnelHeuristic.reason, input}, null, 2); } }
+    } catch {} }
 
     if (isInsufficient) {
       return JSON.stringify({ builder: "build", confidence: 0.4, reason: "недостаточно данных для классификации — fallback к build по умолчанию", provider: "heuristic", needs_tunnel: needsTunnelHeuristic.needs, tunnel_reason: needsTunnelHeuristic.reason, input }, null, 2)

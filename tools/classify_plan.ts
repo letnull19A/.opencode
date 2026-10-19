@@ -2,7 +2,7 @@
 import { z } from "zod"
 
 export default {
-  description: "Классификатор планирования: выбирает подход — new-module (с нуля), update (доработка), decompose (разбиение) и нужен ли react-architect. Принимает заголовок/описание задачи, пробует Jev → heuristic. Возвращает {approach, needs_react, confidence, reason, provider}.",
+  description: "Классификатор планирования: выбирает подход — new-module (с нуля), update (доработка), decompose (разбиение) и нужен ли react-architect. Принимает заголовок/описание задачи, heuristic. Возвращает {approach, needs_react, confidence, reason, provider}.",
   args: {
     title: z.string().optional().describe("Заголовок задачи"),
     desc: z.string().optional().describe("Описание задачи"),
@@ -30,26 +30,6 @@ export default {
     } else if (!hasCode) {
       approach = "new-module"
       reason = "кода нет — новый модуль"
-    }
-
-    // Jev primary if configured
-    const jevUrl = process.env.JEV_API_URL
-    const jevKey = process.env.JEV_API_KEY || process.env.OPENROUTER_API_KEY
-    if (jevUrl && jevKey) {
-      try {
-        const res = await fetch(jevUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${jevKey}` },
-          body: JSON.stringify({ task: { title, desc, has_code: hasCode }, classify: "plan" }),
-        })
-        if (res.ok) {
-          const j = await res.json()
-          if (j.approach === "new-module" || j.approach === "update" || j.approach === "decompose") {
-            const conf = j.confidence ?? 0.85
-            if (conf >= 0.5) return JSON.stringify({ approach: j.approach, needs_react: j.needs_react ?? isReact, confidence: conf, reason: j.reason ?? "jev", provider: "jev", has_code: hasCode }, null, 2)
-          }
-        }
-      } catch {}
     }
 
     const needsReact = isReact

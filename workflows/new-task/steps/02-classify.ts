@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 // @ts-nocheck
-// 02-classify — вызывает classify_plan (Jev→heuristic) или локальную эвристику как fallback
+// 02-classify — вызывает classify_plan (heuristic) или локальную эвристику как fallback
 // Вход: {validate:{title,desc}, input:{}, ...}
 // Выход: {approach, needs_react, confidence, reason, provider, _reads}
 
@@ -27,20 +27,5 @@ if (/(создать.*модул|новый модул|с нуля|new module|fr
 else if (/(декомпоз|разбить|разделить|большой модул)/i.test(text)) { approach="decompose"; reason="декомпозиция большого модуля" }
 else if (/(внедр|добавить функц|расшир|улучш|доработ)/i.test(text)) { approach="update"; reason="внедрение нового функционала" }
 else if (!hasCode) { approach="new-module"; reason="кода нет — новый модуль" }
-
-const jevUrl = process.env.JEV_API_URL
-const jevKey = process.env.JEV_API_KEY || process.env.OPENROUTER_API_KEY
-if (jevUrl && jevKey) {
-  try {
-    const res = await fetch(jevUrl, { method:"POST", headers:{ "Content-Type":"application/json", Authorization:`Bearer ${jevKey}` }, body: JSON.stringify({ task:{title,desc,has_code:hasCode}, classify:"plan" }) })
-    if (res.ok) {
-      const j = await res.json()
-      if (j.approach==="new-module"||j.approach==="update"||j.approach==="decompose") {
-        const conf = j.confidence ?? 0.85
-        if (conf>=0.5) { console.log(JSON.stringify({ approach:j.approach, needs_react: j.needs_react ?? isReact, confidence: conf, reason: j.reason ?? "jev", provider:"jev", has_code:hasCode, _reads:1 })); process.exit(0) }
-      }
-    }
-  } catch {}
-}
 
 console.log(JSON.stringify({ approach, needs_react: isReact, confidence: hasCode||/(создать|новый|декомпоз)/i.test(text)?0.8:0.6, reason, provider:"heuristic", has_code:hasCode, _reads:1 }))

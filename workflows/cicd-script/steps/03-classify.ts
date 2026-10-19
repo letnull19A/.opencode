@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 // @ts-nocheck
 // 03-classify — тип пайплайна + сложность + каких агентов задействовать + UNIX-профиль.
-// Jev primary (classify:"cicd"), fallback — эвристика от target.pipeline + gaps.
+// heuristic от target.pipeline + gaps.
 // Вход: {survey:{...}, target:{target:{...orchestrator}, gaps:[...]}, input:{title,desc}}
 // Выход: {pipeline_type, complexity:{score,level}, agents:[{agent,why}], unix_style, confidence, reason, provider, _reads}
 
@@ -52,34 +52,6 @@ const heuristic = {
   confidence: gaps.length ? 0.7 : 0.85,
   reason: `pipeline=${pipeline_type}, orchestrator=${target.orchestrator || "unknown"}, gaps=${gaps.length}, deploy=${target.deploy || "none"}`,
   provider: "heuristic", _reads: 1,
-}
-
-// Jev primary если настроен
-const jevUrl = process.env.JEV_API_URL
-const jevKey = process.env.JEV_API_KEY || process.env.OPENROUTER_API_KEY
-if (jevUrl && jevKey) {
-  try {
-    const res = await fetch(jevUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${jevKey}` },
-      body: JSON.stringify({ task: { title, desc, survey, target, gaps }, classify: "cicd" }),
-    })
-    if (res.ok) {
-      const j = await res.json()
-      if (j.pipeline_type && ["ci-gate", "build-push", "deploy", "full"].includes(j.pipeline_type)) {
-        const conf = j.confidence ?? 0.85
-        if (conf >= 0.5) {
-          console.log(JSON.stringify({
-            pipeline_type: j.pipeline_type,
-            complexity: j.complexity || heuristic.complexity,
-            agents: j.agents || agents, unix_style,
-            confidence: conf, reason: j.reason || "jev", provider: "jev", _reads: 1,
-          }))
-          process.exit(0)
-        }
-      }
-    }
-  } catch { }
 }
 
 console.log(JSON.stringify(heuristic))

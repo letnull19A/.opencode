@@ -4,7 +4,7 @@ This repository is the portable `.opencode` configuration pack that is cloned as
 
 ## Capabilities
 
-- **Plan Orchestrator** — Improved built-in `Plan` that classifies approach via `classify_plan` (new-module/update/decompose, Jev→heuristic) and delegates to hidden subagents for deterministic planning instead of guessing.
+- **Plan Orchestrator** — Improved built-in `Plan` that classifies approach via `classify_plan` (new-module/update/decompose, heuristic) and delegates to hidden subagents for deterministic planning instead of guessing.
 - **Recon Agent** — Two-front reconnaissance that scans local docs (`.docs/docs/specs`) then web (websearch/tavily/context7) and code (tree/grep/graphify-mcp) with token-aware incremental search and a 6-read budget to avoid context overflow.
 - **Workflow Engine** — Generic `workflows/engine.ts` runner with guardrails (allowlist, read/write/card budgets, BOARD-lock, dry-run preview gate) and declarative `workflow.json` definitions executed via `tools/workflow.ts`.
 - **New-Task Workflow (0→1)** — Five-step pipeline (validate→classify→recon→plan→create) that validates template completeness, builds a Trello card, and supports dry-run preview without mutations.
