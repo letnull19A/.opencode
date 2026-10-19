@@ -22,6 +22,7 @@ description: Диагностика неполадок — разведка (git
    - Фильтр: `--workflow <file>` (напр. `docker-build-all.yml`)
 3. **Dokploy (MCP, не bash):** `dokploy_project_all` → `dokploy_application_one` / `dokploy_application_search` / `dokploy_compose_one` → `dokploy_application_readAppMonitoring` / `readLogs` / `readTraefikConfig`
 4. **Конфиги:** `read` `.github/workflows/*.yml`, `docker-compose.yml`, `server/Dockerfile`
+5. **Локальный PM2 (только если в запросе pm2/локально/устройство):** `pm2 jlist` или `pm2 list`, `pm2 logs <app> --lines 100 --nostream`, `pm2 describe <app>`
 
 Не делай выводов пока не соберёшь 4 блока.
 
@@ -29,6 +30,7 @@ description: Диагностика неполадок — разведка (git
 
 Иди по цепочке, фиксируя вердикт:
 
+0. **Локальный PM2 (только если pm2 в запросе, до удалённой цепочки):** `pm2 jlist` / `pm2 list` → статус `errored`/`stopped`, рост `restarts`, хвост err-логов → виновник: pm2-процесс.
 1. **Git не ушёл?** `git log origin/dev..HEAD`, `bash .opencode/scripts/sync/run.sh --dry-run` — `ahead 0` + чистый `status` но нет нового рана → пуш не ушёл.
 2. **Workflow не триггернулся / упал?** `status` → нет рана → `on: push` сломан; есть `conclusion: failure` → `failedSteps[]` → `logs --run <id> --failed-only` → точный степ.
 3. **Workflow прошёл, но Dokploy не деплоил?** `jobs` → нет `deploy` → `docker-build-all.yml` `needs/if` сломан; есть `deploy` `success` но `vars.DOKPLOY_WEBHOOKS` пустой → `curl` не ушёл.
@@ -52,5 +54,6 @@ description: Диагностика неполадок — разведка (git
 ## Правила
 
 - Только чтение: `edit: deny`, `bash` только `ci/*`/`sync/*`/`git ...`, `dokploy` только MCP.
+- pm2 только чтение (`list/status/describe/show/logs/jlist`); рестарт/стоп/удаление — только человек на хосте.
 - Не чини — только находишь. `git push` только `--dry-run`.
 - Не выдумывай `id`/`url` — только из вывода скриптов/MCP.

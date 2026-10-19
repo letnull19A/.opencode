@@ -24,6 +24,19 @@ permission:
     "git rev-parse*": allow
     "git remote*": allow
     "git branch*": allow
+    "pm2 list*": allow
+    "pm2 status*": allow
+    "pm2 describe*": allow
+    "pm2 show*": allow
+    "pm2 logs*": allow
+    "pm2 jlist*": allow
+    "pm2 restart*": deny
+    "pm2 reload*": deny
+    "pm2 stop*": deny
+    "pm2 delete*": deny
+    "pm2 kill*": deny
+    "pm2 start*": deny
+    "pm2 monit*": deny
     "gh run*": allow
     "gh auth*": allow
     "bash -n*": allow
@@ -49,6 +62,7 @@ permission:
    - `dokploy_deployment_*` / `dokploy_application_readTraefikConfig` — деплои, домены
    - Если в `.opencode/.cache` нет `DOKPLOY_URL`/`DOKPLOY_API_KEY` — стоп и подскажи `export DOKPLOY_URL=... DOKPLOY_API_KEY=...` (ключи только из env, не проси в чат).
 4. **Инфраструктура:** `docker-compose.yml`, `.github/workflows/*.yml` (какой `needs`/`if: always()`), `server/Dockerfile`, `deploy/` — читай `read`.
+5. **Локальный PM2 (только если в запросе pm2/локально/устройство):** `pm2 jlist` или `pm2 list`, `pm2 logs <app> --lines 100 --nostream`, `pm2 describe <app>` — статус процесса, рестарты, хвост err-логов.
 
 Не делай выводов пока не соберёшь все 4 блока. Если `gh` не авторизован — верни `{"error":"no_gh"}` как есть и подскажи `gh auth login`, не гадай.
 
@@ -56,6 +70,7 @@ permission:
 
 Иди по цепочке, фиксируя каждый шаг:
 
+0. **Гипотеза L — Локальный PM2 (только если pm2 в запросе, до удалённой цепочки):** `pm2 jlist` / `pm2 list` → статус `errored`/`stopped`, рост `restarts`, `pm2 logs <app> --lines 100 --nostream` хвост err-логов → виновник: pm2-процесс.
 1. **Гипотеза 0 — Git не ушёл:** `git log origin/dev..HEAD` / `git push --dry-run` (через `sync/run.sh --dry-run`) — если `ahead 0` и `status` чистый, но `workflows` нет нового рана → пуш не ушёл. Виновник: `git` / `push` пайплайн.
 2. **Гипотеза 1 — Workflow не триггернулся / упал:** `workflows status` → нет рана на ветке → триггер `on: push`/`workflow_dispatch` не сработал, `if: always()` / `needs` сломан. Есть ран с `conclusion: failure` → `failedSteps[]` → `logs --run <id> --failed-only` → точный стец (`checkout`, `nx-set-shas`, `pnpm`, `docker-build`). Виновник: конкретный `job`/`step` + `logExcerpt` первые 20 строк.
 3. **Гипотеза 2 — Workflow прошёл, но Dokploy не деплоил:** `gh run view <id> --json jobs` покажет `deploy` джобу (`needs: build`, `if: always()`). Нет джобы `deploy` → `docker-build-all.yml` сломан. Есть `deploy` с `success` но `DOKPLOY_WEBHOOKS` пустой / неверный → `curl -POST` не ушёл. Виновник: `vars.DOKPLOY_WEBHOOKS` / `secrets`.
@@ -73,6 +88,7 @@ permission:
 ## Диагноз: <коротко, кто виновник>
 **Цепочка:** Git → Workflows → Dokploy → Traefik — где оборвалось
 **Доказательства:**
+- `pm2 jlist` / `pm2 logs <app> --lines 100 --nostream` — ... (только если pm2 в запросе)
 - `git log ...` — ...
 - `workflows status` — run #... `conclusion: failure` `failedSteps: [...]`
 - `gh run view --log` — `...` (20 строк)
@@ -87,6 +103,7 @@ permission:
 ## Жёсткие правила
 
 - Никаких `edit`/`bash` мутаций (`git push` только через `sync/run.sh --dry-run`, деплой только чтением). Не чини — только находишь.
+- pm2 только чтение (`list/status/describe/show/logs/jlist`); рестарт/стоп/удаление (`restart/reload/stop/delete/kill/start/monit`) — только человек на хосте.
 - Trello/GitHub/Dokploy — только через разрешённые `bash` скрипты и `mcp.dokploy`/`mcp.trello`, никаких `curl` к `api.github.com`/`api.trello.com` руками, никаких `id` из головы — только из вывода.
 - На `no_gh`/`no_dokploy` — верни подсказку и стоп, не импровизируй.
 - После отчёта — подскажи следующую команду для проверки фикса (`workflows status --branch dev --limit 1 --json` / `dokploy readLogs --tail 50`).
