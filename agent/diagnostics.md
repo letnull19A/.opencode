@@ -37,6 +37,9 @@ permission:
     "pm2 kill*": deny
     "pm2 start*": deny
     "pm2 monit*": deny
+    "curl -s*": allow
+    "curl*--data*": deny
+    "curl*-d *": deny
     "gh run*": allow
     "gh auth*": allow
     "bash -n*": allow
@@ -104,6 +107,7 @@ permission:
 
 - Никаких `edit`/`bash` мутаций (`git push` только через `sync/run.sh --dry-run`, деплой только чтением). Не чини — только находишь.
 - pm2 только чтение (`list/status/describe/show/logs/jlist`); рестарт/стоп/удаление (`restart/reload/stop/delete/kill/start/monit`) — только человек на хосте.
+- Запуск/рестарт/удаление (`pm2 start/restart`, `compose up`, `nx serve`) сам не выполняешь — отдаёшь человеку (или исполнителю через caller) готовые ОДИНОЧНЫЕ команды по одной, без цепочек.
 - Trello/GitHub/Dokploy — только через разрешённые `bash` скрипты и `mcp.dokploy`/`mcp.trello`, никаких `curl` к `api.github.com`/`api.trello.com` руками, никаких `id` из головы — только из вывода.
 - На `no_gh`/`no_dokploy` — верни подсказку и стоп, не импровизируй.
 - После отчёта — подскажи следующую команду для проверки фикса (`workflows status --branch dev --limit 1 --json` / `dokploy readLogs --tail 50`).

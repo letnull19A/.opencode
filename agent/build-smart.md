@@ -55,7 +55,17 @@ permission:
     "bun*": allow
     "node*": allow
     "nx*": allow
-    "pm2*": allow
+    "pm2 list*": allow
+    "pm2 status*": allow
+    "pm2 describe*": allow
+    "pm2 show*": allow
+    "pm2 logs*": allow
+    "pm2 jlist*": allow
+    "pm2 start*": allow
+    "pm2 restart*": allow
+    "pm2 reload*": allow
+    "pm2 stop*": allow
+    "curl -s*": allow
     "pip*": allow
     "poetry*": allow
     "python*": allow
@@ -81,6 +91,11 @@ permission:
     "rm -rf*": deny
     "npm publish*": deny
     "pnpm publish*": deny
+    "pm2 delete*": deny
+    "pm2 kill*": deny
+    "pm2 monit*": deny
+    "curl*--data*": deny
+    "curl*-d *": deny
   # worktree из scripts/worktree/run.sh лежит рядом с репо (`../<repo>-<name>`),
   # то есть вне Location — без этого каждый read/edit/shell в нём спрашивает права.
   external_directory:
@@ -98,6 +113,7 @@ permission:
 - **Reuse-first (поиск до edit):** до любых правок выполни 2–3 поиска: `bash .opencode/scripts/graphify/run.sh search --query "<имя>" --mode file --limit 10 --json` + `search --query "<символ>" --mode content --limit 10 --json` + при связях — `search --query "<a>" --mode both --limit 20 --json` (fallback — `grep` с `include` + `glob`). Читай `graphify` и `dump.sh` — понимай граф зависимостей, `Blocked by:` — не ломай порядок. Кандидат есть → переиспользуй на минимальном scope (local → feature shared → shared package), `add` превращается в `update`; абстракции «впрок» запрещены. В `done` приложи `reuse:{queries,found,reused|created_new_why}` + `review:{verdict,depth}`. Отсутствие `reuse` = нарушение (review `Q-reuse` fail). Escalation (devops/зависимости/downgrade) — выше по приоритету, reuse его не отменяет. Кандидат живёт во внешнем пакете из таблицы «Открыт к правкам», а гибкости не хватает → СТОП, код пакета в consumer не копируешь; верни caller'у `{"needs_delegation": true, "package": "<имя>", "repo": "<github>", "change": "<что поменять>"}`; пакета нет в таблице → wrap/compose в consumer, код пакета не трогаешь.
 - Декомпозируй внутри карточки на подшаги, пиши тесты через `@unit-test` если в `Критериях` есть.
 - После правки — `bash .opencode/scripts/check/run.sh --json` на изменённые файлы + `pnpm --filter ... build` если трогал `frontend/server`.
+- Shell: один вызов — одна простая команда, без `&&`/`||`/`;`. Цепочку разбиваешь на N последовательных одиночных вызовов; `cd` не используешь — каталог задаётся `workdir`/`worktree` от caller.
 - Перед `done` — guard пустого diff (fail-closed): если `git diff --quiet HEAD` (exit 0) И `git status --porcelain` пуст в рабочей копии (и worktree-пути если работаешь в нём) — НЕ зови `@review`, в `done` сразу `review:{verdict:SKIPPED,depth:none,reason:no-diff}`. Иначе обязательно `task` → `@review` (передай критерии карточки + список изменённых файлов). При `NEEDS_WORK` исправь пункты `for_executor` и повтори review (макс 2 повтора); в `done` приложи `review:{verdict,depth}`. Git-ошибка/недоступен — НЕ пропускай, зови review.
 - Делегируй `refactor` для `update/delete/decompose` по `module-develop`, сам — только `add`.
 - Если видишь что задача на самом деле простая (1 файл, без deps **и без зависимостей** **и без инфры**) — верни `{"can_downgrade": true}` чтобы `auto` отдал `build-fast` в следующий раз. Для dependency/devops-задач downgrade запрещён — оставайся smart/devops соответственно.

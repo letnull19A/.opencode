@@ -47,7 +47,17 @@ permission:
     "bun*": allow
     "node*": allow
     "nx*": allow
-    "pm2*": allow
+    "pm2 list*": allow
+    "pm2 status*": allow
+    "pm2 describe*": allow
+    "pm2 show*": allow
+    "pm2 logs*": allow
+    "pm2 jlist*": allow
+    "pm2 start*": allow
+    "pm2 restart*": allow
+    "pm2 reload*": allow
+    "pm2 stop*": allow
+    "curl -s*": allow
     "python3*": allow
     "make*": allow
     "gh pr merge*": deny
@@ -69,6 +79,11 @@ permission:
     "rm -rf*": deny
     "npm publish*": deny
     "pnpm publish*": deny
+    "pm2 delete*": deny
+    "pm2 kill*": deny
+    "pm2 monit*": deny
+    "curl*--data*": deny
+    "curl*-d *": deny
   question: allow
   task: allow
 ---
@@ -80,6 +95,7 @@ permission:
 - Читай только указанные `files` из `graphify`, не сканируй весь проект.
 - Пиши код сразу, без SPEC/PLAN, тесты — только если в `Критериях` указаны.
 - После правки — `bash .opencode/scripts/check/run.sh --json` только на изменённые файлы, не весь проект.
+- Shell: один вызов — одна простая команда, без `&&`/`||`/`;`. Цепочку разбиваешь на N последовательных одиночных вызовов; `cd` не используешь — каталог задаётся `workdir`/`worktree` от caller.
 - Перед `done` — guard пустого diff (fail-closed): если `git diff --quiet HEAD` (exit 0) И `git status --porcelain` пуст — НЕ зови `@review`, в `done` сразу `review:{verdict:SKIPPED,depth:none,reason:no-diff}`. Иначе обязательно `task` → `@review` (передай критерии карточки + список изменённых файлов). При `NEEDS_WORK` исправь пункты `for_executor` и повтори review (макс 2 повтора); в `done` приложи `review:{verdict,depth}`. Git-ошибка — НЕ пропускай, зови review.
 - **Reuse-first (поиск до edit):** до любого `edit` выполни 1–2 поиска: `bash .opencode/scripts/graphify/run.sh search --query "<имя>" --mode file --limit 10 --json` + `search --query "<символ>" --mode content --limit 10 --json` (fallback — `grep`/`glob`). Кандидат есть → переиспользуй (import/extend/compose), новое не создавай. В `done` приложи `reuse:{queries,found,reused|created_new_why}` рядом с `review:{verdict,depth}`. Отсутствие `reuse` в отчёте = нарушение (review `Q-reuse` fail). В `done` рядом приложи `failed_calls: [{cmd, why_chosen, why_failed}]`, нечего записать — пустой массив явно (`failed_calls: [] — все вызовы отработали`). Escalation-правила ниже — выше по приоритету, reuse их не отменяет. Кандидат из внешнего пакета (таблица «Открыт к правкам») + не хватает гибкости → СТОП, код в consumer не копируешь, верни `{"needs_delegation": true, "package": "<имя>", "repo": "<github>", "change": "<что поменять>"}`; пакета нет в таблице → только wrap/compose в consumer.
 - Не трогай `server/.speka`, не делай `git add/commit` — это делает `/commit`.

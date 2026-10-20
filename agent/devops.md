@@ -53,8 +53,25 @@ permission:
     "npm*": allow
     "bun*": allow
     "node*": allow
+    "nx*": allow
+    "pm2 list*": allow
+    "pm2 status*": allow
+    "pm2 describe*": allow
+    "pm2 show*": allow
+    "pm2 logs*": allow
+    "pm2 jlist*": allow
+    "pm2 start*": allow
+    "pm2 restart*": allow
+    "pm2 reload*": allow
+    "pm2 stop*": allow
+    "curl -s*": allow
     "python3*": allow
     "make*": allow
+    "pm2 delete*": deny
+    "pm2 kill*": deny
+    "pm2 monit*": deny
+    "curl*--data*": deny
+    "curl*-d *": deny
     "gh pr merge*": deny
     "gh pr*": deny
     "gh api*": deny
@@ -126,6 +143,8 @@ permission:
    `## Окружение (dev/prod)` → таблица `переменная | назначение | dev | prod | обязательна` (назначение — для чего переменная, 1 строка; сюда переезжают все пояснения из `.env`, в самом `.env` пояснений нет), команды `docker compose --env-file .env.dev up --build` / `docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.prod up -d --build`, список портов/сетей/volumes. Секреты — только имена, не значения. Новую переменную без строки в README не сдаёшь.
 
 ## Workflow (обязателен)
+
+Shell: один вызов — одна простая команда, без `&&`/`||`/`;`. Цепочку разбиваешь на N последовательных одиночных вызовов; `cd` не используешь — каталог задаётся `workdir`/`worktree` от caller.
 
 1. **Разведка (только чтение):** сначала оркестратор (см. раздел выше — без него дальше не идёшь), затем `glob Dockerfile* docker-compose*.yml compose*.yaml docker-stack*.yml k8s/**/*.yaml .env*` + `read` найденного (первые ~40 строк) + `git status --short`. Порты — только `bash .opencode/scripts/ports/run.sh <порты и диапазоны через запятую> [--json]` (вернёт pid/процесс/exe/адрес); прямой `ss` запрещён пермишенами. Не сканируй весь репо.
 2. **Image-first инвентаризация (обязательно до правок compose):** держи в голове ВСЕ compose-файлы и ВСЕ CI-workflows (`.github/workflows/*`, `scripts/cicd/*`), а не только тронутый файл. Рассуждай так: «происходит сборка всех сервисов → они публикуются → значит локально их собирать не надо; где написаны случаи с локальной сборкой; как деплоится приложение; как compose применяет опубликованные образы». Составь таблицу `сервис → CI-сборка/публикация есть? → image: в compose` — расхождение (собирается в CI, но в compose `build:` без `image:`) чинишь сразу, а не оставляешь «на потом». Правило: опубликованный образ применяется без исключений — 5 из 6 на `image:` значит и 6-й на `image:`, а не повод оставить `build:`.
