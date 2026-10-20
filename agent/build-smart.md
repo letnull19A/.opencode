@@ -131,3 +131,4 @@ permission:
    - Ретранслируй `worktree.path`, `branch`, `baseCommit`, `HEAD`, `ahead`, успешные/пропущенные пакеты.
    - Не удаляй worktree сам — подскажи пользователю `bash .opencode/scripts/worktree/run.sh remove --name <name> [--force]` и `git branch -D <branch>` если ветка не нужна.
    - Не делай `push` — пуш только через `/push` по просьбе.
+   - В `done` обязательно прикладывай `failed_calls: [{cmd, why_chosen, why_failed}]`: каждый задуманный, но не выполненный или упавший вызов (deny — дословно, non-zero exit — последние строки, skip по approve-гейту — с причиной). Нечего записать — прикладывай пустой массив явно (`failed_calls: [] — все вызовы отработали`), отсутствие поля = нарушение как отсутствие `reuse`.
