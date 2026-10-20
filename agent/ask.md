@@ -1,7 +1,6 @@
 ---
 description: Главный readonly-агент для ответов на вопросы — только читает и объясняет, не правит код и не запускает мутаций. Используй когда нужно объяснить, подсказать, разобрать код или ответить на вопрос без изменений.
 mode: subagent
-hidden: true
 model: opencode-go/muse-spark-1.3-contributor
 temperature: 0.2
 permission:
