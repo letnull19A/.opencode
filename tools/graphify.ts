@@ -1,4 +1,4 @@
-import path from "path"
+import { resolveScript } from "./_resolve.ts"
 export default {
   description: "Граф зависимостей файлов (для evol-plan complexity). Обёртка над scripts/graphify/run.sh — files/cards/deps/fan-out.",
   input: {
@@ -11,8 +11,7 @@ export default {
   },
   async execute(input: any, context: unknown) {
     const args = (input ?? {}) as { pattern?: string }
-    const root = (context as any).worktree ?? (context as any).directory ?? "."
-    const script = path.join(root, ".opencode/scripts/graphify/run.sh")
+    const { root, script } = resolveScript("graphify/run.sh", context)
     const parts = ["bash", script]
     if (args.pattern) parts.push(args.pattern)
     parts.push("--json")

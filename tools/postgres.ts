@@ -1,5 +1,3 @@
-import path from "path"
-
 function buildUrl(db?: string) {
   if (process.env.DATABASE_URL && !db) return process.env.DATABASE_URL
   const host = process.env.POSTGRES_HOST || "localhost"
@@ -69,7 +67,6 @@ export default {
   },
   async execute(input: any, context: unknown) {
     const args = (input ?? {}) as { db?: string; sql?: string; action?: string; table?: string; permissions?: string }
-    const root = (context as any).worktree ?? (context as any).directory ?? "."
     const url = buildUrl(args.db)
     const permissions = args.permissions || "read"
     const action = args.action || (args.sql ? "query" : "schema")

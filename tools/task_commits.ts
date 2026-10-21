@@ -1,4 +1,4 @@
-import path from "path"
+import { resolveScript } from "./_resolve.ts"
 export default {
   description: "Поиск коммитов по списку задач Trello (джойн задачи → коммиты с Trello:/Closes:). Unix-обёртка над scripts/task-commits/run.sh. stdout — JSON {tasks,commits,by_task,tasks_without_commits} для ИИ.",
   input: {
@@ -17,8 +17,7 @@ export default {
   },
   async execute(input: any, context: unknown) {
     const args = (input ?? {}) as { board?: string; tag?: string; all?: boolean; limit?: number; log_limit?: number; tasks_file?: string; tasks_json?: string }
-    const root = (context as any).worktree ?? (context as any).directory ?? "."
-    const script = path.join(root, ".opencode/scripts/task-commits/run.sh")
+    const { root, script } = resolveScript("task-commits/run.sh", context)
     const parts: string[] = ["bash", script]
     if (args.board) parts.push("--board", args.board)
     if (args.tag) parts.push("--tag", args.tag)

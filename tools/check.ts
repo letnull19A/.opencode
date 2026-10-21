@@ -1,4 +1,4 @@
-import path from "path"
+import { resolveScript } from "./_resolve.ts"
 export default {
   description: "Проверка изменённых файлов (lint/typecheck/build). Обёртка над scripts/check/run.sh --json (только на diff, не весь проект).",
   input: {
@@ -11,8 +11,7 @@ export default {
   },
   async execute(input: any, context: unknown) {
     const args = (input ?? {}) as { json?: boolean }
-    const root = (context as any).worktree ?? (context as any).directory ?? "."
-    const script = path.join(root, ".opencode/scripts/check/run.sh")
+    const { root, script } = resolveScript("check/run.sh", context)
     const parts = ["bash", script]
     if (args.json ?? true) parts.push("--json")
     const proc = Bun.spawn(parts, { cwd: root, stdout: "pipe", stderr: "pipe" })

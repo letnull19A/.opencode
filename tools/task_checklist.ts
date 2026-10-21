@@ -1,4 +1,4 @@
-import path from "path"
+import { resolveScript } from "./_resolve.ts"
 export default {
   description: "Чек-листы Trello-карточки (подзадачи). Обёртка над scripts/task-manager/checklist.sh. Действия: show/create/add-item/complete/complete-all/uncomplete.",
   input: {
@@ -22,8 +22,7 @@ export default {
   },
   async execute(input: any, context: unknown) {
     const args = (input ?? {}) as { id?: string; url?: string; card?: string; from_board?: string; list?: string; show?: boolean; create?: string; items?: string; add_item?: string; complete?: string; complete_all?: boolean; uncomplete?: string }
-    const root = (context as any).worktree ?? (context as any).directory ?? "."
-    const script = path.join(root, ".opencode/scripts/task-manager/checklist.sh")
+    const { root, script } = resolveScript("task-manager/checklist.sh", context)
     const parts = ["bash", script]
     if (args.id) parts.push("--id", args.id)
     if (args.url) parts.push("--url", args.url)

@@ -1,4 +1,4 @@
-import path from "path"
+import { resolveScript } from "./_resolve.ts"
 export default {
   description: "Инициализация тега проекта .devbox-project (NAME=owner/repo, BOARD/LIST дефолты). Обёртка над scripts/task-manager/init.sh — тег из git remote.",
   input: {
@@ -13,8 +13,7 @@ export default {
   },
   async execute(input: any, context: unknown) {
     const args = (input ?? {}) as { name?: string; force?: boolean; remote?: string }
-    const root = (context as any).worktree ?? (context as any).directory ?? "."
-    const script = path.join(root, ".opencode/scripts/task-manager/init.sh")
+    const { root, script } = resolveScript("task-manager/init.sh", context)
     const parts = ["bash", script]
     if (args.name) parts.push("--name", args.name)
     if (args.force) parts.push("--force")

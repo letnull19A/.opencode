@@ -1,4 +1,4 @@
-import path from "path"
+import { resolveScript } from "./_resolve.ts"
 
 export default {
   description: "Поиск связи коммитов ↔ Trello-карточек по трейлерам Trello:/Closes:. Обёртка над scripts/commit-trello/run.sh. Парсит git log без Trello API.",
@@ -15,8 +15,7 @@ export default {
   },
   async execute(input: any, context: unknown) {
     const args = (input ?? {}) as { card?: string; commit?: string; all?: boolean; limit?: number }
-    const root = (context as any).worktree ?? (context as any).directory ?? "."
-    const script = path.join(root, ".opencode/scripts/commit-trello/run.sh")
+    const { root, script } = resolveScript("commit-trello/run.sh", context)
     const parts = ["bash", script]
     if (args.card) parts.push("--card", args.card)
     if (args.commit) parts.push("--commit", args.commit)

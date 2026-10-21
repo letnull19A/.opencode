@@ -1,4 +1,4 @@
-import path from "path"
+import { resolveScript } from "./_resolve.ts"
 export default {
   description: "Read-only аудит Trello-доски (JSON для ИИ). Обёртка над scripts/task-manager/audit.sh. Вернёт {board,totals,lists,overdue,blocked} — просрочки и Blocked by: уже посчитаны скриптом.",
   input: {
@@ -14,8 +14,7 @@ export default {
   },
   async execute(input: any, context: unknown) {
     const args = (input ?? {}) as { board?: string; tag?: string; all?: boolean; limit?: number }
-    const root = (context as any).worktree ?? (context as any).directory ?? "."
-    const script = path.join(root, ".opencode/scripts/task-manager/audit.sh")
+    const { root, script } = resolveScript("task-manager/audit.sh", context)
     const parts = ["bash", script]
     if (args.board) parts.push("--board", args.board)
     if (args.tag) parts.push("--tag", args.tag)

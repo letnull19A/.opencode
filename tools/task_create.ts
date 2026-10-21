@@ -1,4 +1,4 @@
-import path from "path"
+import { resolveScript } from "./_resolve.ts"
 export default {
   description: "Создание Trello-карточки с меткой проекта NAME. Обёртка над scripts/task-manager/create.sh. Требует title, берёт BOARD/LIST из .devbox-project если не переданы.",
   input: {
@@ -16,8 +16,7 @@ export default {
   },
   async execute(input: any, context: unknown) {
     const args = (input ?? {}) as { title: string; board?: string; list?: string; desc?: string; color?: string; save_defaults?: boolean }
-    const root = (context as any).worktree ?? (context as any).directory ?? "."
-    const script = path.join(root, ".opencode/scripts/task-manager/create.sh")
+    const { root, script } = resolveScript("task-manager/create.sh", context)
     const parts = ["bash", script, "--title", args.title]
     if (args.board) parts.push("--board", args.board)
     if (args.list) parts.push("--list", args.list)

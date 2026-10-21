@@ -1,4 +1,4 @@
-import path from "path"
+import { resolveScript } from "./_resolve.ts"
 
 export default {
   description: "Git-изменения в LLM-формате: dirty tree + последние коммиты с Trello-трейлерами. Обёртка над scripts/git-changes/run.sh. Вернёт JSON {branch,dirty,log,by_card} — чтобы аудит не пропустил незакоммиченное.",
@@ -14,8 +14,7 @@ export default {
   },
   async execute(input: any, context: unknown) {
     const args = (input ?? {}) as { limit?: number; since?: string; branch?: string }
-    const root = (context as any).worktree ?? (context as any).directory ?? "."
-    const script = path.join(root, ".opencode/scripts/git-changes/run.sh")
+    const { root, script } = resolveScript("git-changes/run.sh", context)
     const parts = ["bash", script]
     if (args.limit !== undefined) parts.push("--limit", String(args.limit))
     if (args.since) parts.push("--since", args.since)

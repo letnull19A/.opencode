@@ -1,4 +1,4 @@
-import path from "path"
+import { resolveScript } from "./_resolve.ts"
 export default {
   description: "Перемещение Trello-карточки в другой лист/доску. Обёртка над scripts/task-manager/move.sh. Селектор карточки — ровно один: id/url/card.",
   input: {
@@ -18,8 +18,7 @@ export default {
   },
   async execute(input: any, context: unknown) {
     const args = (input ?? {}) as { id?: string; url?: string; card?: string; from_board?: string; list: string; to_board?: string; pos?: string; dry_run?: boolean }
-    const root = (context as any).worktree ?? (context as any).directory ?? "."
-    const script = path.join(root, ".opencode/scripts/task-manager/move.sh")
+    const { root, script } = resolveScript("task-manager/move.sh", context)
     const parts = ["bash", script]
     if (args.id) parts.push("--id", args.id)
     if (args.url) parts.push("--url", args.url)

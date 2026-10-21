@@ -1,4 +1,4 @@
-import path from "path"
+import { resolveScript } from "./_resolve.ts"
 export default {
   description: "Планировщик батчей Trello — лёгкие задачи пачкой + проверка has_fix. Обёртка над scripts/planner/run.sh → JSON {batches,singles,incomplete,heavy} для task-batch.",
   input: {
@@ -14,8 +14,7 @@ export default {
   },
   async execute(input: any, context: unknown) {
     const args = (input ?? {}) as { board?: string; tag?: string; all?: boolean; limit?: number }
-    const root = (context as any).worktree ?? (context as any).directory ?? "."
-    const script = path.join(root, ".opencode/scripts/planner/run.sh")
+    const { root, script } = resolveScript("planner/run.sh", context)
     const parts = ["bash", script]
     if (args.board) parts.push("--board", args.board)
     if (args.tag) parts.push("--tag", args.tag)

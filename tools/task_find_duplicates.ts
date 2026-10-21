@@ -1,4 +1,4 @@
-import path from "path"
+import { resolveScript } from "./_resolve.ts"
 export default {
   description: "Поиск семантических дублей Trello-задач. Обёртка над scripts/task-manager/find_duplicates.sh — возвращает {count, duplicates:[{name,shortUrl,similarity,reason}]}, threshold 0.65 для автоблока.",
   input: {
@@ -16,8 +16,7 @@ export default {
   },
   async execute(input: any, context: unknown) {
     const args = (input ?? {}) as { title?: string; desc?: string; board?: string; json?: boolean; threshold?: number; all?: boolean }
-    const root = (context as any).worktree ?? (context as any).directory ?? "."
-    const script = path.join(root, ".opencode/scripts/task-manager/find_duplicates.sh")
+    const { root, script } = resolveScript("task-manager/find_duplicates.sh", context)
     const parts = ["bash", script]
     if (args.title) parts.push("--title", args.title)
     if (args.desc) parts.push("--desc", args.desc)

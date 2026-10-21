@@ -1,4 +1,4 @@
-import path from "path"
+import { resolveScript } from "./_resolve.ts"
 export default {
   description: "Управление preview-тоннелями (ngrok/loca.lt) для dev-сервера. Обёртка над scripts/tunnel/run.sh — create/status/url/restart/kill. Возвращает PREVIEW_URL/PROVIDER/PUBLIC_IP.",
   input: {
@@ -16,8 +16,7 @@ export default {
   },
   async execute(input: any, context: unknown) {
     const args = (input ?? {}) as { action: string; port?: number; name?: string; ttl?: number; provider?: string; all?: boolean }
-    const root = (context as any).worktree ?? (context as any).directory ?? "."
-    const script = path.join(root, ".opencode/scripts/tunnel/run.sh")
+    const { root, script } = resolveScript("tunnel/run.sh", context)
     const parts = ["bash", script, args.action]
     if (args.port !== undefined) parts.push("--port", String(args.port))
     if (args.name) parts.push("--name", args.name)

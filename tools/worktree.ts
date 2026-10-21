@@ -1,4 +1,4 @@
-import path from "path"
+import { resolveScript } from "./_resolve.ts"
 export default {
   description: "Worktree-менеджер (параллельная разработка). Обёртка над scripts/worktree/run.sh: create/list/status/remove/done/prune. done — завершение жизненного цикла (PR-гейт MERGED → удалить worktree → подтянуть base).",
   input: {
@@ -19,8 +19,7 @@ export default {
   },
   async execute(input: any, context: unknown) {
     const args = (input ?? {}) as { command: string; name?: string; branch?: string; base?: string; from?: string; remote?: string; keep_branch?: boolean; json?: boolean; force?: boolean }
-    const root = (context as any).worktree ?? (context as any).directory ?? "."
-    const script = path.join(root, ".opencode/scripts/worktree/run.sh")
+    const { root, script } = resolveScript("worktree/run.sh", context)
     const parts = ["bash", script, args.command]
     if (args.name) parts.push("--name", args.name)
     if (args.branch) parts.push("--branch", args.branch)

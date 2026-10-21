@@ -1,4 +1,4 @@
-import path from "path"
+import { resolveScript } from "./_resolve.ts"
 export default {
   description: "Метки Trello (цветные label). Обёртка над scripts/task-manager/label.sh — создаёт/проверяет метку проекта.",
   input: {
@@ -13,8 +13,7 @@ export default {
   },
   async execute(input: any, context: unknown) {
     const args = (input ?? {}) as { board?: string; name?: string; color?: string }
-    const root = (context as any).worktree ?? (context as any).directory ?? "."
-    const script = path.join(root, ".opencode/scripts/task-manager/label.sh")
+    const { root, script } = resolveScript("task-manager/label.sh", context)
     const parts = ["bash", script]
     if (args.board) parts.push("--board", args.board)
     if (args.name) parts.push("--name", args.name)

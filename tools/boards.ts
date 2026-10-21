@@ -1,4 +1,4 @@
-import path from "path"
+import { resolveScript } from "./_resolve.ts"
 export default {
   description: "Список открытых Trello-досок (id + name). Обёртка над scripts/task-manager/boards.sh — только чтение, без гаданий.",
   input: {
@@ -8,8 +8,7 @@ export default {
     additionalProperties: false,
   },
   async execute(_input: unknown, context: unknown) {
-    const root = (context as any).worktree ?? (context as any).directory ?? "."
-    const script = path.join(root, ".opencode/scripts/task-manager/boards.sh")
+    const { root, script } = resolveScript("task-manager/boards.sh", context)
     const proc = Bun.spawn(["bash", script], { cwd: root, stdout: "pipe", stderr: "pipe" })
     const out = await new Response(proc.stdout).text()
     const err = await new Response(proc.stderr).text()
