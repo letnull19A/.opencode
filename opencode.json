@@ -758,6 +758,11 @@
         },
         {
           "action": "shell",
+          "resource": "bash .opencode/scripts/branch-ops/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
           "resource": "git status *",
           "effect": "allow"
         },
@@ -975,6 +980,11 @@
         },
         {
           "action": "shell",
+          "resource": "bash .opencode/scripts/branch-ops/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
           "resource": "git status *",
           "effect": "allow"
         },
@@ -1172,6 +1182,11 @@
         },
         {
           "action": "shell",
+          "resource": "bash .opencode/scripts/branch-ops/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
           "resource": "git status *",
           "effect": "allow"
         },
@@ -1310,6 +1325,11 @@
         {
           "action": "shell",
           "resource": "bash .opencode/scripts/pr/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "bash .opencode/scripts/branch-ops/*",
           "effect": "allow"
         },
         {

@@ -31,6 +31,16 @@ bash .opencode/scripts/git-recon/run.sh verify --expect-path <worktree.path> --e
 4. **Чистота:** `git status --porcelain` пуст. Грязное дерево — СТОП + сначала `/commit`; `stash` запрещён (`git-policy`), не припрятывать.
 5. Не прошёл любой пункт — отчёт родителю, никаких правок.
 
+## Первичный способ — scripts/branch-ops (вместо сырых git-операций)
+```bash
+bash .opencode/scripts/git-recon/run.sh verify --expect-path <worktree.path> --expect-branch <worktree.branch> --json
+bash .opencode/scripts/branch-ops/run.sh fetch --remote origin --json
+bash .opencode/scripts/branch-ops/run.sh preview --ref <ref> --json
+bash .opencode/scripts/branch-ops/run.sh collect --from <ref> --json
+bash .opencode/scripts/branch-ops/run.sh sync-base --onto <base> --json
+```
+- Порядок: verify → fetch → preview → collect/sync-base. Сырые fetch/cherry-pick/rebase руками запрещены — только скрипт (merge запрещён всегда и везде, без исключений на worktree).
+
 ## Работа внутри (как не сломать репозиторий)
 
 - Свой `path` не покидаешь: коммиты/правки только внутри `workdir`, checkout в main/dev и `worktree add/remove` руками запрещены — только скрипт.

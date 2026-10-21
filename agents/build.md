@@ -10,6 +10,7 @@ permissions:
   - {action: shell, resource: "bash .opencode/scripts/git-recon/*", effect: allow}
   - {action: shell, resource: "bash .opencode/scripts/graphify/*", effect: allow}
   - {action: shell, resource: "bash .opencode/scripts/pr/*", effect: allow}
+  - {action: shell, resource: "bash .opencode/scripts/branch-ops/*", effect: allow}
   - {action: shell, resource: "git status *", effect: allow}
   - {action: shell, resource: "git diff *", effect: allow}
   - {action: shell, resource: "bun*", effect: allow}
