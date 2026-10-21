@@ -7,41 +7,39 @@
  * task-manager, worktree, tunnel, postgres) молча исчезают из каталога.
  *
  * Что делает: берёт определения из `tools/*.ts` (V2-форма: `{description,
- * input, execute}` где input — JSON Schema, execute возвращает `{content}`)
- * и регистрирует их как V2 ToolInfo:
- *   - `input` (JSON Schema) — регистрируется как есть;
- *   - `execute(input, ctx)` — результат оборачивается в `{content}` через toContent;
- *   - контекст (`worktree`/`directory`) собирается из вызова,
- *     при отсутствии — из сессии (`ctx.session.get`) и как последний рубеж из
- *     `ctx.location.directory` (канонический checkout).
- *
- * Определения в `tools/` остаются единственным источником правды.
+ * input(JSON Schema), execute}`) и регистрирует как есть через
+ * `ctx.tool.transform` после validate-execute (`adapt`: `execute` обязан
+ * быть функцией, иначе throw — тула не будет в каталоге).
+ * Резолв корня скриптов и раскладки (consumer `.opencode/` vs сам пак)
+ * живёт в `tools/_resolve.ts`: `resolveScript(scriptRel, context)` берёт
+ * `worktree/directory/cwd` из контекста вызова и ищет строго
+ * `<root>/.opencode/scripts/<rel>`, затем `<root>/scripts/<rel>` —
+ * без тихих фолбэков, иначе throw.
+ * `{name}` = имя файла в `tools/`.
  */
-import { z } from "zod"
-
-import boards from "../../tools/boards.js"
-import check from "../../tools/check.js"
-import classify_build from "../../tools/classify_build.js"
-import classify_plan from "../../tools/classify_plan.js"
-import classify_task from "../../tools/classify_task.js"
-import commit_trello from "../../tools/commit_trello.js"
-import git_changes from "../../tools/git_changes.js"
-import graphify from "../../tools/graphify.js"
-import lists from "../../tools/lists.js"
-import planner from "../../tools/planner.js"
-import postgres from "../../tools/postgres.js"
-import task_audit from "../../tools/task_audit.js"
-import task_checklist from "../../tools/task_checklist.js"
-import task_commits from "../../tools/task_commits.js"
-import task_create from "../../tools/task_create.js"
-import task_dump from "../../tools/task_dump.js"
-import task_find_duplicates from "../../tools/task_find_duplicates.js"
-import task_init from "../../tools/task_init.js"
-import task_label from "../../tools/task_label.js"
-import task_move from "../../tools/task_move.js"
-import tunnel from "../../tools/tunnel.js"
-import worktree from "../../tools/worktree.js"
-import workflow from "../../tools/workflow.js"
+import boards from "../../tools/boards.ts"
+import check from "../../tools/check.ts"
+import classify_build from "../../tools/classify_build.ts"
+import classify_plan from "../../tools/classify_plan.ts"
+import classify_task from "../../tools/classify_task.ts"
+import commit_trello from "../../tools/commit_trello.ts"
+import git_changes from "../../tools/git_changes.ts"
+import graphify from "../../tools/graphify.ts"
+import lists from "../../tools/lists.ts"
+import planner from "../../tools/planner.ts"
+import postgres from "../../tools/postgres.ts"
+import task_audit from "../../tools/task_audit.ts"
+import task_checklist from "../../tools/task_checklist.ts"
+import task_commits from "../../tools/task_commits.ts"
+import task_create from "../../tools/task_create.ts"
+import task_dump from "../../tools/task_dump.ts"
+import task_find_duplicates from "../../tools/task_find_duplicates.ts"
+import task_init from "../../tools/task_init.ts"
+import task_label from "../../tools/task_label.ts"
+import task_move from "../../tools/task_move.ts"
+import tunnel from "../../tools/tunnel.ts"
+import worktree from "../../tools/worktree.ts"
+import workflow from "../../tools/workflow.ts"
 
 /** Имя тула = имя файла в `tools/` — на них ссылаются промпты агентов и `permissions`. */
 const TOOLS: Record<string, unknown> = {
@@ -70,94 +68,17 @@ const TOOLS: Record<string, unknown> = {
   workflow,
 }
 
-type Schema = { safeParse?: (value: unknown) => { success: boolean }; description?: string }
-
-function stripInternals(schema: unknown): unknown {
-  if (Array.isArray(schema)) return schema.map(stripInternals)
-  if (!schema || typeof schema !== "object") return schema
-  const out: Record<string, unknown> = {}
-  for (const [key, value] of Object.entries(schema as Record<string, unknown>)) {
-    if (key === "$schema") continue
-    out[key] = stripInternals(value)
-  }
-  return out
-}
-
-/** JSON Schema входа тула уже в V2-форме; хелпер оставлен для обратной совместимости переходного периода. */
-function toInputSchema(args: Record<string, Schema> = {}): Record<string, unknown> {
-  const properties: Record<string, unknown> = {}
-  const required: string[] = []
-  for (const [key, schema] of Object.entries(args)) {
-    properties[key] = stripInternals(z.toJSONSchema(schema, { io: "input" }))
-    if (schema?.safeParse && !schema.safeParse(undefined).success) required.push(key)
-  }
-  return { type: "object", properties, required, additionalProperties: false }
-}
-
-/** Результат тула → V2 `{content}`. */
-function toContent(result: unknown): { content: string | unknown[] } {
-  if (typeof result === "string") return { content: result }
-  if (Array.isArray(result)) return { content: result }
-  if (result && typeof result === "object") {
-    const content = (result as { content?: unknown }).content
-    if (typeof content === "string" || Array.isArray(content)) return { content: content as string }
-    return { content: JSON.stringify(result, null, 2) }
-  }
-  return { content: String(result ?? "") }
-}
-
-type V2ToolContext = {
-  worktree?: string
-  directory?: string
-  cwd?: string
-  sessionID?: string
-  signal?: AbortSignal
-}
-
-/** Корень проекта для скриптов пака: контекст вызова → сессия → канонический checkout. */
-async function resolveRoot(ctx: any, context: V2ToolContext | undefined): Promise<string> {
-  const direct = context?.worktree ?? context?.directory ?? context?.cwd
-  if (typeof direct === "string" && direct) return direct
-  const sessionID = context?.sessionID
-  if (sessionID) {
-    try {
-      const session = await ctx.session.get({ sessionID })
-      const dir = session?.location?.directory
-      if (typeof dir === "string" && dir) return dir
-    } catch {
-      // сессия недоступна — падаем на канонический checkout
-    }
-  }
-  return ctx.location.directory
-}
-
 function adapt(name: string, definition: any, ctx: any) {
   if (typeof definition?.execute !== "function") {
     throw new Error(`[pack-tools] ${name}: определение тула без execute()`)
   }
-  // V2-форма уже (input вместо args) — регистрируем как есть.
-  if (definition.input && !definition.args) return { name, ...definition }
-
-  return {
-    name,
-    description: definition.description ?? `Пак-тул ${name}`,
-    input: toInputSchema(definition.args),
-    async execute(input: unknown, context: V2ToolContext) {
-      const root = await resolveRoot(ctx, context)
-      const legacyContext = {
-        ...context,
-        worktree: root,
-        directory: root,
-        abort: () => context?.signal,
-      }
-      return toContent(await definition.execute(input ?? {}, legacyContext))
-    },
-  }
+  return { name, ...definition }
 }
 
 export default {
   id: "pack-tools",
   async setup(ctx: any) {
+    if (!ctx?.tool || typeof ctx.tool.transform !== "function") throw new Error("[pack-tools] ctx.tool.transform недоступен — тулы не зарегистрированы")
     await ctx.tool.transform((editor: any) => {
       for (const [name, definition] of Object.entries(TOOLS)) {
         editor.add(adapt(name, definition, ctx))
@@ -166,10 +87,10 @@ export default {
 
     const registered = Object.keys(TOOLS)
     console.log(`[pack-tools] registered ${registered.length}: ${registered.join(", ")}`)
-    if (process.env.PACK_TOOLS_DEBUG === "1") {
+    if (globalThis.process?.env?.PACK_TOOLS_DEBUG === "1") {
       const snapshot = await ctx.tool.list()
       const payload = snapshot.map((entry: any) => ({ id: entry.id, name: entry.name }))
-      await Bun.write("/tmp/pack-tools-registered.json", JSON.stringify(payload, null, 2))
+      if (typeof Bun !== "undefined") await Bun.write("/tmp/pack-tools-registered.json", JSON.stringify(payload, null, 2))
       console.log(`[pack-tools] debug snapshot: ${JSON.stringify(payload)}`)
     }
   },
