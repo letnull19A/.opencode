@@ -753,6 +753,11 @@
         },
         {
           "action": "shell",
+          "resource": "bash .opencode/scripts/pr/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
           "resource": "git status *",
           "effect": "allow"
         },
@@ -965,6 +970,11 @@
         },
         {
           "action": "shell",
+          "resource": "bash .opencode/scripts/pr/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
           "resource": "git status *",
           "effect": "allow"
         },
@@ -1157,6 +1167,11 @@
         },
         {
           "action": "shell",
+          "resource": "bash .opencode/scripts/pr/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
           "resource": "git status *",
           "effect": "allow"
         },
@@ -1290,6 +1305,11 @@
         {
           "action": "shell",
           "resource": "bash .opencode/scripts/git-recon/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "bash .opencode/scripts/pr/*",
           "effect": "allow"
         },
         {

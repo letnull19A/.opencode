@@ -8,6 +8,7 @@ permissions:
   - {action: shell, resource: "*", effect: ask}
   - {action: shell, resource: "bash .opencode/scripts/check/*", effect: allow}
   - {action: shell, resource: "bash .opencode/scripts/git-recon/*", effect: allow}
+  - {action: shell, resource: "bash .opencode/scripts/pr/*", effect: allow}
   - {action: shell, resource: "docker compose config *", effect: allow}
   - {action: shell, resource: "docker compose ps *", effect: allow}
   - {action: shell, resource: "docker compose logs *", effect: allow}
