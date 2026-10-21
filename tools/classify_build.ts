@@ -1,5 +1,5 @@
 export default {
-  description: "Классификатор build+preview: выбирает build-fast (low), build-smart (medium/high), devops (инфра/деплои) или build (default fallback) и needs_tunnel (нужен ли preview-тоннель). Принимает complexity/risk от evol-plan или сырые поля задачи. Применяет детерминированные правила, затем Jev (systemone choice) → fallback на эвристику → build по умолчанию. Возвращает JSON {builder, confidence, reason, provider, needs_tunnel, tunnel_reason}.",
+  description: "Классификатор build+preview: выбирает build-fast (low), build-smart (medium/high), devops (инфра/деплои) или build (default fallback) и needs_tunnel (нужен ли preview-тоннель). Принимает complexity/risk от evol-plan или сырые поля задачи. Применяет детерминированные правила, затем Jev (systemone choice) → fallback на эвристику → build по умолчанию. Возвращает JSON {builder, confidence, reason, provider, needs_tunnel, tunnel_reason}. Требует OPENCODE_API_KEY (fallback JEV_API_KEY) для Jev; без ключа — эвристика + поле jev_warning с подсказкой по настройке.",
   input: {
     type: "object",
     properties: {
@@ -125,6 +125,13 @@ export default {
     // ——— Jev (System One choice) — после детерминированных правил, до эвристики ———
     // Не-enum/unknown/conf<0.5/не-ok/исключение — молча дальше в эвристику
     const sysKey = process.env.OPENCODE_API_KEY || process.env.JEV_API_KEY;
+    let jevError: string | null = null;
+    const jevMissingKey = !sysKey;
+    const JEV_SETUP_HINT = "Настрой Jev: /connect в TUI (OpenCode pay-as-you-go) либо export OPENCODE_API_KEY=<ключ из консоли> (fallback JEV_API_KEY). Без ключа классификация всегда идёт через эвристику.";
+    const withJevWarn = (o: Record<string, unknown>) =>
+      jevMissingKey
+        ? { ...o, jev_warning: `Jev (jev-1.13-free) пропущен: нет OPENCODE_API_KEY/JEV_API_KEY в окружении — использована эвристика. ${JEV_SETUP_HINT}` }
+        : (jevError ? { ...o, jev_warning: `Jev упал (${jevError}) — использована эвристика. ${JEV_SETUP_HINT}` } : o);
     if (sysKey) { try {
       const state = [`Задача: ${input.title}`, input.desc, `Сложность: ${input.level} (score ${input.score}), файлов: ${input.files}, зависимостей: ${input.deps}, тип: ${input.type}, unknowns: ${input.unknowns}, риск: ${input.risk_level} (${input.risk_score}/8)`].filter(s => s && s.trim()).join("\n");
       const res = await fetch("https://opencode.ai/inference/systemone/v1/systemone", { method:"POST", headers:{"Content-Type":"application/json", Authorization:`Bearer ${sysKey}`}, body: JSON.stringify({ model:"jev-1.13-free", state, questions:{
@@ -141,15 +148,15 @@ export default {
           const t = j.answers && j.answers.needs_tunnel;
           const tun = (t && typeof t.noul === "number") ? t.noul >= 0.5 : needsTunnelHeuristic.needs;
           if (conf >= 0.5) return { content: JSON.stringify({builder:b.choice, confidence:conf, reason:"jev choice "+b.choice+" ("+conf+")", provider:"jev", needs_tunnel:tun, tunnel_reason: tun ? "jev: preview запрошен" : needsTunnelHeuristic.reason, input}, null, 2) }; } }
-    } catch {} }
+    } catch (e) { jevError = e instanceof Error ? e.message : String(e); } }
 
     if (isInsufficient) {
-      return { content: JSON.stringify({ builder: "build", confidence: 0.4, reason: "недостаточно данных для классификации — fallback к build по умолчанию", provider: "heuristic", needs_tunnel: needsTunnelHeuristic.needs, tunnel_reason: needsTunnelHeuristic.reason, input }, null, 2) }
+      return { content: JSON.stringify(withJevWarn({ builder: "build", confidence: 0.4, reason: "недостаточно данных для классификации — fallback к build по умолчанию", provider: "heuristic", needs_tunnel: needsTunnelHeuristic.needs, tunnel_reason: needsTunnelHeuristic.reason, input }), null, 2) }
     }
 
     const isHighRisk = input.risk_level === "high" || (input.risk_score ?? 0) >= 6
     if (isHighRisk) {
-      return { content: JSON.stringify({ builder: "build-smart", confidence: 0.92, reason: "risk high → spec-first", provider: "heuristic", needs_tunnel: needsTunnelHeuristic.needs, tunnel_reason: needsTunnelHeuristic.reason, input }, null, 2) }
+      return { content: JSON.stringify(withJevWarn({ builder: "build-smart", confidence: 0.92, reason: "risk high → spec-first", provider: "heuristic", needs_tunnel: needsTunnelHeuristic.needs, tunnel_reason: needsTunnelHeuristic.reason, input }), null, 2) }
     }
     // trivial gate: мелочь любого типа (add/update/delete) — не только создание.
     // Раньше требовался строго type=add, поэтому «поменяй строку» (update) всегда
@@ -162,22 +169,22 @@ export default {
       (input.unknowns ?? 0) <= 1 &&
       ["add", "update", "delete"].includes(input.type)
     if (isTrivial) {
-      return { content: JSON.stringify({ builder: "build-fast", confidence: 0.9, reason: "trivial: low/low, ≤2 files, add/update/delete, no deps, certain", provider: "heuristic", needs_tunnel: needsTunnelHeuristic.needs, tunnel_reason: needsTunnelHeuristic.reason, input }, null, 2) }
+      return { content: JSON.stringify(withJevWarn({ builder: "build-fast", confidence: 0.9, reason: "trivial: low/low, ≤2 files, add/update/delete, no deps, certain", provider: "heuristic", needs_tunnel: needsTunnelHeuristic.needs, tunnel_reason: needsTunnelHeuristic.reason, input }), null, 2) }
     }
     // borderline: low на 3 файлах — в пределах допуска fast (он сам эскалирует при >3),
     // но с hint проверить скоуп; medium как раньше.
     if (input.level === "low" && input.risk_level === "low" && (input.files ?? 0) === 3 && (input.deps ?? 0) === 0 && (input.unknowns ?? 0) <= 1) {
-      return { content: JSON.stringify({ builder: "build-fast", confidence: 0.65, reason: "borderline low on 3 files → fast with hint check scope", provider: "heuristic", needs_tunnel: needsTunnelHeuristic.needs, tunnel_reason: needsTunnelHeuristic.reason, input, hint: "быстро, но проверь что затронуто ровно 3 файла" }, null, 2) }
+      return { content: JSON.stringify(withJevWarn({ builder: "build-fast", confidence: 0.65, reason: "borderline low on 3 files → fast with hint check scope", provider: "heuristic", needs_tunnel: needsTunnelHeuristic.needs, tunnel_reason: needsTunnelHeuristic.reason, input, hint: "быстро, но проверь что затронуто ровно 3 файла" }), null, 2) }
     }
     if (input.level === "medium" && input.risk_level === "low" && (input.files ?? 0) <= 2) {
       if ((input.unknowns ?? 0) >= 2) {
-        return { content: JSON.stringify({ builder: "build", confidence: 0.45, reason: "borderline medium с высокой неопределённостью — fallback к build", provider: "heuristic", needs_tunnel: needsTunnelHeuristic.needs, tunnel_reason: needsTunnelHeuristic.reason, input }, null, 2) }
+        return { content: JSON.stringify(withJevWarn({ builder: "build", confidence: 0.45, reason: "borderline medium с высокой неопределённостью — fallback к build", provider: "heuristic", needs_tunnel: needsTunnelHeuristic.needs, tunnel_reason: needsTunnelHeuristic.reason, input }), null, 2) }
       }
-      return { content: JSON.stringify({ builder: "build-fast", confidence: 0.6, reason: "borderline medium → fast with hint check API", provider: "heuristic", needs_tunnel: needsTunnelHeuristic.needs, tunnel_reason: needsTunnelHeuristic.reason, input, hint: "быстро, но проверь API" }, null, 2) }
+      return { content: JSON.stringify(withJevWarn({ builder: "build-fast", confidence: 0.6, reason: "borderline medium → fast with hint check API", provider: "heuristic", needs_tunnel: needsTunnelHeuristic.needs, tunnel_reason: needsTunnelHeuristic.reason, input, hint: "быстро, но проверь API" }), null, 2) }
     }
     if ((input.unknowns ?? 0) >= 3) {
-      return { content: JSON.stringify({ builder: "build", confidence: 0.4, reason: "высокая неопределённость — fallback к build по умолчанию", provider: "heuristic", needs_tunnel: needsTunnelHeuristic.needs, tunnel_reason: needsTunnelHeuristic.reason, input }, null, 2) }
+      return { content: JSON.stringify(withJevWarn({ builder: "build", confidence: 0.4, reason: "высокая неопределённость — fallback к build по умолчанию", provider: "heuristic", needs_tunnel: needsTunnelHeuristic.needs, tunnel_reason: needsTunnelHeuristic.reason, input }), null, 2) }
     }
-    return { content: JSON.stringify({ builder: "build-smart", confidence: 0.75, reason: "medium/high complexity or deps/type update/decompose", provider: "heuristic", needs_tunnel: needsTunnelHeuristic.needs, tunnel_reason: needsTunnelHeuristic.reason, input }, null, 2) }
+    return { content: JSON.stringify(withJevWarn({ builder: "build-smart", confidence: 0.75, reason: "medium/high complexity or deps/type update/decompose", provider: "heuristic", needs_tunnel: needsTunnelHeuristic.needs, tunnel_reason: needsTunnelHeuristic.reason, input }), null, 2) }
   },
 }
