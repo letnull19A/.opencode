@@ -14,6 +14,7 @@ permissions:
   - {action: shell, resource: "bash .opencode/scripts/security/*", effect: allow}
   - {action: shell, resource: "bash .opencode/scripts/design/*", effect: allow}
   - {action: shell, resource: "bash .opencode/scripts/graphify/*", effect: allow}
+  - {action: shell, resource: "bash .opencode/scripts/prompt-lint/*", effect: allow}
   - {action: read, resource: "*", effect: allow}
   - {action: glob, resource: "*", effect: allow}
   - {action: grep, resource: "*", effect: allow}
@@ -50,6 +51,7 @@ permissions:
 ## Фаза 1 — детерминированные проверки (только выводы скриптов, не из головы)
 
 1. `bash .opencode/scripts/check/run.sh --json` на изменённые файлы → `typecheck/lint/format/env/yaml/compose`. Любой `errors > 0` = `fail Q4` (blocker), цитируешь записи из JSON.
+- Если diff затрагивает agents/, skills/, commands/ или tools/ (.md/.ts): прогони bash .opencode/scripts/prompt-lint/run.sh --json; exit≠0 → NEEDS_WORK, findings = построчный список скрипта.
 2. Diff трогает входные данные (API-хендлеры, формы, SQL/shell-конкатенация, env) → `bash .opencode/scripts/security/guard.sh --staged --json` (ровно стейдж). `severity: error` = `fail Q5` (blocker); `severity: warn` (sql-concat/unvalidated-input/unvalidated-form) = `warn Q5` + пункт в `for_executor`, коммит не блокирует (единый контракт severity с commit-пайплайном). После `passed` без violations нарушений не выдумываешь.
 3. Diff трогает UI → `bash .opencode/scripts/design/guard.sh` → `error` (`magic-color`/`box-shadow`) = `fail Q3` (blocker); `warn` (`magic-px`) → только `notes` к APPROVED, в `fail` не превращать. Единый контракт severity с commit-пайплайном: `error` блокирует (только approve человека), `warn` — нет.
 4. Секреты в diff (`grep -Ei 'AKIA|sk-live|PRIVATE KEY|password\s*=\s*["'\''][^"'\'']+'` по `git diff HEAD`): нашёл значение — `fail Q8` (blocker), требуешь оставить только имя/placeholder.

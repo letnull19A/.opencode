@@ -2942,6 +2942,11 @@
           "effect": "allow"
         },
         {
+          "action": "shell",
+          "resource": "bash .opencode/scripts/prompt-lint/*",
+          "effect": "allow"
+        },
+        {
           "action": "read",
           "resource": "*",
           "effect": "allow"

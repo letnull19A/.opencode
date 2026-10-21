@@ -1,0 +1,7 @@
+branch -a | head
+A && B
+составные `&&/;/|`
+без `&&` / `||` / `;` / `|`
+Запрещены `&&`
+Сырые `gh pr view/list`
+inputs/vars/secrets || fallback
