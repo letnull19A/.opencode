@@ -18,8 +18,8 @@ export default {
     required: [],
     additionalProperties: false,
   },
-  async execute(input: any, _context: unknown) {
-    const args = (input ?? {}) as { title?: string; desc?: string; level?: string; score?: number; files?: number; deps?: number; type?: string; unknowns?: number; risk_level?: string; risk_score?: number; risk_factors?: string[] }
+  async execute(rawInput: any, _context: unknown) {
+    const args = (rawInput ?? {}) as { title?: string; desc?: string; level?: string; score?: number; files?: number; deps?: number; type?: string; unknowns?: number; risk_level?: string; risk_score?: number; risk_factors?: string[] }
     const hasTitle = !!(args.title && args.title.trim())
     const hasDesc = !!(args.desc && args.desc.trim())
     const hasLevel = !!args.level
