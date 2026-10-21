@@ -46,9 +46,10 @@ bash .opencode/scripts/docker-pack/scaffold.sh --stack go --context . --dockerfi
 
 ### 4. Проверка (делает @docker-pack)
 ```bash
-cat Dockerfile | head -60
-cat .dockerignore | head -30
-docker build -t test:local --dry-run 2>&1 | head || docker build -t test:local . 2>&1 | tail -20  # sanity если docker доступен, иначе skip
+cat Dockerfile
+cat .dockerignore
+docker build -t test:local --dry-run  # sanity если docker доступен, иначе skip (отдельный вызов)
+docker build -t test:local .  # альтернатива без dry-run, отдельным вызовом
 git status --short
 ```
 

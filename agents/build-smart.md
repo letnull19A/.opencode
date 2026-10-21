@@ -82,7 +82,10 @@ permissions:
 
 3. **Верификация после каждого шага:**
    - После каждого `up/install` — `bash .opencode/scripts/check/run.sh --json` на изменённые файлы + `pnpm --filter ... build` / `pip check` / `go test ./...` / `cargo check` по стеку + тесты если есть в `Критериях`.
-   - Успех → атомарный коммит: `git add <lock+манифест> && git commit -m "chore(deps): bump <pkg> to <ver>"` (Conventional Commits, без push). Коммить lock-файл вместе с манифестом.
+   - Успех → атомарный коммит отдельными вызовами (Conventional Commits, без push), lock-файл вместе с манифестом:
+     1. `git add <lock+манифест>`
+     2. `bash .opencode/scripts/check/run.sh --json` (guard перед коммитом)
+     3. `git commit -m "chore(deps): bump <pkg> to <ver>"`
     - Провал (check/build/tests падают) → точечный откат **только** этого шага и только вперёд: `git revert --no-edit HEAD` (если успел закоммитить этот шаг) или `git reset --hard HEAD` (только сброс незакоммиченного, без цели). `git reset --hard <commit>` запрещён политикой — проверь `git rev-list --count <baseCommit>..HEAD` ≥ 0. Залогируй причину, пропусти зависимость или попробуй другую версию, продолжай к следующей.
 
 4. **Forward-Only гарантия (критично):**

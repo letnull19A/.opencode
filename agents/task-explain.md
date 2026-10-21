@@ -17,7 +17,7 @@ permissions:
 Вход: текст вопроса + опционально `card` (точное имя/URL/SHORT) или `board`.
 
 Workflow:
-1. Резолв карточки: если в вопросе есть `https://trello.com/c/<SHORT>` или `card:"<имя>"` — бери его. Иначе: `bash .opencode/scripts/task-manager/dump.sh --board "<board>" --json 2>&1 | head -100` или `audit.sh --board "<board>" --json` — найди по подстроке из вопроса (title содержит ключевое слово). Если не нашёл — верни `not_found` с подсказкой доступных имён.
+1. Резолв карточки: если в вопросе есть `https://trello.com/c/<SHORT>` или `card:"<имя>"` — бери его. Иначе отдельными вызовами: `bash .opencode/scripts/task-manager/dump.sh --board "<board>" --json` или `bash .opencode/scripts/task-manager/audit.sh --board "<board>" --json` — найди по подстроке из вопроса (title содержит ключевое слово, вывод обрежется авто-транкейтом). Если не нашёл — верни `not_found` с подсказкой доступных имён.
 2. Чтение: `bash .opencode/scripts/task-manager/dump.sh --card "<имя>" --json` или `checklist.sh --card "<имя>" --show` для чеклистов; `task-commits/run.sh --tasks-json '{"shortUrl":"https://trello.com/c/<SHORT>"}'` для связи с коммитами.
 3. Ответ: выдай в чат:
    - Заголовок + URL + лист + метки

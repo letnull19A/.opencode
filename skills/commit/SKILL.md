@@ -9,12 +9,12 @@ description: Create atomic Conventional Commits from a dirty git tree — split 
 стандартные `git add <paths>` / `git commit` — никакого пуша
 (пуш делает только `/push`).
 
-**Делегирование:** для написания очень кратких сообщений и разбиения на атомарные коммиты делегируй сабагенту `commit-writer` через `subagent` tool — передай `git status`/`git diff --stat` и подсказку `$ARGUMENTS`. Сабагент вернёт `{"commits": [...]}` и сам сделает `git add`/`git commit` по группам. Ты только ретранслируй его итог.
+**Делегирование:** для написания очень кратких сообщений и разбиения на атомарные коммиты делегируй сабагенту `commit-writer` через `subagent` tool — передай `git status --short`/`git diff --stat` и подсказку `$ARGUMENTS`. Сабагент вернёт `{"commits": [...]}` и сам сделает `git add`/`git commit` по группам. Ты только ретранслируй его итог.
 
 ## Workflow
 
 1. Осмотри состояние (только чтение, ничего не стейджишь):
-    `bash .opencode/scripts/git-changes/run.sh --limit 20 --json` — единый JSON: `branch` + `dirty.porcelain/diff_stat` + `log.commits[].trello/closes` + `by_card`. Дополнительно при нужде `git diff` по частям. Если скрипт недоступен — фолбэк `git status --short --branch`, `git diff --stat`, `git log --oneline -10`.
+    `bash .opencode/scripts/git-changes/run.sh --limit 20 --json` — единый JSON: `branch` + `dirty.porcelain/diff_stat` + `log.commits[].trello/closes` + `by_card`. Дополнительно при нужде `git diff --stat` по частям. Если скрипт недоступен — фолбэк `git status --short --branch`, `git diff --stat`, `git log --oneline -10`.
 2. Сгруппируй изменения по атомарному принципу — одна группа = один
    логический интент (см. правила ниже). Составь план: для каждой группы
    список файлов + тип + сообщение. Явная просьба пользователя
@@ -71,7 +71,7 @@ description: Create atomic Conventional Commits from a dirty git tree — split 
   до ~72 символов: `add atomic commit skill`, а не `added...` / `Adds...`.
 - Тело (`-m` второй раз) — только если «зачем» неочевидно из subject.
   Футеры `BREAKING CHANGE:` / `Refs #123` — по необходимости.
-- Язык сообщений — английский (как `git log` этого репозитория);
+- Язык сообщений — английский (как `git log --oneline` этого репозитория);
   общение с пользователем — на языке пользователя.
 
 ### Trello-трейлеры — обязательны для каждой задачи (1:1, машинно-парсибельные)

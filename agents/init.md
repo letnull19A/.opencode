@@ -25,10 +25,11 @@ permissions:
 - `COMMENTS_DETAILS` вне `0..9` = жёсткая ошибка скрипта (стоп); чинится через `init.sh --comments-details N --force`.
 
 ### Фаза 1 — Разведка (ты, только чтение)
-- `cat .devbox 2>&1 | head -20` — есть ли уже файл/профиль?
-- `git remote -v 2>&1 | head -10` — есть ли origin?
-- `ls apps 2>&1 | head -20; glob apps/*/package.json apps/*/Dockerfile` — монорепо?
-- `read package.json 2>&1 | head -10` — стек (frontend/backend hint)
+- `cat .devbox` — есть ли уже файл/профиль?
+- `git remote -v` — есть ли origin?
+- `shell: ls apps` — монорепо? (каталог есть?)
+- `glob apps/*/package.json apps/*/Dockerfile` — монорепо? (пакеты внутри, отдельный вызов, не shell-цепочка)
+- `read package.json` — стек (frontend/backend hint)
 - Не трогай `edit`/`init.sh` сам.
 
 ### Фаза 2 — Опрос (ты, через `question` tool, по одному вопросу)

@@ -18,7 +18,7 @@ description: Управляет git worktree для параллельной р�
    - `--from` — база (по умолчанию центральная `dev`: `dev → origin/dev → develop → origin/develop`; нет обеих — скрипт создаст локальный `dev` от `main`, без push)
    - Центральная ветка — всегда `dev`/`develop`, работа идёт только на ней; `main` агенты не трогают (редкие релизы), PR в `main` создаёт только пользователь
    - Скрипт сам: `git worktree add` + `submodule update --init` (подтянет `.opencode`)
-   - Ретранслируй `path`/`branch`/`commit` из JSON, подскажи `cd <path> && opencode`
+   - Ретранслируй `path`/`branch`/`commit` из JSON, подскажи человеку две команды по очереди: сначала `cd <path>`, затем `opencode` новой сессией в этом каталоге (не один shell-вызов с `&&`)
 
 2. **Список:** `bash .opencode/scripts/worktree/run.sh list [--json]` — покажи `name | path | branch | commit` и `hint` для ИИ (`worktrees[].path` — `workdir` для изолированных задач)
 

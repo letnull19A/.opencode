@@ -52,7 +52,9 @@ description: Fix React components (markup + styles) by CSS class name via .openc
 bash .opencode/scripts/react-fix/find-class.sh --class journal
 # → таблица пользователю → вопрос «какой элемент и что в оригинале?» →
 # → «да, правь .journal__route в journal.module.css:12» → edit → проверка
-#   командами проекта (например: pnpm typecheck && pnpm lint)
+#   командами проекта по очереди, по одному вызову:
+#   pnpm typecheck
+#   pnpm lint
 
 # Чеклист из нескольких блоков — по одному классу за раз:
 bash .opencode/scripts/react-fix/find-class.sh --class journal --class header

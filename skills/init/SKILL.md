@@ -16,10 +16,12 @@ description: Onboarding инициализации .devbox — собирает 
 ### 1. Разведка (делает @init, только чтение, без опроса)
 ```bash
 bash .opencode/scripts/task-manager/migrate.sh --dry-run  # есть ли legacy? нужен ли переезд в .devbox?
-cat .devbox 2>&1 | head -20   # есть ли уже профиль?
-git remote -v 2>&1 | head -10         # есть ли origin?
-ls apps 2>&1 | head -20; ls apps/*/package.json 2>&1 | head -20  # монорепо?
-cat package.json 2>&1 | head -10; ls -d */ 2>&1 | head -20
+cat .devbox   # есть ли уже профиль?
+git remote -v         # есть ли origin?
+ls apps  # монорепо? (каталог есть?)
+ls apps/*/package.json  # монорепо? (пакеты внутри, отдельный вызов)
+cat package.json  # стек?
+ls -d */
 ```
 
 ### 2. Опрос (делает @init, через question tool, по одному вопросу)

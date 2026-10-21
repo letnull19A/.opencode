@@ -21,7 +21,7 @@ permissions:
 
 Workflow:
 1. Миграция: `bash .opencode/scripts/task-manager/migrate.sh --dry-run`; если есть legacy и нет `.devbox` — `bash .opencode/scripts/task-manager/migrate.sh` до записи.
-2. Валидация: `cat .devbox 2>&1 | head -20` + `git remote -v 2>&1 | head -10`. Если файл уже есть и `force != true` — верни `needs_force:true` с текущим содержимым, не перезаписывай.
+2. Валидация: `cat .devbox` + `git remote -v` (два отдельных вызова). Если файл уже есть и `force != true` — верни `needs_force:true` с текущим содержимым, не перезаписывай.
 3. Сборка команды:
    ```bash
    bash .opencode/scripts/task-manager/init.sh --name <name> [--force] \

@@ -8,7 +8,7 @@ description: Индексация файлов и быстрый поиск по
 ## Почему graphify, а не glob/grep
 
 - `glob`/`grep` (ripgrep) создают temp в `/root/.cache` → `PermissionDenied: FileSystem.makeTempDirectoryScoped` в этом окружении. `graphify` ставит `TMPDIR=/tmp/opencode` и обходит падение.
-- Индекс кешируется в `/tmp/opencode/graphify/<hash>/index.json` по `git HEAD` + `git status` — повторный `index` без `--force` мгновенный.
+- Индекс кешируется в `/tmp/opencode/graphify/<hash>/index.json` по `git HEAD` + `git status --porcelain` — повторный `index` без `--force` мгновенный.
 - Вывод — только JSON (AI-first), без markdown — парсишь `file_results`/`content_results`.
 
 ## Команды
@@ -18,7 +18,7 @@ description: Индексация файлов и быстрый поиск по
    - `--root` — корень репо (по умолчанию `git rev-parse --show-toplevel` или `pwd`)
    - `--force` — переиндексация даже если `HEAD` не менялся
    - Без `--force` второй вызов вернёт кеш. Первый прогон: `348 файлов` для `milesnear-webapp`.
-   - Пример: `bash .opencode/scripts/graphify/run.sh index --root /workspace/milesnear-webapp --json | head`
+   - Пример: `bash .opencode/scripts/graphify/run.sh index --root /workspace/milesnear-webapp --json` (вывод обрежется авто-транкейтом; для поиска объём ограничивай флагом `--limit 10 --json`, не пайпом)
 
 2. **Поиск (file | content | both):**
    `bash .opencode/scripts/graphify/run.sh search --query <q> [--mode file|content|both] [--limit <n>] [--root <path>] [--json]`

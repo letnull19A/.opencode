@@ -17,9 +17,10 @@ description: Scaffold and maintain vendor-lock-free GitHub Actions CI/CD that bu
 ### 1. Разведка (делает @ci, только чтение)
 ```bash
 ls .github/workflows 2>&1
-cat package.json 2>&1 | head -n 40   # node → npm ci / test / build
-cat Dockerfile 2>&1 | head -n 40      # если есть — будет docker-джоб
-ls apps 2>&1 | head -20; ls apps/*/package.json apps/*/Dockerfile 2>&1 | head -20  # монорепо?
+cat package.json   # node → npm ci / test / build
+cat Dockerfile      # если есть — будет docker-джоб
+ls apps  # монорепо? (каталог есть?)
+ls apps/*/package.json apps/*/Dockerfile  # монорепо? (пакеты внутри, отдельный вызов)
 bash .opencode/scripts/ci/workflows.sh status --limit 5 --json  # что уже падает
 ```
 
@@ -57,7 +58,8 @@ GitHub → Settings → Secrets and variables → Actions: `vars.DOCKER_REGISTRY
 ```bash
 bash .opencode/scripts/ci/workflows.sh status --limit 3 --json
 bash .opencode/scripts/ci/workflows.sh logs --run <id> --failed-only
-docker build -t test:local . && docker run --rm test:local npm test
+docker build -t test:local .
+docker run --rm test:local npm test
 ```
 
 ## Шаблоны
