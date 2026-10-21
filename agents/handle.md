@@ -11,6 +11,7 @@ permissions:
   - {action: shell, resource: "git status *", effect: allow}
   - {action: shell, resource: "git diff *", effect: allow}
   - {action: shell, resource: "git log *", effect: allow}
+  - {action: shell, resource: "bash .opencode/scripts/check/*", effect: allow}
   - {action: shell, resource: "bash /tmp/*", effect: deny}
   - {action: question, resource: "*", effect: allow}
   - {action: subagent, resource: "*", effect: allow}

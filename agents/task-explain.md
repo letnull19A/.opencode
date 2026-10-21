@@ -7,6 +7,7 @@ permissions:
   - {action: edit, resource: "*", effect: deny}
   - {action: shell, resource: "*", effect: deny}
   - {action: shell, resource: "bash .opencode/scripts/task-manager/*", effect: allow}
+  - {action: shell, resource: "bash .opencode/scripts/task-commits/*", effect: allow}
   - {action: question, resource: "*", effect: allow}
   - {action: subagent, resource: "*", effect: deny}
 ---

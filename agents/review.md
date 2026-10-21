@@ -11,6 +11,12 @@ permissions:
   - {action: shell, resource: "git status *", effect: allow}
   - {action: shell, resource: "git diff *", effect: allow}
   - {action: shell, resource: "git log *", effect: allow}
+  - {action: shell, resource: "bash .opencode/scripts/security/*", effect: allow}
+  - {action: shell, resource: "bash .opencode/scripts/design/*", effect: allow}
+  - {action: shell, resource: "bash .opencode/scripts/graphify/*", effect: allow}
+  - {action: read, resource: "*", effect: allow}
+  - {action: glob, resource: "*", effect: allow}
+  - {action: grep, resource: "*", effect: allow}
   - {action: question, resource: "*", effect: allow}
   - {action: subagent, resource: "*", effect: deny}
 ---

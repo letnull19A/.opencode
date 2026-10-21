@@ -8,6 +8,9 @@ permissions:
   - {action: shell, resource: "*", effect: deny}
   - {action: shell, resource: "bash .opencode/scripts/graphify/*", effect: allow}
   - {action: shell, resource: "bash .opencode/scripts/git-recon/*", effect: allow}
+  - {action: shell, resource: "ls *", effect: allow}
+  - {action: shell, resource: "tree *", effect: allow}
+  - {action: shell, resource: "echo *", effect: allow}
   - {action: read, resource: "*", effect: allow}
   - {action: glob, resource: "*", effect: allow}
   - {action: grep, resource: "*", effect: allow}
@@ -30,7 +33,7 @@ permissions:
    - `glob: ".docs/**/*"`, `docs/**/*`, `specs/**/*` — найди релевантные `*.md`/`*.yaml` по ключевым словам задачи (не весь каталог).
    - `read` только 2-3 самых релевантных файла, по 30-50 строк (не весь файл).
 2. **Интернет (только если локальных доков недостаточно):**
-   - Проверь доступность токенов программно: `shell: [[ -n "${TAVILY_API_KEY:-}" ]] && echo TAVILY_OK || echo TAVILY_MISSING` , `[[ -n "${CONTEXT7_API_KEY:-}" ]] && echo CONTEXT7_OK || echo CONTEXT7_MISSING`, `env | grep -E "TAVILY|CONTEXT7" | head`
+   - Проверь доступность токенов программно: `shell: echo "TAVILY: ${TAVILY_API_KEY:+set}, CONTEXT7: ${CONTEXT7_API_KEY:+set}"`
    - Если `TAVILY_API_KEY` есть — `websearch` (или `tavily` если mcp доступен) — 1-2 запроса, `numResults: 3`
    - Иначе `websearch` (fallback) или `context7` для либ (React, Next, Tailwind, Drizzle, etc.) — только если задача про библиотеку/фреймворк (через `resolve-library-id` → `query-docs`)
 

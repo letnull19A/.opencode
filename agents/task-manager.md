@@ -10,6 +10,10 @@ permissions:
   - {action: shell, resource: "bash .opencode/scripts/graphify/*", effect: allow}
   - {action: shell, resource: "bash .opencode/scripts/check/*", effect: allow}
   - {action: shell, resource: "bash .opencode/scripts/git-recon/*", effect: allow}
+  - {action: shell, resource: "bash .opencode/scripts/task-commits/*", effect: allow}
+  - {action: shell, resource: "bash .opencode/scripts/commit-trello/*", effect: allow}
+  - {action: shell, resource: "git mv *", effect: allow}
+  - {action: shell, resource: "git remote *", effect: allow}
   - {action: question, resource: "*", effect: allow}
   - {action: subagent, resource: "*", effect: allow}
 ---
@@ -31,7 +35,7 @@ permissions:
 
 ## Workflow (все команды — из корня проекта)
 
-0. Миграция конфига (авто, один раз): каноника — `.devbox`. Legacy `.devbox` / `.trello-project` любой скрипт пайплайна (`_common.sh`) сам мигрирует (`mv`/`git mv`) при первом обращении. Ты тоже первым шагом промигрируй: `read .devbox` / `read .devbox` / `read .trello-project` — при наличии только legacy явно выполни `bash .opencode/scripts/task-manager/migrate.sh` (или `bash -c "git mv .devbox .devbox 2>/dev/null || mv .devbox .devbox"`) до остальных шагов, затем `validate COMMENTS_DETAILS=0..9` (невалидное = стоп, чини через `init.sh --comments-details N --force`).
+0. Миграция конфига (авто, один раз): каноника — `.devbox`. Legacy `.devbox` / `.trello-project` любой скрипт пайплайна (`_common.sh`) сам мигрирует (`mv`/`git mv`) при первом обращении. Ты тоже первым шагом промигрируй: `read .devbox` / `read .devbox` / `read .trello-project` — при наличии только legacy явно выполни `bash .opencode/scripts/task-manager/migrate.sh` (или `git mv .devbox .devbox`) до остальных шагов, затем `validate COMMENTS_DETAILS=0..9` (невалидное = стоп, чини через `init.sh --comments-details N --force`).
 
 1. Тег проекта: `bash .opencode/scripts/task-manager/init.sh`
    - Скрипт сам выведет NAME из git remote (`owner/repo`) и запишет

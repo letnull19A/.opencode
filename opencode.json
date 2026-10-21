@@ -701,6 +701,26 @@
         },
         {
           "action": "shell",
+          "resource": "git rev-parse *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git rev-list *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git revert *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "bash .opencode/scripts/issue-writer/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
           "resource": "bash /tmp/*",
           "effect": "deny"
         },
@@ -1080,6 +1100,46 @@
         },
         {
           "action": "shell",
+          "resource": "pnpm *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "pip *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "go *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "cargo *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git rev-parse *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git rev-list *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git revert *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git branch *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
           "resource": "pm2 delete *",
           "effect": "deny"
         },
@@ -1334,6 +1394,61 @@
         },
         {
           "action": "shell",
+          "resource": "git status *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git diff *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "bash .opencode/scripts/ports/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "kubectl apply *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "kubectl rollout *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "kubectl get *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "kubectl describe *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "kubectl logs *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "docker stack *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git checkout -- *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "bash -n *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
           "resource": "docker compose config *",
           "effect": "allow"
         },
@@ -1508,6 +1623,46 @@
           "action": "shell",
           "resource": "git log *",
           "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "bash .opencode/scripts/ci/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "bash .opencode/scripts/ports/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "bash .opencode/scripts/sync/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git branch *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git remote *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "pm2 describe *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "gh run *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "gh pr *",
+          "effect": "deny"
         },
         {
           "action": "shell",
@@ -1727,6 +1882,11 @@
         },
         {
           "action": "shell",
+          "resource": "ls *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
           "resource": "bash /tmp/*",
           "effect": "deny"
         },
@@ -1799,6 +1959,21 @@
         },
         {
           "action": "shell",
+          "resource": "ls *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "cat *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "head *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
           "resource": "bash /tmp/*",
           "effect": "deny"
         },
@@ -1842,6 +2017,11 @@
         {
           "action": "shell",
           "resource": "git log *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git show *",
           "effect": "allow"
         },
         {
@@ -1945,6 +2125,26 @@
         },
         {
           "action": "shell",
+          "resource": "git show *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git ls-files *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git rev-list *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git checkout -- *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
           "resource": "bash .opencode/scripts/check/*",
           "effect": "allow"
         },
@@ -2017,6 +2217,11 @@
         },
         {
           "action": "shell",
+          "resource": "git status *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
           "resource": "bash /tmp/*",
           "effect": "deny"
         },
@@ -2055,6 +2260,11 @@
         {
           "action": "shell",
           "resource": "bash .opencode/scripts/git-recon/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "bash .opencode/scripts/task-manager/*",
           "effect": "allow"
         },
         {
@@ -2100,6 +2310,46 @@
           "effect": "deny"
         },
         {
+          "action": "shell",
+          "resource": "bash .opencode/scripts/check/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "echo*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "cat*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "ls*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git status *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git diff *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git log *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "bash /tmp/*",
+          "effect": "deny"
+        },
+        {
           "action": "question",
           "resource": "*",
           "effect": "allow"
@@ -2132,6 +2382,26 @@
           "effect": "allow"
         },
         {
+          "action": "shell",
+          "resource": "cat *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "ls *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git remote *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git status *",
+          "effect": "allow"
+        },
+        {
           "action": "question",
           "resource": "*",
           "effect": "allow"
@@ -2161,6 +2431,26 @@
         {
           "action": "shell",
           "resource": "bash .opencode/scripts/task-manager/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "cat *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "ls *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git remote *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git status *",
           "effect": "allow"
         },
         {
@@ -2208,6 +2498,11 @@
         {
           "action": "shell",
           "resource": "cat*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "python3 .opencode/scripts/issue-writer/*",
           "effect": "allow"
         },
         {
@@ -2345,16 +2640,6 @@
           "action": "grep",
           "resource": "*",
           "effect": "allow"
-        },
-        {
-          "action": "question",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "subagent",
-          "resource": "*",
-          "effect": "allow"
         }
       ]
     },
@@ -2404,6 +2689,21 @@
           "effect": "deny"
         },
         {
+          "action": "shell",
+          "resource": "git merge *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "git push --force *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "git reset --hard HEAD",
+          "effect": "allow"
+        },
+        {
           "action": "question",
           "resource": "*",
           "effect": "allow"
@@ -2423,31 +2723,26 @@
         {
           "action": "edit",
           "resource": "*",
-          "effect": "allow"
+          "effect": "deny"
         },
         {
           "action": "shell",
           "resource": "*",
-          "effect": "ask"
+          "effect": "deny"
         },
         {
-          "action": "shell",
-          "resource": "bash .opencode/scripts/check/*",
+          "action": "read",
+          "resource": "*",
           "effect": "allow"
         },
         {
-          "action": "shell",
-          "resource": "bash .opencode/scripts/git-recon/*",
+          "action": "glob",
+          "resource": "*",
           "effect": "allow"
         },
         {
-          "action": "shell",
-          "resource": "git status *",
-          "effect": "allow"
-        },
-        {
-          "action": "shell",
-          "resource": "git diff *",
+          "action": "grep",
+          "resource": "*",
           "effect": "allow"
         },
         {
@@ -2485,6 +2780,21 @@
         {
           "action": "shell",
           "resource": "bash .opencode/scripts/git-recon/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "ls *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "tree *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "echo *",
           "effect": "allow"
         },
         {
@@ -2556,6 +2866,11 @@
         },
         {
           "action": "shell",
+          "resource": "tree *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
           "resource": "bash /tmp/*",
           "effect": "deny"
         },
@@ -2612,6 +2927,36 @@
           "effect": "allow"
         },
         {
+          "action": "shell",
+          "resource": "bash .opencode/scripts/security/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "bash .opencode/scripts/design/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "bash .opencode/scripts/graphify/*",
+          "effect": "allow"
+        },
+        {
+          "action": "read",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "glob",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "grep",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
           "action": "question",
           "resource": "*",
           "effect": "allow"
@@ -2632,6 +2977,11 @@
           "action": "edit",
           "resource": "*",
           "effect": "deny"
+        },
+        {
+          "action": "edit",
+          "resource": "**/pages*.json",
+          "effect": "allow"
         },
         {
           "action": "shell",
@@ -2703,6 +3053,21 @@
           "effect": "allow"
         },
         {
+          "action": "shell",
+          "resource": "git status *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git diff *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git log *",
+          "effect": "allow"
+        },
+        {
           "action": "read",
           "resource": "*",
           "effect": "allow"
@@ -2747,6 +3112,16 @@
         {
           "action": "shell",
           "resource": "bash .opencode/scripts/task-manager/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "bash .opencode/scripts/git-changes/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "bash .opencode/scripts/task-commits/*",
           "effect": "allow"
         },
         {
@@ -2797,6 +3172,11 @@
           "effect": "allow"
         },
         {
+          "action": "shell",
+          "resource": "bash .opencode/scripts/planner/*",
+          "effect": "allow"
+        },
+        {
           "action": "question",
           "resource": "*",
           "effect": "allow"
@@ -2826,6 +3206,11 @@
         {
           "action": "shell",
           "resource": "bash .opencode/scripts/task-manager/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "bash .opencode/scripts/task-commits/*",
           "effect": "allow"
         },
         {
@@ -2873,6 +3258,26 @@
         {
           "action": "shell",
           "resource": "bash .opencode/scripts/git-recon/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "bash .opencode/scripts/task-commits/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "bash .opencode/scripts/commit-trello/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git mv *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git remote *",
           "effect": "allow"
         },
         {
@@ -2957,6 +3362,51 @@
         {
           "action": "shell",
           "resource": "git diff *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "bun *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "npm *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "npx *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "pnpm *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "yarn *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "pytest *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "python3 *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "go *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "cargo *",
           "effect": "allow"
         },
         {

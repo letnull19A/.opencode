@@ -7,6 +7,9 @@ permissions:
   - {action: edit, resource: "*", effect: deny}
   - {action: shell, resource: "*", effect: deny}
   - {action: shell, resource: "bash .opencode/scripts/security/*", effect: allow}
+  - {action: shell, resource: "git status *", effect: allow}
+  - {action: shell, resource: "git diff *", effect: allow}
+  - {action: shell, resource: "git log *", effect: allow}
   - {action: read, resource: "*", effect: allow}
   - {action: glob, resource: "*", effect: allow}
   - {action: grep, resource: "*", effect: allow}

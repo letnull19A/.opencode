@@ -11,6 +11,7 @@ permissions:
   - {action: shell, resource: "bash .opencode/scripts/git-recon/*", effect: allow}
   - {action: shell, resource: "git status *", effect: allow}
   - {action: shell, resource: "git diff *", effect: allow}
+  - {action: shell, resource: "ls *", effect: allow}
   - {action: shell, resource: "bash /tmp/*", effect: deny}
   - {action: read, resource: "*", effect: allow}
   - {action: glob, resource: "*", effect: allow}
@@ -25,7 +26,7 @@ permissions:
 
 ### Фаза 1 — Разведка (ты, только чтение)
 - `bash .opencode/scripts/ci/workflows.sh status --limit 5 --json` (что уже есть/падает) — по возможности
-- `glob` `.github/workflows/*.yml` + `read` 1-2 файла (`package.json`/`Dockerfile`/`pyproject.toml`/`go.mod`) + `ls apps 2>&1 | head -20` / `glob apps/*/package.json apps/*/Dockerfile` — стек, `has_dockerfile`, есть ли монорепо (`apps/` с подпапками)
+- `glob` `.github/workflows/*.yml` + `read` 1-2 файла (`package.json`/`Dockerfile`/`pyproject.toml`/`go.mod`) + `glob apps/*` / `glob apps/*/package.json apps/*/Dockerfile` — стек, `has_dockerfile`, есть ли монорепо (`apps/` с подпапками)
 - Не читай весь репо, не трогай `edit`/`scaffold.sh`
 
 ### Фаза 2 — Опрос (ты, через `question` tool, обязательно подробно)

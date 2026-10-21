@@ -5,11 +5,12 @@ model: opencode-go/muse-spark-1.3-contributor
 hidden: true
 permissions:
   - {action: edit, resource: "*", effect: allow}
-  - {action: shell, resource: "*", effect: deny}
+  - {action: shell, resource: "*", effect: ask}
   - {action: shell, resource: "bash .opencode/scripts/docker-pack/*", effect: allow}
   - {action: shell, resource: "bash .opencode/scripts/check/*", effect: allow}
   - {action: shell, resource: "bash .opencode/scripts/git-recon/*", effect: allow}
   - {action: shell, resource: "docker *", effect: allow}
+  - {action: shell, resource: "git status *", effect: allow}
   - {action: shell, resource: "bash /tmp/*", effect: deny}
   - {action: question, resource: "*", effect: allow}
   - {action: subagent, resource: "*", effect: allow}
@@ -40,7 +41,7 @@ bash .opencode/scripts/docker-pack/scaffold.sh --stack <node|python|go> [--app <
 - Шаблоны — `scripts/docker-pack/templates/Dockerfile.*` (read-only)
 
 ### 4. Проверка
-`read <dockerfile> | head -40`, `read <.dockerignore> | head -20`, `git status --short`, опционально `bash -c "docker build -t test:local -f <dockerfile> <context> 2>&1 | tail -5"` если `docker` доступен — иначе `skip`.
+`read <dockerfile> | head -40`, `read <.dockerignore> | head -20`, `git status --short`, опционально `docker build -t test:local -f <dockerfile> <context>` если `docker` доступен — иначе `skip`.
 
 ### 5. Возврат
 Верни JSON `{dockerfile:"<path>", dockerignore:"<path>", context:"<path>", stack:"node", pkgMgr:"npm", layers:["deps","builder","runner"], needs_force:bool}` + кратко в чат `layers` и `.dockerignore` хиты.

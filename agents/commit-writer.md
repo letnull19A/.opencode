@@ -9,6 +9,7 @@ permissions:
   - {action: shell, resource: "git status *", effect: allow}
   - {action: shell, resource: "git diff *", effect: allow}
   - {action: shell, resource: "git log *", effect: allow}
+  - {action: shell, resource: "git show *", effect: allow}
   - {action: shell, resource: "git add *", effect: allow}
   - {action: shell, resource: "git commit *", effect: allow}
   - {action: shell, resource: "bash .opencode/scripts/git-changes/*", effect: allow}

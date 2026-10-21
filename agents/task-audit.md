@@ -7,6 +7,8 @@ permissions:
   - {action: edit, resource: "*", effect: deny}
   - {action: shell, resource: "*", effect: deny}
   - {action: shell, resource: "bash .opencode/scripts/task-manager/*", effect: allow}
+  - {action: shell, resource: "bash .opencode/scripts/git-changes/*", effect: allow}
+  - {action: shell, resource: "bash .opencode/scripts/task-commits/*", effect: allow}
   - {action: shell, resource: "git status *", effect: allow}
   - {action: shell, resource: "git diff *", effect: allow}
   - {action: shell, resource: "git log *", effect: allow}

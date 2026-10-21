@@ -8,6 +8,7 @@ permissions:
   - {action: shell, resource: "*", effect: deny}
   - {action: shell, resource: "bash .opencode/scripts/graphify/*", effect: allow}
   - {action: shell, resource: "bash .opencode/scripts/git-recon/*", effect: allow}
+  - {action: shell, resource: "bash .opencode/scripts/task-manager/*", effect: allow}
   - {action: read, resource: "*", effect: allow}
   - {action: glob, resource: "*", effect: allow}
   - {action: grep, resource: "*", effect: allow}

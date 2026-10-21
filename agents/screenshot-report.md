@@ -5,6 +5,7 @@ model: opencode-go/muse-spark-1.3-contributor
 hidden: true
 permissions:
   - {action: edit, resource: "*", effect: deny}
+  - {action: edit, resource: "**/pages*.json", effect: allow}
   - {action: shell, resource: "*", effect: deny}
   - {action: shell, resource: "bash .opencode/scripts/screenshot-report/*", effect: allow}
   - {action: question, resource: "*", effect: allow}

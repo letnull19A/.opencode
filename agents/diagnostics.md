@@ -12,6 +12,14 @@ permissions:
   - {action: shell, resource: "git status *", effect: allow}
   - {action: shell, resource: "git diff *", effect: allow}
   - {action: shell, resource: "git log *", effect: allow}
+  - {action: shell, resource: "bash .opencode/scripts/ci/*", effect: allow}
+  - {action: shell, resource: "bash .opencode/scripts/ports/*", effect: allow}
+  - {action: shell, resource: "bash .opencode/scripts/sync/*", effect: allow}
+  - {action: shell, resource: "git branch *", effect: allow}
+  - {action: shell, resource: "git remote *", effect: allow}
+  - {action: shell, resource: "pm2 describe *", effect: allow}
+  - {action: shell, resource: "gh run *", effect: allow}
+  - {action: shell, resource: "gh pr *", effect: deny}
   - {action: shell, resource: "pm2 list *", effect: allow}
   - {action: shell, resource: "pm2 status *", effect: allow}
   - {action: shell, resource: "pm2 logs *", effect: allow}

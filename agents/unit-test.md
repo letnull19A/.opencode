@@ -11,6 +11,15 @@ permissions:
   - {action: shell, resource: "bash .opencode/scripts/graphify/*", effect: allow}
   - {action: shell, resource: "git status *", effect: allow}
   - {action: shell, resource: "git diff *", effect: allow}
+  - {action: shell, resource: "bun *", effect: allow}
+  - {action: shell, resource: "npm *", effect: allow}
+  - {action: shell, resource: "npx *", effect: allow}
+  - {action: shell, resource: "pnpm *", effect: allow}
+  - {action: shell, resource: "yarn *", effect: allow}
+  - {action: shell, resource: "pytest *", effect: allow}
+  - {action: shell, resource: "python3 *", effect: allow}
+  - {action: shell, resource: "go *", effect: allow}
+  - {action: shell, resource: "cargo *", effect: allow}
   - {action: shell, resource: "bash /tmp/*", effect: deny}
   - {action: question, resource: "*", effect: allow}
   - {action: subagent, resource: "*", effect: allow}

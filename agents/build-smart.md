@@ -31,6 +31,14 @@ permissions:
   - {action: shell, resource: "curl *", effect: allow}
   - {action: shell, resource: "python3*", effect: allow}
   - {action: shell, resource: "make*", effect: allow}
+  - {action: shell, resource: "pnpm *", effect: allow}
+  - {action: shell, resource: "pip *", effect: allow}
+  - {action: shell, resource: "go *", effect: allow}
+  - {action: shell, resource: "cargo *", effect: allow}
+  - {action: shell, resource: "git rev-parse *", effect: allow}
+  - {action: shell, resource: "git rev-list *", effect: allow}
+  - {action: shell, resource: "git revert *", effect: allow}
+  - {action: shell, resource: "git branch *", effect: allow}
   - {action: shell, resource: "pm2 delete *", effect: deny}
   - {action: shell, resource: "pm2 kill *", effect: deny}
   - {action: shell, resource: "curl *--data*", effect: deny}

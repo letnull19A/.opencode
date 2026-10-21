@@ -18,6 +18,10 @@ permissions:
   - {action: shell, resource: "git status *", effect: allow}
   - {action: shell, resource: "git diff *", effect: allow}
   - {action: shell, resource: "git log *", effect: allow}
+  - {action: shell, resource: "git rev-parse *", effect: allow}
+  - {action: shell, resource: "git rev-list *", effect: allow}
+  - {action: shell, resource: "git revert *", effect: allow}
+  - {action: shell, resource: "bash .opencode/scripts/issue-writer/*", effect: allow}
   - {action: shell, resource: "bash /tmp/*", effect: deny}
   - {action: external_directory, resource: "*", effect: allow}
   - {action: question, resource: "*", effect: allow}

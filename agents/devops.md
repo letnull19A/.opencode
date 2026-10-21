@@ -10,6 +10,17 @@ permissions:
   - {action: shell, resource: "bash .opencode/scripts/git-recon/*", effect: allow}
   - {action: shell, resource: "bash .opencode/scripts/pr/*", effect: allow}
   - {action: shell, resource: "bash .opencode/scripts/branch-ops/*", effect: allow}
+  - {action: shell, resource: "git status *", effect: allow}
+  - {action: shell, resource: "git diff *", effect: allow}
+  - {action: shell, resource: "bash .opencode/scripts/ports/*", effect: allow}
+  - {action: shell, resource: "kubectl apply *", effect: allow}
+  - {action: shell, resource: "kubectl rollout *", effect: allow}
+  - {action: shell, resource: "kubectl get *", effect: allow}
+  - {action: shell, resource: "kubectl describe *", effect: allow}
+  - {action: shell, resource: "kubectl logs *", effect: allow}
+  - {action: shell, resource: "docker stack *", effect: allow}
+  - {action: shell, resource: "git checkout -- *", effect: allow}
+  - {action: shell, resource: "bash -n *", effect: allow}
   - {action: shell, resource: "docker compose config *", effect: allow}
   - {action: shell, resource: "docker compose ps *", effect: allow}
   - {action: shell, resource: "docker compose logs *", effect: allow}
