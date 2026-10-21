@@ -1,19 +1,23 @@
-// @ts-nocheck
-import { z } from "zod"
 import path from "path"
 export default {
   description: "Перемещение Trello-карточки в другой лист/доску. Обёртка над scripts/task-manager/move.sh. Селектор карточки — ровно один: id/url/card.",
-  args: {
-    id: z.string().optional().describe("ID карточки"),
-    url: z.string().optional().describe("URL карточки https://trello.com/c/<SHORT>"),
-    card: z.string().optional().describe("Точное имя карточки (поиск по всем открытым доскам, уточни --from_board при дублях)"),
-    from_board: z.string().optional().describe("Сузить поиск по имени доски при --card"),
-    list: z.string().describe("Целевой лист (точное имя)"),
-    to_board: z.string().optional().describe("Целевая доска (default текущая)"),
-    pos: z.string().optional().describe("Позиция: top|bottom|N"),
-    dry_run: z.boolean().optional().describe("Только показать план без PUT"),
+  input: {
+    type: "object",
+    properties: {
+      id: { type: "string", description: "ID карточки" },
+      url: { type: "string", description: "URL карточки https://trello.com/c/<SHORT>" },
+      card: { type: "string", description: "Точное имя карточки (поиск по всем открытым доскам, уточни --from_board при дублях имён)" },
+      from_board: { type: "string", description: "Сузить поиск по имени доски при --card" },
+      list: { type: "string", description: "Целевой лист (точное имя)" },
+      to_board: { type: "string", description: "Целевая доска (default текущая)" },
+      pos: { type: "string", description: "Позиция: top|bottom|N" },
+      dry_run: { type: "boolean", description: "Только показать план без PUT" },
+    },
+    required: ["list"],
+    additionalProperties: false,
   },
-  async execute(args, context) {
+  async execute(input: any, context: unknown) {
+    const args = (input ?? {}) as { id?: string; url?: string; card?: string; from_board?: string; list: string; to_board?: string; pos?: string; dry_run?: boolean }
     const root = (context as any).worktree ?? (context as any).directory ?? "."
     const script = path.join(root, ".opencode/scripts/task-manager/move.sh")
     const parts = ["bash", script]
@@ -30,6 +34,7 @@ export default {
     const err = await new Response(proc.stderr).text()
     await proc.exited
     if (proc.exitCode !== 0) throw new Error((out + "\n" + err).trim() || `move failed ${proc.exitCode}`)
-    return (out + "\n" + err).trim()
+    const text = (out + "\n" + err).trim()
+    return { content: text }
   },
 }

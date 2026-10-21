@@ -131,7 +131,7 @@ if ! git rebase --autostash "$TARGET"; then
     echo "rebase: остановился на КОНФЛИКТЕ — скрипт дальше не идёт, ничего не чиню сам." >&2
     echo "Дальше:" >&2
     echo "  1. git status — какие файлы в конфликте." >&2
-    echo "  2. task → @conflict-resolver с контекстом задачи (предложит разрешение попайлово)." >&2
+    echo "  2. subagent → @conflict-resolver с контекстом задачи (предложит разрешение попайлово)." >&2
     echo "  3. git add <файлы> && git rebase --continue (повторять до конца) — только человек." >&2
     echo "  4. Либо откат пересадки: git rebase --abort" >&2
   else

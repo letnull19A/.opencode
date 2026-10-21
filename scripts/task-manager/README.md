@@ -24,10 +24,10 @@
 
 ## Файлы
 
-- `.opencode/agent/task-manager.md` — оркестратор (`mode: all`: и primary через
+- `.opencode/agents/task-manager.md` — оркестратор (`mode: all`: и primary через
   Tab, и subagent через `@` / `/new-task`). Права зажаты: `edit: deny`,
-  bash только на `scripts/task-manager/*`, разрешены вопросы и делегирование (task).
-- `.opencode/agent/task-audit.md` — сабагент аудита (`mode: subagent`, только
+  shell только на `scripts/task-manager/*`, разрешены вопросы и делегирование (subagent).
+- `.opencode/agents/task-audit.md` — сабагент аудита (`mode: subagent`, только
   оркестрация через `@task-manager`). Возвращает ТОЛЬКО JSON по
   `schema/audit.schema.json`, вопросов пользователю не задаёт.
 - `.opencode/commands/new-task.md` — команда `/new-task`, делегирует

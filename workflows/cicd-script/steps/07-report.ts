@@ -22,13 +22,13 @@ const dryRun = !!data.dryRun
 
 const gaps_open = gaps.map((g: any) => ({
   id: g.id, desc: g.desc,
-  delegate: !g.owner_agent ? "закрывает @devops в этом workflow (compose/план)" : g.owner_agent === "user" ? "вопрос пользователю через question" : `task → @${g.owner_agent}`,
+  delegate: !g.owner_agent ? "закрывает @devops в этом workflow (compose/план)" : g.owner_agent === "user" ? "вопрос пользователю через question" : `subagent → @${g.owner_agent}`,
 }))
 
 const next: string[] = []
 if (!(verify.ok ?? false)) next.push("почини verify-ошибки в скрипте (макс 3 цикла), затем повтор verify")
 for (const g of gaps) {
-  if (g.owner_agent && g.owner_agent !== "user") next.push(`закрыть gap ${g.id}: task → @${g.owner_agent}`)
+  if (g.owner_agent && g.owner_agent !== "user") next.push(`закрыть gap ${g.id}: subagent → @${g.owner_agent}`)
   else if (g.owner_agent === "user") next.push(`закрыть gap ${g.id}: спросить пользователя (${g.desc})`)
 }
 if (verify.ok && !dryRun) next.push("коммит через /commit (атомарно, без секретов), пуш только через /push")

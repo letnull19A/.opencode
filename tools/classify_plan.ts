@@ -1,14 +1,17 @@
-// @ts-nocheck
-import { z } from "zod"
-
 export default {
   description: "Классификатор планирования: выбирает подход — new-module (с нуля), update (доработка), decompose (разбиение) и нужен ли react-architect. Принимает заголовок/описание задачи, heuristic. Возвращает {approach, needs_react, confidence, reason, provider}.",
-  args: {
-    title: z.string().optional().describe("Заголовок задачи"),
-    desc: z.string().optional().describe("Описание задачи"),
-    has_code: z.boolean().optional().describe("Есть ли уже код модуля в репо"),
+  input: {
+    type: "object",
+    properties: {
+      title: { type: "string", description: "Заголовок задачи" },
+      desc: { type: "string", description: "Описание задачи" },
+      has_code: { type: "boolean", description: "Есть ли уже код модуля в репо" },
+    },
+    required: [],
+    additionalProperties: false,
   },
-  async execute(args, context) {
+  async execute(input: any, _context: unknown) {
+    const args = (input ?? {}) as { title?: string; desc?: string; has_code?: boolean }
     const title = args.title ?? ""
     const desc = args.desc ?? ""
     const text = `${title} ${desc}`.toLowerCase()
@@ -34,6 +37,7 @@ export default {
 
     const needsReact = isReact
     const confidence = hasCode || /(создать|новый|декомпоз)/i.test(text) ? 0.8 : 0.6
-    return JSON.stringify({ approach, needs_react: needsReact, confidence, reason, provider: "heuristic", has_code: hasCode }, null, 2)
+    const text_out = JSON.stringify({ approach, needs_react: needsReact, confidence, reason, provider: "heuristic", has_code: hasCode }, null, 2)
+    return { content: text_out }
   },
 }

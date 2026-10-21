@@ -144,7 +144,7 @@ if ! git pull --rebase --autostash "$REMOTE" "$BRANCH"; then
     echo "sync: rebase остановился на КОНФЛИКТЕ — скрипт дальше не идёт, ничего не чиню сам." >&2
     echo "Разреши вручную:" >&2
     echo "  1. git status — какие файлы в конфликте; правь их." >&2
-    echo "  1b. Или попроси агента: task → @conflict-resolver (передай контекст задачи — он предложит разрешение попайлово; add + rebase --continue всё равно за тобой)." >&2
+    echo "  1b. Или попроси агента: subagent → @conflict-resolver (передай контекст задачи — он предложит разрешение попайлово; add + rebase --continue всё равно за тобой)." >&2
     echo "  2. git add <файлы> && git rebase --continue (повторять до конца)" >&2
     echo "  3. Либо откат всего синка: git rebase --abort" >&2
   else

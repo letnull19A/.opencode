@@ -31,10 +31,10 @@
 
 ## Файлы
 
-- `.opencode/agent/issue-writer.md` — subagent с урезанными правами
-  (`write: false`, `edit: false`, bash разрешён только на конкретные команды).
+- `.opencode/agents/issue-writer.md` — subagent с урезанными правами
+  (`write: false`, `edit: false`, shell разрешён только на конкретные команды).
   Это не только промпт-дисциплина, но и механическое ограничение через
-  `permission:` — агент физически не может сделать ничего, кроме сбора
+  `permissions:` — агент физически не может сделать ничего, кроме сбора
   данных и их валидации.
 - `schema/issue.schema.json` — контракт вывода LLM-шага.
 - `detect-provider.sh`, `render-issue.py`, `create-issue.sh`,
@@ -47,13 +47,13 @@
 1. **Модель**: намеренно не задана в `issue-writer.md`. Пропиши в своём
    `opencode.json` (`agent.issue-writer.model`) или оставь наследование
    от текущего primary-агента — тебе решать по проекту/бюджету.
-2. **Путь к agent-файлам**: у части версий opencode это `.opencode/agent/`,
+2. **Путь к agent-файлам**: у части версий opencode это `.opencode/agents/`,
    у части — `.opencode/agents/` (множественное число). Проверь в доке
    своей версии и при необходимости переименуй папку.
-3. **`permission:` в frontmatter** — синтаксис пермишенов у opencode
+3. **`permissions:` в `opencode.json`** — синтаксис пермишенов у opencode
    менялся между версиями (V1 vs V2 config). Если твой конфиг — V2,
    вынеси правила в `opencode.json` → `permissions: [...]` с
-   `resource`-паттернами вместо inline `permission:` в md-файле
+   `resource`-паттернами вместо inline пермишенов в md-файле
    (пример в доках opencode.ai/docs/permissions).
 4. **CLI-тулы вместо самописных вызовов API**: `create-issue.sh` уже
    использует официальные `gh`/`glab`/`tea` — их не нужно оборачивать

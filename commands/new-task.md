@@ -3,7 +3,7 @@ description: Завести Trello-задачу с тегом проекта (в
 agent: build
 ---
 
-Ты — runner, не оркестратор. Делегируй через `task` → `@task-manager`
+Ты — runner, не оркестратор. Делегируй через `subagent` → `@task-manager`
 (hidden subagent, контекст не засоряешь) и ретранслируй URL карточки.
 
 Текст задачи: `$ARGUMENTS` (может быть пустым — сабагент выяснит

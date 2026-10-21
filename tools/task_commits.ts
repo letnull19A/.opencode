@@ -1,19 +1,22 @@
-// @ts-nocheck
-import { z } from "zod"
 import path from "path"
-
 export default {
   description: "Поиск коммитов по списку задач Trello (джойн задачи → коммиты с Trello:/Closes:). Unix-обёртка над scripts/task-commits/run.sh. stdout — JSON {tasks,commits,by_task,tasks_without_commits} для ИИ.",
-  args: {
-    board: z.string().optional().describe("Точное имя доски Trello, default BOARD из .devbox-project"),
-    tag: z.string().optional().describe("Метка проекта NAME, default из .devbox-project"),
-    all: z.boolean().optional().describe("Все карточки доски без фильтра по метке"),
-    limit: z.number().optional().describe("Макс. карточек на лист (default 50)"),
-    log_limit: z.number().optional().describe("Сколько последних коммитов сканировать (default 100, кап 500)"),
-    tasks_file: z.string().optional().describe("Путь к JSON с задачами (audit.json/dump.json) вместо запроса к Trello"),
-    tasks_json: z.string().optional().describe("Inline JSON с задачами (массив cards или audit)"),
+  input: {
+    type: "object",
+    properties: {
+      board: { type: "string", description: "Точное имя доски Trello, default BOARD из .devbox-project" },
+      tag: { type: "string", description: "Метка проекта NAME, default из .devbox-project" },
+      all: { type: "boolean", description: "Все карточки доски без фильтра по метке" },
+      limit: { type: "number", description: "Макс. карточек на лист (default 50)" },
+      log_limit: { type: "number", description: "Сколько последних коммитов сканировать (default 100, кап 500)" },
+      tasks_file: { type: "string", description: "Путь к JSON с задачами (audit.json/dump.json) вместо запроса к Trello" },
+      tasks_json: { type: "string", description: "Inline JSON с задачами (массив cards или audit)" },
+    },
+    required: [],
+    additionalProperties: false,
   },
-  async execute(args, context) {
+  async execute(input: any, context: unknown) {
+    const args = (input ?? {}) as { board?: string; tag?: string; all?: boolean; limit?: number; log_limit?: number; tasks_file?: string; tasks_json?: string }
     const root = (context as any).worktree ?? (context as any).directory ?? "."
     const script = path.join(root, ".opencode/scripts/task-commits/run.sh")
     const parts: string[] = ["bash", script]
@@ -25,7 +28,6 @@ export default {
     if (args.tasks_file) parts.push("--tasks-file", args.tasks_file)
     if (args.tasks_json) parts.push("--tasks-json", args.tasks_json)
     parts.push("--json")
-    // Bun.$ is available in opencode plugin runtime
     const proc = Bun.spawn(parts, { cwd: root, stdout: "pipe", stderr: "pipe" })
     const out = await new Response(proc.stdout).text()
     const err = await new Response(proc.stderr).text()
@@ -33,6 +35,7 @@ export default {
     if (proc.exitCode !== 0 && !out.trim().startsWith("{")) {
       throw new Error(err || `task_commits failed code ${proc.exitCode}`)
     }
-    return out.trim() || err.trim()
+    const text = out.trim() || err.trim()
+    return { content: text }
   },
 }

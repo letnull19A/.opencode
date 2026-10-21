@@ -1,23 +1,27 @@
-// @ts-nocheck
-import { z } from "zod"
 import path from "path"
 export default {
   description: "Чек-листы Trello-карточки (подзадачи). Обёртка над scripts/task-manager/checklist.sh. Действия: show/create/add-item/complete/complete-all/uncomplete.",
-  args: {
-    id: z.string().optional().describe("ID карточки"),
-    url: z.string().optional().describe("URL карточки"),
-    card: z.string().optional().describe("Точное имя карточки"),
-    from_board: z.string().optional().describe("Сузить поиск по доске при --card"),
-    list: z.string().optional().describe("Точное имя чек-листа (если на карточке один — можно опустить)"),
-    show: z.boolean().optional().describe("Показать чек-листы JSON"),
-    create: z.string().optional().describe("Создать чек-лист с именем"),
-    items: z.string().optional().describe("Пункты через ; для --create, напр. \"Шаг 1;Шаг 2\""),
-    add_item: z.string().optional().describe("Добавить пункт в чек-лист"),
-    complete: z.string().optional().describe("Отметить пункт как выполненный (точное имя)"),
-    complete_all: z.boolean().optional().describe("Отметить все пункты чек-листа"),
-    uncomplete: z.string().optional().describe("Снять отметку с пункта"),
+  input: {
+    type: "object",
+    properties: {
+      id: { type: "string", description: "ID карточки" },
+      url: { type: "string", description: "URL карточки" },
+      card: { type: "string", description: "Точное имя карточки" },
+      from_board: { type: "string", description: "Сузить поиск по доске при --card" },
+      list: { type: "string", description: "Точное имя чек-листа (если на карточке один — можно опустить)" },
+      show: { type: "boolean", description: "Показать чек-листы JSON" },
+      create: { type: "string", description: "Создать чек-лист с именем" },
+      items: { type: "string", description: "Пункты через ; для --create" },
+      add_item: { type: "string", description: "Добавить пункт в чек-лист" },
+      complete: { type: "string", description: "Отметить пункт как выполненный (точное имя)" },
+      complete_all: { type: "boolean", description: "Отметить все пункты чек-листа" },
+      uncomplete: { type: "string", description: "Снять отметку с пункта" },
+    },
+    required: [],
+    additionalProperties: false,
   },
-  async execute(args, context) {
+  async execute(input: any, context: unknown) {
+    const args = (input ?? {}) as { id?: string; url?: string; card?: string; from_board?: string; list?: string; show?: boolean; create?: string; items?: string; add_item?: string; complete?: string; complete_all?: boolean; uncomplete?: string }
     const root = (context as any).worktree ?? (context as any).directory ?? "."
     const script = path.join(root, ".opencode/scripts/task-manager/checklist.sh")
     const parts = ["bash", script]
@@ -38,6 +42,7 @@ export default {
     const err = await new Response(proc.stderr).text()
     await proc.exited
     if (proc.exitCode !== 0) throw new Error((out + "\n" + err).trim() || `checklist failed ${proc.exitCode}`)
-    return (out + "\n" + err).trim()
+    const text = (out + "\n" + err).trim()
+    return { content: text }
   },
 }

@@ -1,7 +1,7 @@
 {
   "name": "cicd-script",
   "description": "Bash-скрипт CI/CD пайплайна в UNIX-философии: survey (что есть + hint оркестратора) → target (цель + обязательный orchestrator docker/swarm/k8s, только после него деплой/сети) → classify (тип пайплайна + агенты) → plan (стадии под оркестратор) → scaffold (скелет scripts/cicd/*.sh) → verify (bash -n, запреты, секреты) → report (делегации).",
-  "trigger": "tool workflow {name:\"cicd-script\", input:{title,desc,target:{pipeline,registry,deploy}}} | просьба про bash/sh скрипт пайплайна/деплоя",
+  "trigger": "workflow {name:\"cicd-script\", input:{title,desc,target:{pipeline,registry,deploy}}} | просьба про bash/sh скрипт пайплайна/деплоя",
   "unix": {
     "one_job_per_function": true,
     "composition": "pipes (stage_a && stage_b)",
@@ -46,7 +46,7 @@
       "id": "verify",
       "run": "workflows/cicd-script/steps/06-verify.ts",
       "needs": ["scaffold"],
-      "guardrails": { "allow_tools": ["bash", "check"], "max_reads": 26, "deny": ["edit", "write"] }
+      "guardrails": { "allow_tools": ["shell", "check"], "max_reads": 26, "deny": ["edit", "write"] }
     },
     {
       "id": "report",

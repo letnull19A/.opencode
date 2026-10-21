@@ -1,17 +1,21 @@
-// @ts-nocheck
-import { z } from "zod"
 import path from "path"
 export default {
   description: "Поиск семантических дублей Trello-задач. Обёртка над scripts/task-manager/find_duplicates.sh — возвращает {count, duplicates:[{name,shortUrl,similarity,reason}]}, threshold 0.65 для автоблока.",
-  args: {
-    title: z.string().optional().describe("Заголовок для проверки дубля"),
-    desc: z.string().optional().describe("Описание для проверки"),
-    board: z.string().optional().describe("Точное имя доски"),
-    json: z.boolean().optional().describe("Вывод JSON (default)"),
-    threshold: z.number().optional().describe("Порог similarity 0-1 (default 0.65)"),
-    all: z.boolean().optional().describe("Аудит всех дублей доски (пары)"),
+  input: {
+    type: "object",
+    properties: {
+      title: { type: "string", description: "Заголовок для проверки дубля" },
+      desc: { type: "string", description: "Описание для проверки" },
+      board: { type: "string", description: "Точное имя доски" },
+      json: { type: "boolean", description: "Вывод JSON (default)" },
+      threshold: { type: "number", description: "Порог similarity 0-1 (default 0.65)" },
+      all: { type: "boolean", description: "Аудит всех дублей доски (пары)" },
+    },
+    required: [],
+    additionalProperties: false,
   },
-  async execute(args, context) {
+  async execute(input: any, context: unknown) {
+    const args = (input ?? {}) as { title?: string; desc?: string; board?: string; json?: boolean; threshold?: number; all?: boolean }
     const root = (context as any).worktree ?? (context as any).directory ?? "."
     const script = path.join(root, ".opencode/scripts/task-manager/find_duplicates.sh")
     const parts = ["bash", script]
@@ -26,6 +30,7 @@ export default {
     const err = await new Response(proc.stderr).text()
     await proc.exited
     if (proc.exitCode !== 0 && !out.trim().startsWith("{")) throw new Error((err || out).trim() || `find_duplicates failed ${proc.exitCode}`)
-    return out.trim() || err.trim()
+    const text = out.trim() || err.trim()
+    return { content: text }
   },
 }

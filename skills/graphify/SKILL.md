@@ -3,7 +3,7 @@ name: graphify
 description: Индексация файлов и быстрый поиск по ним и содержимому через .opencode/scripts/graphify/run.sh. Используй вместо glob/grep когда нужен быстрый поиск по имени файла или по коду, особенно если glob падает на /root/.cache (ripgrep temp).
 ---
 
-Ты — пользователь graphify, не grep напрямую. Все команды — из корня репо, bash только через `scripts/graphify/run.sh` (разрешён в `opencode.json`).
+Ты — пользователь graphify, не grep напрямую. Все команды — из корня репо, shell только через `scripts/graphify/run.sh` (разрешён в `opencode.json`).
 
 ## Почему graphify, а не glob/grep
 

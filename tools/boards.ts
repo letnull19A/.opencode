@@ -1,10 +1,13 @@
-// @ts-nocheck
-import { z } from "zod"
 import path from "path"
 export default {
   description: "Список открытых Trello-досок (id + name). Обёртка над scripts/task-manager/boards.sh — только чтение, без гаданий.",
-  args: {},
-  async execute(_, context) {
+  input: {
+    type: "object",
+    properties: {},
+    required: [],
+    additionalProperties: false,
+  },
+  async execute(_input: unknown, context: unknown) {
     const root = (context as any).worktree ?? (context as any).directory ?? "."
     const script = path.join(root, ".opencode/scripts/task-manager/boards.sh")
     const proc = Bun.spawn(["bash", script], { cwd: root, stdout: "pipe", stderr: "pipe" })
@@ -12,6 +15,7 @@ export default {
     const err = await new Response(proc.stderr).text()
     await proc.exited
     if (proc.exitCode !== 0 && !out.trim()) throw new Error(err || `boards failed ${proc.exitCode}`)
-    return out.trim() || err.trim()
+    const text = out.trim() || err.trim()
+    return { content: text }
   },
 }

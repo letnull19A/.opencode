@@ -12,18 +12,18 @@ description: Упаковка приложения в Docker по слоям (de
 - **`@recon` (разведка, `mode:subagent hidden:true`):** собирает `stack` (node/python/go), `packageManager` (npm/yarn/pnpm), `has_lock`, `buildScript` (`npm run build`/`next build`/`vite build`), `Dockerfile`-наличие, `apps/` монорепо, ключевые файлы — возвращает `{stack, pkgMgr, has_lock, build_cmd, has_dockerfile, apps, facts}`.
 - **`@docker-pack` (исполнение, `mode:subagent hidden:true`):** принимает `app`/`context`/`stack` от вызывающего + факты от `@recon`, валидирует, зовёт `scripts/docker-pack/scaffold.sh --stack <node|python|go> [--app <name>] [--context <path>] [--dockerfile <path>] [--force]`, проверяет результат, возвращает `{dockerfile, dockerignore, layers}`. Пользователя не опрашивает — только вызывающий агент (напр. `@build`/`@ci`/`@init`).
 
-## Workflow (вызывает любой агент через `task` tool)
+## Workflow (вызывает любой агент через `subagent` tool)
 
 ### 1. Вызов (делает вызывающий агент, напр. `@build`/`@ci`)
 ```bash
-task → @docker-pack с JSON {app:"web", context:"apps/web", dockerfile:"apps/web/Dockerfile", stack:"auto", force:false}
+subagent → @docker-pack с JSON {app:"web", context:"apps/web", dockerfile:"apps/web/Dockerfile", stack:"auto", force:false}
 # stack:auto — определить из @recon, иначе явно node|python|go
 # app пусто для single, иначе папка в apps/
 ```
 
 ### 2. Разведка внутри @docker-pack (обязательно)
 ```bash
-task → @recon с {title:"docker-pack <app>", desc:"нужен Dockerfile по слоям"}
+subagent → @recon с {title:"docker-pack <app>", desc:"нужен Dockerfile по слоям"}
 # @recon вернёт {stack, pkgMgr, build_cmd, has_dockerfile, ...}
 ```
 `@docker-pack` мерджит: `stack = input.stack != auto ? input.stack : recon.stack` (fallback `node` если не определил). Для `node` берёт `pkgMgr` (npm/yarn/pnpm) и `has_lock` для выбора `npm ci` vs `npm install`.

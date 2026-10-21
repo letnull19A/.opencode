@@ -1,15 +1,19 @@
-// @ts-nocheck
-import { z } from "zod"
 import path from "path"
 export default {
   description: "Планировщик батчей Trello — лёгкие задачи пачкой + проверка has_fix. Обёртка над scripts/planner/run.sh → JSON {batches,singles,incomplete,heavy} для task-batch.",
-  args: {
-    board: z.string().optional().describe("Точное имя доски, default BOARD из .devbox-project"),
-    tag: z.string().optional().describe("Метка проекта, default NAME"),
-    all: z.boolean().optional().describe("Без фильтра — все карточки доски"),
-    limit: z.number().optional().describe("Макс. карточек (default 100)"),
+  input: {
+    type: "object",
+    properties: {
+      board: { type: "string", description: "Точное имя доски, default BOARD из .devbox-project" },
+      tag: { type: "string", description: "Метка проекта, default NAME" },
+      all: { type: "boolean", description: "Без фильтра — все карточки доски" },
+      limit: { type: "number", description: "Макс. карточек (default 100)" },
+    },
+    required: [],
+    additionalProperties: false,
   },
-  async execute(args, context) {
+  async execute(input: any, context: unknown) {
+    const args = (input ?? {}) as { board?: string; tag?: string; all?: boolean; limit?: number }
     const root = (context as any).worktree ?? (context as any).directory ?? "."
     const script = path.join(root, ".opencode/scripts/planner/run.sh")
     const parts = ["bash", script]
@@ -23,6 +27,7 @@ export default {
     const err = await new Response(proc.stderr).text()
     await proc.exited
     if (proc.exitCode !== 0 && !out.trim().startsWith("{")) throw new Error((err || out).trim() || `planner failed ${proc.exitCode}`)
-    return out.trim() || err.trim()
+    const text = out.trim() || err.trim()
+    return { content: text }
   },
 }

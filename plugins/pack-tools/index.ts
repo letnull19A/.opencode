@@ -2,23 +2,20 @@
 /**
  * pack-tools — регистрация тулов пака в V2-реестре opencode.
  *
- * Зачем: V1 грузил `.opencode/tool/*.ts` автоматически. В V2 автозагрузки
- * каталога тулов нет (в бинаре opencode есть `.opencode/plugin(s)/`, строки
- * `.opencode/tool` нет), кастомные тулы регистрируются только плагином через
+ * Кастомные тулы регистрируются только плагином через
  * `ctx.tool.transform`. Без этого все 23 тула пака (классификаторы, скрипты
  * task-manager, worktree, tunnel, postgres) молча исчезают из каталога.
  *
- * Что делает: берёт определения из `tools/*.ts` (V1-форма: `tool({args, execute})`,
- * где args — zod-схемы) и регистрирует их как V2 ToolInfo:
- *   - `args` (zod) → `input` (JSON Schema, `$schema` вырезается);
- *   - `execute(args, ctx)` → `execute(input, ctx)`, результат-строка → `{content}`;
- *   - V1-контекст (`worktree`/`directory`) собирается из V2-контекста вызова,
+ * Что делает: берёт определения из `tools/*.ts` (V2-форма: `{description,
+ * input, execute}` где input — JSON Schema, execute возвращает `{content}`)
+ * и регистрирует их как V2 ToolInfo:
+ *   - `input` (JSON Schema) — регистрируется как есть;
+ *   - `execute(input, ctx)` — результат оборачивается в `{content}` через toContent;
+ *   - контекст (`worktree`/`directory`) собирается из вызова,
  *     при отсутствии — из сессии (`ctx.session.get`) и как последний рубеж из
  *     `ctx.location.directory` (канонический checkout).
  *
- * Определения в `tools/` остаются единственным источником правды: конвертация
- * происходит на регистрации, файлы тулов не дублируются и не расходятся с
- * зарегистрированной схемой.
+ * Определения в `tools/` остаются единственным источником правды.
  */
 import { z } from "zod"
 
@@ -46,7 +43,7 @@ import tunnel from "../../tools/tunnel.js"
 import worktree from "../../tools/worktree.js"
 import workflow from "../../tools/workflow.js"
 
-/** Имя тула = имя файла в `tools/` — на них ссылаются промпты агентов и `permission.tool`. */
+/** Имя тула = имя файла в `tools/` — на них ссылаются промпты агентов и `permissions`. */
 const TOOLS: Record<string, unknown> = {
   boards,
   check,
@@ -86,7 +83,7 @@ function stripInternals(schema: unknown): unknown {
   return out
 }
 
-/** zod-args → JSON Schema объекта-входа тула. Опциональность — через safeParse, а не по флагам. */
+/** JSON Schema входа тула уже в V2-форме; хелпер оставлен для обратной совместимости переходного периода. */
 function toInputSchema(args: Record<string, Schema> = {}): Record<string, unknown> {
   const properties: Record<string, unknown> = {}
   const required: string[] = []
@@ -97,7 +94,7 @@ function toInputSchema(args: Record<string, Schema> = {}): Record<string, unknow
   return { type: "object", properties, required, additionalProperties: false }
 }
 
-/** Результат V1-тула (строка/объект) → V2 `{content}`. */
+/** Результат тула → V2 `{content}`. */
 function toContent(result: unknown): { content: string | unknown[] } {
   if (typeof result === "string") return { content: result }
   if (Array.isArray(result)) return { content: result }

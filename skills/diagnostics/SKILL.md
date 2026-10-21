@@ -20,7 +20,7 @@ description: Диагностика неполадок — разведка (git
    - Кратко (какой степ упал): `bash .opencode/scripts/ci/workflows.sh status --branch <branch> --limit 5 --json`
    - Детально (логи упавших): `bash .opencode/scripts/ci/workflows.sh logs --run <id> --failed-only --json`
    - Фильтр: `--workflow <file>` (напр. `docker-build-all.yml`)
-3. **Dokploy (MCP, не bash):** `dokploy_project_all` → `dokploy_application_one` / `dokploy_application_search` / `dokploy_compose_one` → `dokploy_application_readAppMonitoring` / `readLogs` / `readTraefikConfig`
+3. **Dokploy (MCP, не shell):** `dokploy_project_all` → `dokploy_application_one` / `dokploy_application_search` / `dokploy_compose_one` → `dokploy_application_readAppMonitoring` / `readLogs` / `readTraefikConfig`
 4. **Конфиги:** `read` `.github/workflows/*.yml`, `docker-compose.yml`, `server/Dockerfile`
 5. **Локальный PM2 (только если в запросе pm2/локально/устройство):** `pm2 jlist` или `pm2 list`, `pm2 logs <app> --lines 100 --nostream`, `pm2 describe <app>`
 
@@ -53,7 +53,7 @@ description: Диагностика неполадок — разведка (git
 
 ## Правила
 
-- Только чтение: `edit: deny`, `bash` только `ci/*`/`sync/*`/`git ...`, `dokploy` только MCP.
+- Только чтение: `edit: deny`, `shell` только `ci/*`/`sync/*`/`git ...`, `dokploy` только MCP.
 - pm2 только чтение (`list/status/describe/show/logs/jlist`); рестарт/стоп/удаление — только человек на хосте.
 - Не чини — только находишь. `git push` только `--dry-run`.
 - Не выдумывай `id`/`url` — только из вывода скриптов/MCP.

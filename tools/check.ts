@@ -1,12 +1,16 @@
-// @ts-nocheck
-import { z } from "zod"
 import path from "path"
 export default {
   description: "Проверка изменённых файлов (lint/typecheck/build). Обёртка над scripts/check/run.sh --json (только на diff, не весь проект).",
-  args: {
-    json: z.boolean().optional().describe("Вывод JSON"),
+  input: {
+    type: "object",
+    properties: {
+      json: { type: "boolean", description: "Вывод JSON" },
+    },
+    required: [],
+    additionalProperties: false,
   },
-  async execute(args, context) {
+  async execute(input: any, context: unknown) {
+    const args = (input ?? {}) as { json?: boolean }
     const root = (context as any).worktree ?? (context as any).directory ?? "."
     const script = path.join(root, ".opencode/scripts/check/run.sh")
     const parts = ["bash", script]
@@ -16,6 +20,7 @@ export default {
     const err = await new Response(proc.stderr).text()
     await proc.exited
     if (proc.exitCode !== 0 && !out.trim().startsWith("{")) throw new Error((out + "\n" + err).trim() || `check failed ${proc.exitCode}`)
-    return out.trim() || err.trim()
+    const text = out.trim() || err.trim()
+    return { content: text }
   },
 }

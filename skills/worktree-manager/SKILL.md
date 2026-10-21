@@ -39,7 +39,7 @@ description: Управляет git worktree для параллельной р�
 * Параллельные агенты — каждый в своём `workdir` (`/milesnear-webapp-feat`), сессии opencode не пересекаются
 * Туннели (`tunnel/run.sh`) — разные `--name` на worktree, т.к. `~/.local/state/opencode-tunnel` общий
 * Trello: `.devbox` наследуется, `BOARD/LIST` общие — переопределяй только если пользователь просит другой лист
-* Никогда `git worktree add` руками через `bash` — только скрипт (иначе пропустишь сабмодули/JSON)
+* Никогда `git worktree add` руками через `shell` — только скрипт (иначе пропустишь сабмодули/JSON)
 * Не удаляй ветку автоматически при `remove` — только worktree
 * Завершение задачи — только через `done` (PR-гейт `MERGED` + чистый worktree): `done` сам удалит worktree, приберет вмерженную ветку и подтянет `base`; сырой `remove` после принятого PR — только если `done` недоступен, и тогда подтяни `base` через `sync/run.sh` вручную
 

@@ -1,7 +1,7 @@
 # AGENTS.md — portable `.opencode` pack
 
 This repo IS the opencode config. It is cloned as `.opencode/` into consumer
-projects, so paths in agent/skill prompts (`.opencode/scripts/...`) assume
+projects, so paths in agents/skill prompts (`.opencode/scripts/...`) assume
 CWD = consumer repo root, not this repo root.
 
 issue_provider: github
@@ -28,7 +28,7 @@ issue_provider: github
   Чтение — через `read`/`glob`, `cat`/`head` — только как fallback.
   Никогда не начинать команду с `cd <path> && ...`: составной вызов проверяется
   по частям, `cd` не allowlisted ни у кого → отказ целиком. Смена каталога —
-  параметр `workdir` у bash-тула (и worktree-путь, переданный caller'ом).
+  параметр `workdir` у shell-тула (и worktree-путь, переданный caller'ом).
 - Issue pipeline: never call `create-issue.sh` directly, never run `create`
   without `preview` + explicit user "yes". Only `@issue-writer` thinks (LLM);
   everything after it is deterministic scripts.
@@ -66,7 +66,7 @@ issue_provider: github
   `init.sh` + первичное заполнение разделов по коду/опросу; контекст
   правил берёт программно через
   `bash .opencode/scripts/design/context.sh` (исполняющий агент;
-  read-only сабагенты без bash читают `DESIGN.md` напрямую) и работает
+  read-only сабагенты без shell читают `DESIGN.md` напрямую) и работает
   строго по нему (токены/box-shadow/dark/a11y); противоречие — вопрос
   пользователю, а не тихий отход. Конкретные компоненты в файле запрещены:
   только абстракции (поле ввода, заголовок, текст...) — дизайнер фиксирует
@@ -92,7 +92,7 @@ issue_provider: github
   через schemas, sinks (`innerHTML`/`eval`/`shell=True`) и конкатенация
   в SQL — запрет. После `git add` каждой группы — обязательно
   `bash .opencode/scripts/security/guard.sh --staged` (ровно стейдж, не всё дерево). Error — стоп + approve человека; разбор нарушений можно
-  делегировать `@security` через `task` (он предложит validator-патчи,
+  делегировать `@security` через `subagent` (он предложит validator-патчи,
   код не правит). Конвенция — `scripts/security/README.md`.
 - Push pipeline (внутри `/push`): never `git add` / `git commit` / manual
   `git push` / `--force`. Only `bash .opencode/scripts/push/run.sh` — it pushes
@@ -154,32 +154,32 @@ issue_provider: github
 
 ## Layout (ownership)
 
-- `agent/` — opencode subagents (`issue-writer`, `screenshot-report`,
+- `agents/` — opencode subagents (`issue-writer`, `screenshot-report`,
   `component-builder`, `refactor`, `task-manager`, `task-audit`, `react-fix`, `unit-test`,
   `structurer`, `review`, `architect`).
   `component-builder` — hidden subagent, read-only проектировщик React-компонентов
-  (`agent/component-builder.md`; edit/bash запрещены): выдаёт в чат дерево компонентов, ответственности,
+  (`agents/component-builder.md`; edit/shell запрещены): выдаёт в чат дерево компонентов, ответственности,
   props-контракты и декомпозицию большого компонента на мелкие, UI-кит
   не навязывает, код не пишет.
   `task-manager` — hidden subagent (вызов только через `/new-task`, `@auto`
-  или `task`), думает за весь
-  task-manager пайплайн, права зажаты (bash только на `scripts/task-manager/*`).
+  или `subagent`), думает за весь
+  task-manager пайплайн, права зажаты (shell только на `scripts/task-manager/*`).
   `task-audit` — `mode: subagent`, только аудит по делегированию `task-manager`,
   возврат строго JSON по `scripts/task-manager/schema/audit.schema.json`.
   `react-fix` — hidden subagent (вызов только через `/fix`, `@auto`
-  или `task`); думает за весь react-fix пайплайн
+  или `subagent`); думает за весь react-fix пайплайн
   (поиск классов — только скриптом, правки — только после выясненного
   «что менять», см. `scripts/react-fix/README.md`).
   `unit-test` — hidden subagent; пишет юнит-тесты под любой фреймворк,
   синтаксис фреймворка — только из Context7 MCP (по памяти запрещено).
   `structurer` — hidden subagent-предобработчик ввода (вызов только через `@auto`/`@plan`,
-  `task` → `@structurer`): фаза 1 score 0..6 (`goal/sections/lists/acceptance/context/single_intent` →
+  `subagent` → `@structurer`): фаза 1 score 0..6 (`goal/sections/lists/acceptance/context/single_intent` →
   `unstructured 0..2 / partial 3..4 / structured 5..6`), фаза 2 нормализация в md
   (Заголовок + Контекст/Что сделать/Критерии приёмки/Ограничения/Открытые вопросы,
   `[???]` вместо выдумок, N интентов → N блоков); возврат md + JSON
   `{score,level,intents,structured_md,open_questions,needs_confirmation}`; сам `question`
   не задаёт — спрашивает caller.
-  `review` — hidden subagent-гейт качества (вызов через `task` → `@review` из
+  `review` — hidden subagent-гейт качества (вызов через `subagent` → `@review` из
   исполнителей перед `done`, контроль — `@auto` шаг 5b): сверяет diff с `AGENTS.md` +
   `CODE_OF_CONDUCT.md` + `DESIGN.md` (для UI) через `check/run.sh` + `security/design`
   guards по узким критериям Q1..Q8 (задача/контракты/принципы/статика/безопасность/
@@ -193,9 +193,9 @@ issue_provider: github
   агенты читают файл как обязательный контракт.
 - `skills/tunnel-manager/SKILL.md` — preview-tunnel runner (wraps
   `scripts/tunnel/`).
-- `skills/ci/SKILL.md` — vendor-lock-free GitHub Actions CI/CD (требования→исполнение): `@ci` (hidden subagent) опрашивает пользователя (type/registry/image/platforms/cache/deploy + монорепо `apps/<app>`) → `task → @ci-runner` (`hidden:subagent`) скаффолдит `scripts/ci/scaffold.sh --type ci|docker|all [--monorepo --app]` из `scripts/ci/templates/*.yml` → `.github/workflows/`; `workflows.sh status|logs` — read-only; registry-agnostic (`vars.DOCKER_REGISTRY`/`vars.DOCKER_IMAGE`/`secrets.REGISTRY_*` + `GITHUB_TOKEN` fallback), buildx + gha cache, `paths: apps/<app>/**` для монорепо, без cloud-экшенов.
-- `skills/init/SKILL.md` — onboarding инициализации `.devbox` (требования→исполнение): `@init` (hidden subagent) опрашивает пользователя (remote, монорепо, микросервисы, frontend/backend/database, тип draft/mvp, коммиты all/batch, комментарии `COMMENTS_DETAILS 0..9`) → `task → @init-runner` (`hidden:subagent`) пишет `.devbox` через `scripts/task-manager/init.sh` с `PROFILE_*` + `COMMENTS_DETAILS` (можно коммитить), без секретов. Миграция legacy — `migrate.sh` первым шагом.
-- `skills/docker-pack/SKILL.md` — упаковка Docker по слоям (требования→исполнение): любой агент `task → @docker-pack` (`hidden:subagent`) → `task → @recon` (stack/зависимости) → `scripts/docker-pack/scaffold.sh --stack node|python|go [--app --context --dockerfile]` из `scripts/docker-pack/templates/Dockerfile.*` + `.dockerignore` (deps кэш отдельно от `COPY .`, multi-stage, non-root runner); монорепо `apps/<app>` контекст изолирован.
+- `skills/ci/SKILL.md` — vendor-lock-free GitHub Actions CI/CD (требования→исполнение): `@ci` (hidden subagent) опрашивает пользователя (type/registry/image/platforms/cache/deploy + монорепо `apps/<app>`) → `subagent → @ci-runner` (`hidden:subagent`) скаффолдит `scripts/ci/scaffold.sh --type ci|docker|all [--monorepo --app]` из `scripts/ci/templates/*.yml` → `.github/workflows/`; `workflows.sh status|logs` — read-only; registry-agnostic (`vars.DOCKER_REGISTRY`/`vars.DOCKER_IMAGE`/`secrets.REGISTRY_*` + `GITHUB_TOKEN` fallback), buildx + gha cache, `paths: apps/<app>/**` для монорепо, без cloud-экшенов.
+- `skills/init/SKILL.md` — onboarding инициализации `.devbox` (требования→исполнение): `@init` (hidden subagent) опрашивает пользователя (remote, монорепо, микросервисы, frontend/backend/database, тип draft/mvp, коммиты all/batch, комментарии `COMMENTS_DETAILS 0..9`) → `subagent → @init-runner` (`hidden:subagent`) пишет `.devbox` через `scripts/task-manager/init.sh` с `PROFILE_*` + `COMMENTS_DETAILS` (можно коммитить), без секретов. Миграция legacy — `migrate.sh` первым шагом.
+- `skills/docker-pack/SKILL.md` — упаковка Docker по слоям (требования→исполнение): любой агент `subagent → @docker-pack` (`hidden:subagent`) → `subagent → @recon` (stack/зависимости) → `scripts/docker-pack/scaffold.sh --stack node|python|go [--app --context --dockerfile]` из `scripts/docker-pack/templates/Dockerfile.*` + `.dockerignore` (deps кэш отдельно от `COPY .`, multi-stage, non-root runner); монорепо `apps/<app>` контекст изолирован.
 - `skills/commit/SKILL.md` — стратегия атомарных коммитов (Conventional
   Commits, группировка по интентам, сразу по явной просьбе без «да», без push).
 - `skills/task-manager/SKILL.md` — качественное использование task-manager
@@ -253,7 +253,7 @@ issue_provider: github
 - `scripts/security/` — `guard.sh` (guardrail I/O перед КАЖДЫМ коммитом:
   только незакоммиченные изменения; error `dangerous-sink`, warn
   `sql-concat`/`unvalidated-input`/`unvalidated-form`; error — стоп +
-  approve человека; разбор — `@security` через `task`; см.
+  approve человека; разбор — `@security` через `subagent`; см.
   `scripts/security/README.md`).
 - `scripts/sync/` — `run.sh` (deterministic `git pull --rebase --autostash`
   of current branch; no `merge`/`--force`; see `scripts/sync/README.md`).
@@ -267,35 +267,30 @@ issue_provider: github
   `Blocked by:` в `blocked_by`) + `schema/audit.schema.json` (AI-контракт),
   всё via Trello REST; агент думает, скрипты исполняют; see
   `scripts/task-manager/README.md`).
-- `opencode.json` — `default_agent: build`, bash-политика построена как deny-first:
-  catch-all `"*": "ask"` первым, затем точечные `allow` (скрипты/ read-only git / раннеры),
-  затем неснимаемые `deny` последним (last-match-wins: merge/PR-мержи, `git merge*`,
-  `push --force/-f`, `reset --hard` с целью, `clean -fd`, `rm -rf`, `npm/pnpm publish`).
+- `opencode.json` — `default_agent: build`, `agents` (plural, 37 агентов), shell-политика deny-first:
+  catch-all `{"action":"shell","resource":"*","effect":"ask"}` первым, затем точечные `allow` (скрипты/ read-only git / раннеры),
+  затем неснимаемые `deny` последним (last-match-wins: merge/PR-мержи, `git merge *`,
+  `push --force *`/`-f *`, `reset --hard *` с целью, `clean -fd *`, `rm -rf *`, `npm/pnpm publish *`).
   Точный `git reset --hard HEAD` (сброс незакоммиченного) разрешён, `git revert *` разрешён
   (откат только вперёд). Критические `deny` продублированы в правах исполнителей
   (`build-fast`/`build-smart`/`devops`/`react-fix`/`refactor`/`unit-test` — у них свой
-  ask/deny-by-default), потому что per-agent права имеют приоритет над глобальными
-  (`docs/permissions#agents`): глобальный deny без дубля съедается blanket-allow
-  агента (`bash: allow` в frontmatter запрещён — это дыра, снимающая все deny).
+  ask/deny-by-default), потому что per-agent права имеют приоритет над глобальными.
   Дефолт OpenCode — permissive (без catch-all всё разрешено), поэтому allowlist
   без `"*"` запретом не является.
-  Четыре обязательных инварианта bash-правил; нарушение любого убивает задачу
+  Четыре обязательных инварианта V2-правил; нарушение любого убивает задачу
   сообщением «Permission denied: shell», а не вопросом пользователю:
-  1. **Шаблон без пробела перед `*`** — `"git status*"`, не `"git status *"`.
-     Сопоставление идёт по строке команды: `"git status *"` требует литеральный
-     пробел и не матчит голую `git status` (V2 такой хвост разрешает, но конфиг
-     должен работать в обеих семантиках).
+  1. **Шаблон с пробелом перед `*`** — `"git status *"`, V2-канон требует пробел.
   2. **Всё, что агент обязан выполнить по своему промпту, есть в allowlist.**
      `ask` у субагента без интерактивного клиента = отказ: субагент не может
      спросить пользователя. Инварианты: `build-smart` обязан коммитить
-     (`git add*`/`git commit*`), `build-fast` обязан искать через graphify,
+     (`git add *`/`git commit *`), `build-fast` обязан искать через graphify,
      `auto` обязан звать пайплайн-скрипты (`sync`/`push`/`pr`/`tunnel`/`chain`/
      `security`/`design`/`ci`/`docker-pack`/`ports`/`issue-writer`).
-  3. **Никакого `bash: allow` / `bash: "*": "allow"`** — только deny-first
-     catch-all + точечные allow + продублированные deny.
+  3. **Никакого `shell: allow` без ресурса** — только deny-first
+     catch-all + точечные allow + продублированные deny. Действия V2: `shell` (не `bash`), `subagent` (не `task`).
   4. **Внешние каталоги — явным `external_directory`.** worktree из
      `scripts/worktree/run.sh` лежит в `../<repo>-<name>`, то есть вне Location;
-     без `external_directory: {"*": allow}` каждый `read`/`edit`/`bash` в нём
+     без `external_directory` каждый `read`/`edit`/`shell` в нём
      упирается в запрос (у субагента = отказ). Выдано `auto`, `build-smart`,
      `worktree-manager` — остальным не нужно.
   Составные команды (`&&`, `|`, `;`) проверяются по частям: `cd`, `sudo`, `xargs`
@@ -316,17 +311,14 @@ issue_provider: github
   — мульти-statement запрещены всегда, таймаут 10s, обрезка вывода).
 - `tools/*.ts` — определения 23 кастомных тулов пака (классификаторы, скрипты
   task-manager/planner/commit-trello/git-changes, graphify, check, worktree, tunnel,
-  workflow, postgres). Формат модуля: `export default { description, args /* zod */, execute }`.
-  **V1-хелпер `tool()` из `@opencode-ai/plugin` больше не используется** — в v2
-  автозагрузки каталога тулов нет, регистрирует их плагин.
+  workflow, postgres). Формат модуля V2: `export default { description, input /* JSON Schema */, execute(input,ctx) → {content} }`.
 - `plugins/pack-tools/index.ts` — единственная точка регистрации тулов в v2
-  (`.opencode/plugins/` загружается автоматически). Плагин конвертирует zod-`args`
-  каждого тула в JSON Schema `input` (опциональность — через `safeParse`, `$schema`
-  вырезается), оборачивает `execute` в V2-контракт `{content}`, собирает
-  V1-совместимый контекст (`worktree`/`directory`) из контекста вызова → сессии
+  (`.opencode/plugins/` загружается автоматически). Плагин регистрирует V2-форму напрямую
+  (`input` как есть, `execute` → `{content}` через toContent), собирает
+  контекст (`worktree`/`directory`) из контекста вызова → сессии
   (`ctx.session.get().location.directory`) → `ctx.location.directory`.
   Права на тулы — действие `tool` с ресурсом-именем тула
-  (в `agent/*.md` это `permission.tool.<name>`).
+  (в `agents/*.md` это `permissions` с `subagent`/`shell`).
   Проверка регистрации без модели: `bun plugins/pack-tools/verify.ts`
   (`PACK_TOOLS_TEST_ROOT=<корень consumer-репо>` — для скриптовых тулов).
   Оговорка: `opencode reload` в v2.0.29 падает с `TypeError: t is not a function`
@@ -343,7 +335,7 @@ issue_provider: github
 
 Агенты поделены на отделы по стадиям пайплайна — отдел определяет зону
 ответственности. Точка входа — только `@auto` + slash-команды (тонкие
-раннеры на builtin `build` с делегированием через `task`); все остальные
+раннеры на builtin `build` с делегированием через `subagent`); все остальные
 кастомные агенты — hidden subagents за workflows/классификатором, напрямую
 пользователем не вызываются. Вектор — workflow-модель и программное
 управление моделями/агентами.
@@ -461,11 +453,9 @@ bash .opencode/scripts/design/guard.sh          # guardrail незакоммич
 
 ## Version / env gotchas
 
-- Agent dir is `.opencode/agent/` here, but some opencode versions expect
-  `.opencode/agents/` (plural). Check version docs before renaming.
-- `permission:` frontmatter in `agent/*.md` is V1 syntax. On V2 config move
-  rules to `opencode.json` `permissions: [...]` with `resource` patterns.
-- `issue-writer` agent is locked down (`edit: deny`, bash allowlist: only
+- Agent dir is `.opencode/agents/` (plural, V2-канон). V1 singular `agent/` удалён.
+- Frontmatter агентов — только V2: `description/mode/model/permissions`. V1-поля запрещены.
+- `issue-writer` agent is locked down (`edit: deny`, shell allowlist: only
   `git diff/log/show`, `cat`, `validate-issue-data.py`). Do not broaden.
 - `create-issue.sh` needs external CLIs: `gh` / `glab` / `tea`; bitbucket goes
   via curl + `BITBUCKET_WORKSPACE/SLUG/USERNAME/APP_PASSWORD` env.
@@ -480,11 +470,11 @@ bash .opencode/scripts/design/guard.sh          # guardrail незакоммич
 - `mcp.context7` works without a key (lower rate limits); with a free key
   from `https://context7.com` limits are higher:
   `export CONTEXT7_API_KEY=...` (also only via `{env:...}`, never committed).
-- `scripts/task-manager/*` IS in `opencode.json` bash allowlist for autonomous
+- `scripts/task-manager/*` IS in `opencode.json` shell allowlist for autonomous
   work: creating Trello cards is a side effect, but user explicitly enabled
   auto-approval (agent-level «да» убран: просьба уже приказ, permission-prompt
   тоже отключён).
-- `scripts/react-fix/*` IS in `opencode.json` bash allowlist: `find-class.sh`
+- `scripts/react-fix/*` IS in `opencode.json` shell allowlist: `find-class.sh`
   is read-only (stdout only, no mutations), so class search never asks
   for approval; edits themselves stay behind the agent's «что менять» rule.
 - `mcp.dokploy` needs both env vars (self-hosted, URL у каждого свой):

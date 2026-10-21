@@ -1,13 +1,16 @@
-// @ts-nocheck
-import { z } from "zod"
-
 export default {
   description: "Классификатор task-manager: отличает 'завести задачу' (create) от 'объясни задачу' (explain) и 'аудит/статус' (audit). Возвращает {intent, confidence, reason, provider}. Используется task-manager перед делегированием к сабагентам, чтобы не путать explain vs create.",
-  args: {
-    text: z.string().describe("Текст пользователя целиком (сообщение)"),
-    title: z.string().optional().describe("Опционально: выделенный заголовок задачи"),
+  input: {
+    type: "object",
+    properties: {
+      text: { type: "string", description: "Текст пользователя целиком (сообщение)" },
+      title: { type: "string", description: "Опционально: выделенный заголовок задачи" },
+    },
+    required: ["text"],
+    additionalProperties: false,
   },
-  async execute(args, context) {
+  async execute(input: any, _context: unknown) {
+    const args = (input ?? {}) as { text: string; title?: string }
     const text = (args.text || args.title || "").trim()
     const lower = text.toLowerCase()
 
@@ -41,6 +44,7 @@ export default {
     else if (/\?/.test(text) && /(задач|карточк|trello)/i.test(lower)) { intent = "explain"; reason = "вопрос с ? про задачу/карточку"; confidence = 0.75 }
     else if (/(помоги|как|что нужно|зачем)/i.test(lower) && /(задач|карточк)/i.test(lower)) { intent = "explain"; reason = "просьба пояснить задачу"; confidence = 0.7 }
 
-    return JSON.stringify({ intent, confidence, reason, provider: "heuristic" }, null, 2)
+    const text_out = JSON.stringify({ intent, confidence, reason, provider: "heuristic" }, null, 2)
+    return { content: text_out }
   },
 }

@@ -1,7 +1,7 @@
 {
   "name": "new-task",
   "description": "0→1: от сырой фразы 'новая задача' до карточки в Trello, готовой к работе. Минимально: validate → classify → route-classify (тип роута public/auth/unauth по skills/routing/SKILL.md, до plan) → recon (reuse-first: graphify/grep до нового, reuse в facts) → plan (add→update при кандидате, reuse в JSON; при complex=true компиляция закрытой матрицы 4 факторов роутинг×роль×слой×вложенность по skills/evol-plan/SKILL.md#2b-3b) → create (dry-run preview gate).",
-  "trigger": "новая задача | /new-task | tool workflow {name:\"new-task\"}",
+  "trigger": "новая задача | /new-task | workflow {name:\"new-task\"}",
   "steps": [
     {
       "id": "validate",

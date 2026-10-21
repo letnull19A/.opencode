@@ -9,7 +9,7 @@ description: Create atomic Conventional Commits from a dirty git tree — split 
 стандартные `git add <paths>` / `git commit` — никакого пуша
 (пуш делает только `/push`).
 
-**Делегирование:** для написания очень кратких сообщений и разбиения на атомарные коммиты делегируй сабагенту `commit-writer` через `task` tool — передай `git status`/`git diff --stat` и подсказку `$ARGUMENTS`. Сабагент вернёт `{"commits": [...]}` и сам сделает `git add`/`git commit` по группам. Ты только ретранслируй его итог.
+**Делегирование:** для написания очень кратких сообщений и разбиения на атомарные коммиты делегируй сабагенту `commit-writer` через `subagent` tool — передай `git status`/`git diff --stat` и подсказку `$ARGUMENTS`. Сабагент вернёт `{"commits": [...]}` и сам сделает `git add`/`git commit` по группам. Ты только ретранслируй его итог.
 
 ## Workflow
 
@@ -33,7 +33,7 @@ description: Create atomic Conventional Commits from a dirty git tree — split 
     (правит их только человек-владелец, UI-ядро — read-only) и жди явного approve; без approve не коммитишь;
    вышел 0 — идёшь дальше; вышел 2 (нет `DESIGN.md`) — сначала `design/init.sh` + заполнение, потом guard),
    затем всегда (фронт и бэк) security-guardrail `bash .opencode/scripts/security/guard.sh --staged`.
-   Вышел 1 — error-нарушения: стоп, покажи их, разбор сложных мест делегируй `@security` через `task`
+   Вышел 1 — error-нарушения: стоп, покажи их, разбор сложных мест делегируй `@security` через `subagent`
    (validator-патчи), дальше только после явного approve человека. Вышел 0 — идёшь дальше.
    Guard чист — `git commit -m "<message>"` → проверь `git status --short`.
    Никогда не стейджишь всё дерево одним `git add -A` / `git add .`, если групп больше одной — только точечный

@@ -3,7 +3,7 @@ description: Починить React-компонент по имени CSS-кл�
 agent: build
 ---
 
-Ты — runner, не инженер. Делегируй через `task` → `@react-fix`
+Ты — runner, не инженер. Делегируй через `subagent` → `@react-fix`
 (hidden subagent, контекст не засоряешь) и ретранслируй его итог.
 
 Текст задачи: `$ARGUMENTS` (может быть пустым — сабагент выяснит класс

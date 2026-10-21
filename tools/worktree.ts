@@ -1,20 +1,24 @@
-// @ts-nocheck
-import { z } from "zod"
 import path from "path"
 export default {
   description: "Worktree-менеджер (параллельная разработка). Обёртка над scripts/worktree/run.sh: create/list/status/remove/done/prune. done — завершение жизненного цикла (PR-гейт MERGED → удалить worktree → подтянуть base).",
-  args: {
-    command: z.enum(["create", "list", "status", "remove", "done", "prune"]).describe("Команда worktree"),
-    name: z.string().optional().describe("Имя worktree / ветки"),
-    branch: z.string().optional().describe("Ветка для create (или переопределение ветки для done)"),
-    base: z.string().optional().describe("Целевая ветка для done-синка (default main)"),
-    from: z.string().optional().describe("Откуда ветвить"),
-    remote: z.string().optional().describe("Git remote для done (default origin)"),
-    keep_branch: z.boolean().optional().describe("Для done — не удалять локальную ветку"),
-    json: z.boolean().optional().describe("Вывод JSON"),
-    force: z.boolean().optional().describe("Force для remove/done"),
+  input: {
+    type: "object",
+    properties: {
+      command: { type: "string", enum: ["create", "list", "status", "remove", "done", "prune"], description: "Команда worktree" },
+      name: { type: "string", description: "Имя worktree / ветки" },
+      branch: { type: "string", description: "Ветка для create (или переопределение ветки для done)" },
+      base: { type: "string", description: "Целевая ветка для done-синка (default main)" },
+      from: { type: "string", description: "Откуда ветвить" },
+      remote: { type: "string", description: "Git remote для done (default origin)" },
+      keep_branch: { type: "boolean", description: "Для done — не удалять локальную ветку" },
+      json: { type: "boolean", description: "Вывод JSON" },
+      force: { type: "boolean", description: "Force для remove/done" },
+    },
+    required: ["command"],
+    additionalProperties: false,
   },
-  async execute(args, context) {
+  async execute(input: any, context: unknown) {
+    const args = (input ?? {}) as { command: string; name?: string; branch?: string; base?: string; from?: string; remote?: string; keep_branch?: boolean; json?: boolean; force?: boolean }
     const root = (context as any).worktree ?? (context as any).directory ?? "."
     const script = path.join(root, ".opencode/scripts/worktree/run.sh")
     const parts = ["bash", script, args.command]
@@ -31,6 +35,7 @@ export default {
     const err = await new Response(proc.stderr).text()
     await proc.exited
     if (proc.exitCode !== 0) throw new Error((out + "\n" + err).trim() || `worktree ${args.command} failed ${proc.exitCode}`)
-    return (out + "\n" + err).trim()
+    const text = (out + "\n" + err).trim()
+    return { content: text }
   },
 }

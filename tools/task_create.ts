@@ -1,17 +1,21 @@
-// @ts-nocheck
-import { z } from "zod"
 import path from "path"
 export default {
   description: "Создание Trello-карточки с меткой проекта NAME. Обёртка над scripts/task-manager/create.sh. Требует title, берёт BOARD/LIST из .devbox-project если не переданы.",
-  args: {
-    title: z.string().describe("Заголовок карточки, императив до ~80 символов, без точки"),
-    board: z.string().optional().describe("Точное имя доски, default BOARD из .devbox-project"),
-    list: z.string().optional().describe("Точное имя листа, default LIST из .devbox-project"),
-    desc: z.string().optional().describe("Описание по шаблону ## Контекст / ## Что сделать / ## Критерии / ## Связи"),
-    color: z.string().optional().describe("Цвет метки: green/yellow/orange/red/purple/blue/sky/lime/pink/black (default green)"),
-    save_defaults: z.boolean().optional().describe("Запомнить BOARD/LIST в .devbox-project"),
+  input: {
+    type: "object",
+    properties: {
+      title: { type: "string", description: "Заголовок карточки, императив до ~80 символов, без точки" },
+      board: { type: "string", description: "Точное имя доски, default BOARD из .devbox-project" },
+      list: { type: "string", description: "Точное имя листа, default LIST из .devbox-project" },
+      desc: { type: "string", description: "Описание по шаблону ## Контекст / ## Что сделать / ## Критерии / ## Связи" },
+      color: { type: "string", description: "Цвет метки: green/yellow/orange/red/purple/blue/sky/lime/pink/black (default green)" },
+      save_defaults: { type: "boolean", description: "Запомнить BOARD/LIST в .devbox-project" },
+    },
+    required: ["title"],
+    additionalProperties: false,
   },
-  async execute(args, context) {
+  async execute(input: any, context: unknown) {
+    const args = (input ?? {}) as { title: string; board?: string; list?: string; desc?: string; color?: string; save_defaults?: boolean }
     const root = (context as any).worktree ?? (context as any).directory ?? "."
     const script = path.join(root, ".opencode/scripts/task-manager/create.sh")
     const parts = ["bash", script, "--title", args.title]
@@ -25,6 +29,7 @@ export default {
     const err = await new Response(proc.stderr).text()
     await proc.exited
     if (proc.exitCode !== 0) throw new Error((out + "\n" + err).trim() || `create failed ${proc.exitCode}`)
-    return (out + "\n" + err).trim()
+    const text = (out + "\n" + err).trim()
+    return { content: text }
   },
 }
