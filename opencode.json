@@ -596,6 +596,11 @@
         },
         {
           "action": "shell",
+          "resource": "bash .opencode/scripts/git-recon/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
           "resource": "bash .opencode/scripts/sync/*",
           "effect": "allow"
         },
@@ -734,6 +739,11 @@
         {
           "action": "shell",
           "resource": "bash .opencode/scripts/check/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "bash .opencode/scripts/git-recon/*",
           "effect": "allow"
         },
         {
@@ -940,6 +950,11 @@
         },
         {
           "action": "shell",
+          "resource": "bash .opencode/scripts/git-recon/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
           "resource": "bash .opencode/scripts/graphify/*",
           "effect": "allow"
         },
@@ -1132,6 +1147,11 @@
         },
         {
           "action": "shell",
+          "resource": "bash .opencode/scripts/git-recon/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
           "resource": "bash .opencode/scripts/graphify/*",
           "effect": "allow"
         },
@@ -1265,6 +1285,11 @@
         {
           "action": "shell",
           "resource": "bash .opencode/scripts/check/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "bash .opencode/scripts/git-recon/*",
           "effect": "allow"
         },
         {
@@ -1532,6 +1557,11 @@
           "effect": "deny"
         },
         {
+          "action": "shell",
+          "resource": "bash .opencode/scripts/git-recon/*",
+          "effect": "allow"
+        },
+        {
           "action": "question",
           "resource": "*",
           "effect": "allow"
@@ -1584,6 +1614,11 @@
           "effect": "allow"
         },
         {
+          "action": "shell",
+          "resource": "bash .opencode/scripts/git-recon/*",
+          "effect": "allow"
+        },
+        {
           "action": "read",
           "resource": "*",
           "effect": "allow"
@@ -1633,6 +1668,11 @@
         {
           "action": "shell",
           "resource": "bash .opencode/scripts/check/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "bash .opencode/scripts/git-recon/*",
           "effect": "allow"
         },
         {
@@ -1700,6 +1740,11 @@
         {
           "action": "shell",
           "resource": "bash .opencode/scripts/check/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "bash .opencode/scripts/git-recon/*",
           "effect": "allow"
         },
         {
@@ -1865,6 +1910,11 @@
         },
         {
           "action": "shell",
+          "resource": "bash .opencode/scripts/git-recon/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
           "resource": "git merge *",
           "effect": "deny"
         },
@@ -1917,6 +1967,11 @@
         },
         {
           "action": "shell",
+          "resource": "bash .opencode/scripts/git-recon/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
           "resource": "docker *",
           "effect": "allow"
         },
@@ -1955,6 +2010,11 @@
         {
           "action": "shell",
           "resource": "bash .opencode/scripts/graphify/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "bash .opencode/scripts/git-recon/*",
           "effect": "allow"
         },
         {
@@ -2143,6 +2203,11 @@
           "effect": "allow"
         },
         {
+          "action": "shell",
+          "resource": "bash .opencode/scripts/git-recon/*",
+          "effect": "allow"
+        },
+        {
           "action": "read",
           "resource": "*",
           "effect": "allow"
@@ -2280,6 +2345,11 @@
         },
         {
           "action": "shell",
+          "resource": "bash .opencode/scripts/git-recon/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
           "resource": "git status *",
           "effect": "allow"
         },
@@ -2327,6 +2397,11 @@
         },
         {
           "action": "shell",
+          "resource": "bash .opencode/scripts/git-recon/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
           "resource": "git status *",
           "effect": "allow"
         },
@@ -2365,6 +2440,11 @@
         {
           "action": "shell",
           "resource": "bash .opencode/scripts/graphify/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "bash .opencode/scripts/git-recon/*",
           "effect": "allow"
         },
         {
@@ -2412,6 +2492,11 @@
         {
           "action": "shell",
           "resource": "bash .opencode/scripts/check/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "bash .opencode/scripts/git-recon/*",
           "effect": "allow"
         },
         {
@@ -2464,6 +2549,11 @@
         {
           "action": "shell",
           "resource": "bash .opencode/scripts/check/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "bash .opencode/scripts/git-recon/*",
           "effect": "allow"
         },
         {
@@ -2741,6 +2831,11 @@
           "effect": "allow"
         },
         {
+          "action": "shell",
+          "resource": "bash .opencode/scripts/git-recon/*",
+          "effect": "allow"
+        },
+        {
           "action": "question",
           "resource": "*",
           "effect": "allow"
@@ -2802,6 +2897,11 @@
         {
           "action": "shell",
           "resource": "bash .opencode/scripts/check/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "bash .opencode/scripts/git-recon/*",
           "effect": "allow"
         },
         {

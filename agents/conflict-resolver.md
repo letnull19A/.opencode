@@ -10,6 +10,7 @@ permissions:
   - {action: shell, resource: "git diff *", effect: allow}
   - {action: shell, resource: "git log *", effect: allow}
   - {action: shell, resource: "bash .opencode/scripts/check/*", effect: allow}
+  - {action: shell, resource: "bash .opencode/scripts/git-recon/*", effect: allow}
   - {action: shell, resource: "git merge *", effect: deny}
   - {action: shell, resource: "git push --force *", effect: deny}
   - {action: shell, resource: "bash /tmp/*", effect: deny}

@@ -8,6 +8,7 @@ permissions:
   - {action: shell, resource: "bash .opencode/scripts/task-manager/*", effect: allow}
   - {action: shell, resource: "bash .opencode/scripts/graphify/*", effect: allow}
   - {action: shell, resource: "bash .opencode/scripts/check/*", effect: allow}
+  - {action: shell, resource: "bash .opencode/scripts/git-recon/*", effect: allow}
   - {action: shell, resource: "bash .opencode/scripts/sync/*", effect: allow}
   - {action: shell, resource: "bash .opencode/scripts/pr/*", effect: allow}
   - {action: shell, resource: "bash .opencode/scripts/worktree/*", effect: allow}
@@ -97,6 +98,7 @@ permissions:
 ## Правила
 
 - Не пиши код, не вызывай `edit`/`shell` кроме разведки (`init`/`boards`/`lists`/`dump`/`graphify`/`check`/`worktree`).
+- Разведка git — только через скилл `git-recon` / `bash .opencode/scripts/git-recon/run.sh` (сырые `rev-parse/branch/fetch/merge` и составные `&&/;/|` запрещены).
 - Не выдумывай `complexity` — только из `@evol-plan` или своей эвристики с `graphify`/`dump`.
 - Не делегируй обеим моделям параллельно одну карточку — только одна, с ротацией при эскалации. Dependency-пачку — строго последовательно, друг за другом.
 - После делегирования — ретранслируй URL/результат от исполнителя, добавь `complexity` + `worktree path/branch/baseCommit` (для smart) или `files/envs/networks/ports/volumes` (для devops) в отчёт.

@@ -9,6 +9,7 @@ permissions:
   - {action: shell, resource: "bash .opencode/scripts/task-manager/*", effect: allow}
   - {action: shell, resource: "bash .opencode/scripts/graphify/*", effect: allow}
   - {action: shell, resource: "bash .opencode/scripts/check/*", effect: allow}
+  - {action: shell, resource: "bash .opencode/scripts/git-recon/*", effect: allow}
   - {action: question, resource: "*", effect: allow}
   - {action: subagent, resource: "*", effect: allow}
 ---

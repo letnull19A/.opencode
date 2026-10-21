@@ -8,6 +8,7 @@ permissions:
   - {action: shell, resource: "*", effect: deny}
   - {action: shell, resource: "bash .opencode/scripts/docker-pack/*", effect: allow}
   - {action: shell, resource: "bash .opencode/scripts/check/*", effect: allow}
+  - {action: shell, resource: "bash .opencode/scripts/git-recon/*", effect: allow}
   - {action: shell, resource: "docker *", effect: allow}
   - {action: shell, resource: "bash /tmp/*", effect: deny}
   - {action: question, resource: "*", effect: allow}

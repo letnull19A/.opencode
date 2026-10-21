@@ -7,6 +7,7 @@ permissions:
   - {action: edit, resource: "*", effect: allow}
   - {action: shell, resource: "*", effect: ask}
   - {action: shell, resource: "bash .opencode/scripts/check/*", effect: allow}
+  - {action: shell, resource: "bash .opencode/scripts/git-recon/*", effect: allow}
   - {action: shell, resource: "bash .opencode/scripts/graphify/*", effect: allow}
   - {action: shell, resource: "bash .opencode/scripts/worktree/*", effect: allow}
   - {action: shell, resource: "git status *", effect: allow}
