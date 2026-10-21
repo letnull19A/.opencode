@@ -411,8 +411,12 @@ d = json.load(open(index_path, encoding='utf-8'))
 print(f"root: {d.get('root')}\ncount: {d.get('count')}\nindexed_at: {d.get('indexed_at')}\nhash: {d.get('hash')}\npath: {index_path}")
 PY
   else
-    echo "graphify: индекс не создан — запусти: bash .opencode/scripts/graphify/run.sh index --root $ROOT"
-    exit 1
+    python3 - "$ROOT" "$INDEX_JSON" <<'PY'
+import json, sys
+root, index_path = sys.argv[1], sys.argv[2]
+print(json.dumps({"indexed": False, "root": root, "path": index_path, "count": 0, "hint": "индекс не создан — запусти: bash .opencode/scripts/graphify/run.sh index"}, ensure_ascii=False))
+PY
+    exit 0
   fi
 }
 

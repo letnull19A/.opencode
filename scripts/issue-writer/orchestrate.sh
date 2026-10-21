@@ -13,6 +13,7 @@
 set -euo pipefail
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then sed -n '1,12p' "$0"; echo "Usage: orchestrate.sh <preview|create> <issue.json> [labels_csv]"; exit 0; fi
 MODE="${1:?usage: orchestrate.sh <preview|create> <issue.json> [labels_csv]}"
 ISSUE_JSON="${2:?path to validated issue.json required}"
 LABELS_CSV="${3:-}"

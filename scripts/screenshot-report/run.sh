@@ -11,6 +11,7 @@ while [[ $# -gt 0 ]]; do
     --base-url) BASE_URL="$2"; shift 2 ;;
     --pages) PAGES_FILE="$2"; shift 2 ;;
     --method) DELIVERY_METHOD="$2"; shift 2 ;;
+    -h|--help) echo "Usage: run.sh --base-url https://your-app.com [--pages ./pages.json] [--method local|telegram|webhook|s3]"; exit 0 ;;
     *) echo "Unknown arg: $1"; exit 1 ;;
   esac
 done

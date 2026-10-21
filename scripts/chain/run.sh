@@ -24,7 +24,8 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 RUNS="$DIR/runs"
 CACHE="$DIR/cache"
 
-usage() { grep '^#' "$0" | sed 's/^# \{0,1\}//'; exit "${1:-0}"; }
+usage() { grep '^#[^!]' "$0" | sed 's/^# \{0,1\}//'; exit "${1:-0}"; }
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then usage 0; fi
 CMD="${1:-}"; [[ -z "$CMD" ]] && usage 1; shift
 
 case "$CMD" in

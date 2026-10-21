@@ -106,13 +106,17 @@ def load_tasks(raw):
     # dump.json: {lists:[{cards:[]}]} или {cards:[]}
     # file может быть массивом cards
     cards = []
-    board = d.get("board", {"name": None, "id": None})
-    fetched_at = d.get("fetched_at")
-    flt = d.get("filter")
+    board = {"name": None, "id": None}
+    fetched_at = None
+    flt = None
     if isinstance(d, list):
         for c in d:
             cards.append({"id": c.get("id"), "name": c.get("name"), "shortUrl": c.get("shortUrl"), "list": c.get("list",""), "due": c.get("due"), "dueComplete": c.get("dueComplete", False)})
-    elif "lists" in d:
+        return cards, board, fetched_at, flt
+    board = d.get("board", {"name": None, "id": None})
+    fetched_at = d.get("fetched_at")
+    flt = d.get("filter")
+    if "lists" in d:
         for lst in d.get("lists", []):
             lname = lst.get("name","")
             for c in lst.get("cards", []):
