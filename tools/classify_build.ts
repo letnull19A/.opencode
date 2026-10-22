@@ -1,5 +1,24 @@
+import fs from "fs"
+import os from "os"
+import path from "path"
+
+/** Канонический источник ключа Jev: env OPENCODE_API_KEY||JEV_API_KEY → fallback auth.json. */
+function resolveSysKey(): string {
+  const envKey = (process.env.OPENCODE_API_KEY || process.env.JEV_API_KEY || "").trim()
+  if (envKey) return envKey
+  try {
+    const dataDir = process.env.XDG_DATA_HOME || path.join(os.homedir(), ".local", "share")
+    const raw = fs.readFileSync(path.join(dataDir, "opencode", "auth.json"), "utf8")
+    const j = JSON.parse(raw) as Record<string, any>
+    const rawKey = j?.["opencode-go"]?.key ?? j?.opencode?.key ?? ""
+    return typeof rawKey === "string" ? rawKey.trim() : ""
+  } catch {
+    return ""
+  }
+}
+
 export default {
-  description: "Классификатор build+preview: выбирает build-fast (low), build-smart (medium/high), devops (инфра/деплои) или build (default fallback) и needs_tunnel (нужен ли preview-тоннель). Принимает complexity/risk от evol-plan или сырые поля задачи. Применяет детерминированные правила, затем Jev (systemone choice) → fallback на эвристику → build по умолчанию. Возвращает JSON {builder, confidence, reason, provider, needs_tunnel, tunnel_reason}. Требует OPENCODE_API_KEY (fallback JEV_API_KEY) для Jev; без ключа — эвристика + поле jev_warning с подсказкой по настройке.",
+  description: "Классификатор build+preview: выбирает build-fast (low), build-smart (medium/high), devops (инфра/деплои) или build (default fallback) и needs_tunnel (нужен ли preview-тоннель). Принимает complexity/risk от evol-plan или сырые поля задачи. Применяет детерминированные правила, затем Jev (systemone choice) → fallback на эвристику → build по умолчанию. Возвращает JSON {builder, confidence, reason, provider, needs_tunnel, tunnel_reason}. Ключ Jev: env OPENCODE_API_KEY (fallback JEV_API_KEY) → fallback auth.json ($HOME/.local/share/opencode/auth.json, XDG_DATA_HOME override, .opencode-go.key || .opencode.key); без ключа — эвристика + поле jev_warning с подсказкой по настройке.",
   input: {
     type: "object",
     properties: {
@@ -124,13 +143,13 @@ export default {
 
     // ——— Jev (System One choice) — после детерминированных правил, до эвристики ———
     // Не-enum/unknown/conf<0.5/не-ok/исключение — молча дальше в эвристику
-    const sysKey = process.env.OPENCODE_API_KEY || process.env.JEV_API_KEY;
+    const sysKey = resolveSysKey();
     let jevError: string | null = null;
     const jevMissingKey = !sysKey;
-    const JEV_SETUP_HINT = "Настрой Jev: /connect в TUI (OpenCode pay-as-you-go) либо export OPENCODE_API_KEY=<ключ из консоли> (fallback JEV_API_KEY). Без ключа классификация всегда идёт через эвристику.";
+    const JEV_SETUP_HINT = "Настрой Jev: /connect в TUI (OpenCode pay-as-you-go, пишет auth.json: $HOME/.local/share/opencode/auth.json, XDG_DATA_HOME override, mode 0600, JSON {opencode:{key}, opencode-go:{key}}) либо export OPENCODE_API_KEY=<ключ из консоли> (fallback JEV_API_KEY). Порядок: env OPENCODE_API_KEY||JEV_API_KEY → fallback sync read auth.json (.opencode-go.key || .opencode.key). Без ключа классификация всегда идёт через эвристику.";
     const withJevWarn = (o: Record<string, unknown>) =>
       jevMissingKey
-        ? { ...o, jev_warning: `Jev (jev-1.13-free) пропущен: нет OPENCODE_API_KEY/JEV_API_KEY в окружении — использована эвристика. ${JEV_SETUP_HINT}` }
+        ? { ...o, jev_warning: `Jev (jev-1.13-free) пропущен: нет ключа (env OPENCODE_API_KEY/JEV_API_KEY и auth.json) — использована эвристика. ${JEV_SETUP_HINT}` }
         : (jevError ? { ...o, jev_warning: `Jev упал (${jevError}) — использована эвристика. ${JEV_SETUP_HINT}` } : o);
     if (sysKey) { try {
       const state = [`Задача: ${input.title}`, input.desc, `Сложность: ${input.level} (score ${input.score}), файлов: ${input.files}, зависимостей: ${input.deps}, тип: ${input.type}, unknowns: ${input.unknowns}, риск: ${input.risk_level} (${input.risk_score}/8)`].filter(s => s && s.trim()).join("\n");
