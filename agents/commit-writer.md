@@ -12,6 +12,7 @@ permissions:
   - {action: shell, resource: "git show *", effect: allow}
   - {action: shell, resource: "git add *", effect: allow}
   - {action: shell, resource: "git commit *", effect: allow}
+  - {action: shell, resource: "git restore *", effect: allow}
   - {action: shell, resource: "bash .opencode/scripts/git-changes/*", effect: allow}
   - {action: shell, resource: "bash .opencode/scripts/commit-trello/*", effect: allow}
   - {action: question, resource: "*", effect: allow}

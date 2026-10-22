@@ -21,6 +21,7 @@ permissions:
   - {action: shell, resource: "git rev-parse *", effect: allow}
   - {action: shell, resource: "git rev-list *", effect: allow}
   - {action: shell, resource: "git revert *", effect: allow}
+  - {action: shell, resource: "git restore *", effect: allow}
   - {action: shell, resource: "bash .opencode/scripts/issue-writer/*", effect: allow}
   - {action: shell, resource: "bash .opencode/scripts/chain/*", effect: allow}
   - {action: shell, resource: "bash .opencode/scripts/tunnel/*", effect: allow}

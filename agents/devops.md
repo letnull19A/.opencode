@@ -20,6 +20,7 @@ permissions:
   - {action: shell, resource: "kubectl logs *", effect: allow}
   - {action: shell, resource: "docker stack *", effect: allow}
   - {action: shell, resource: "git checkout -- *", effect: allow}
+  - {action: shell, resource: "git restore *", effect: allow}
   - {action: shell, resource: "bash -n *", effect: allow}
   - {action: shell, resource: "docker compose config *", effect: allow}
   - {action: shell, resource: "docker compose ps *", effect: allow}

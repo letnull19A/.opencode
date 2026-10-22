@@ -13,6 +13,7 @@ permissions:
   - {action: shell, resource: "bash .opencode/scripts/branch-ops/*", effect: allow}
   - {action: shell, resource: "git status *", effect: allow}
   - {action: shell, resource: "git diff *", effect: allow}
+  - {action: shell, resource: "git restore *", effect: allow}
   - {action: shell, resource: "bun*", effect: allow}
   - {action: shell, resource: "pm2 list *", effect: allow}
   - {action: shell, resource: "pm2 status *", effect: allow}

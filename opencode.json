@@ -776,6 +776,11 @@
         },
         {
           "action": "shell",
+          "resource": "git restore *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
           "resource": "bash /tmp/*",
           "effect": "deny"
         },
@@ -969,6 +974,11 @@
         {
           "action": "shell",
           "resource": "make*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git restore *",
           "effect": "allow"
         },
         {
@@ -1325,6 +1335,11 @@
         },
         {
           "action": "shell",
+          "resource": "git restore *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
           "resource": "pm2 delete *",
           "effect": "deny"
         },
@@ -1593,6 +1608,11 @@
         {
           "action": "shell",
           "resource": "curl *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git restore *",
           "effect": "allow"
         },
         {
@@ -1940,6 +1960,11 @@
         {
           "action": "shell",
           "resource": "curl *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git restore *",
           "effect": "allow"
         },
         {
@@ -2747,6 +2772,11 @@
         {
           "action": "shell",
           "resource": "git commit *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git restore *",
           "effect": "allow"
         },
         {

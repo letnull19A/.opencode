@@ -39,6 +39,7 @@ permissions:
   - {action: shell, resource: "git rev-list *", effect: allow}
   - {action: shell, resource: "git revert *", effect: allow}
   - {action: shell, resource: "git branch *", effect: allow}
+  - {action: shell, resource: "git restore *", effect: allow}
   - {action: shell, resource: "pm2 delete *", effect: deny}
   - {action: shell, resource: "pm2 kill *", effect: deny}
   - {action: shell, resource: "curl *--data*", effect: deny}

@@ -19,6 +19,7 @@ permissions:
   - {action: shell, resource: "git show *", effect: allow}
   - {action: shell, resource: "git rev-parse *", effect: allow}
   - {action: shell, resource: "git branch *", effect: allow}
+  - {action: shell, resource: "git restore *", effect: allow}
   - {action: shell, resource: "bun*", effect: allow}
   - {action: shell, resource: "npm*", effect: allow}
   - {action: shell, resource: "node*", effect: allow}
