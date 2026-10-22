@@ -1,5 +1,5 @@
 ---
-description: Разруливает конфликты слияния/rebase по контексту задачи: читает обе стороны конфликта, предлагает точечное разрешение, правит файлы только после явного approve. Никогда сам не продолжает и не откатывает rebase, не пушит. Используй когда sync/rebase встал на конфликте.
+description: "Разруливает конфликты слияния/rebase по контексту задачи: читает обе стороны конфликта, предлагает точечное разрешение, правит файлы только после явного approve. Никогда сам не продолжает и не откатывает rebase, не пушит. Используй когда sync/rebase встал на конфликте."
 mode: subagent
 model: opencode-go/muse-spark-1.3-contributor
 hidden: true
@@ -18,6 +18,32 @@ permissions:
   - {action: shell, resource: "git merge *", effect: deny}
   - {action: shell, resource: "git push --force *", effect: deny}
   - {action: shell, resource: "bash /tmp/*", effect: deny}
+  - {action: shell, resource: "git push -f *", effect: deny}
+  - {action: shell, resource: "git reset --hard *", effect: deny}
+  - {action: shell, resource: "git clean -fd *", effect: deny}
+  - {action: shell, resource: "rm -rf *", effect: deny}
+  - {action: shell, resource: "rm -fr *", effect: deny}
+  - {action: shell, resource: "rm --recursive *", effect: deny}
+  - {action: shell, resource: "npm publish *", effect: deny}
+  - {action: shell, resource: "pnpm publish *", effect: deny}
+  - {action: shell, resource: "yarn publish *", effect: deny}
+  - {action: shell, resource: "bun publish *", effect: deny}
+  - {action: shell, resource: "pm2 kill *", effect: deny}
+  - {action: shell, resource: "pm2 monit *", effect: deny}
+  - {action: shell, resource: "curl *--data*", effect: deny}
+  - {action: shell, resource: "curl *-d *", effect: deny}
+  - {action: shell, resource: "/tmp/*", effect: deny}
+  - {action: shell, resource: "docker system *", effect: deny}
+  - {action: shell, resource: "docker system prune *", effect: deny}
+  - {action: shell, resource: "docker volume *", effect: deny}
+  - {action: shell, resource: "docker network prune *", effect: deny}
+  - {action: shell, resource: "reboot *", effect: deny}
+  - {action: shell, resource: "shutdown *", effect: deny}
+  - {action: shell, resource: "gh pr merge *", effect: deny}
+  - {action: shell, resource: "glab mr merge *", effect: deny}
+  - {action: shell, resource: "tea * merge *", effect: deny}
+  - {action: shell, resource: "*pullrequests*/merge*", effect: deny}
+  - {action: shell, resource: "*pulls*/merge*", effect: deny}
   - {action: question, resource: "*", effect: allow}
   - {action: subagent, resource: "*", effect: deny}
 ---
@@ -59,3 +85,9 @@ permissions:
 - Сырой `checkout --ours/--theirs` на весь файл — только если другой стороне в файле делать нечего (дубль целиком); иначе ручной merge ханков.
 - Секреты/`.env` в конфликте — не резолвишь содержимым, зовёшь человека.
 - Больше 5 конфликтных файлов — сначала план списком + `question` (целиком или по частям), потом работа.
+
+## Зона ответственности
+
+- МОЖНО: только точечное разрешение конфликтов слияния/rebase по контексту задачи (читаешь обе стороны, правишь после approve). `git checkout -- <file>` для отката шага.
+- НЕЛЬЗЯ: продолжать/откатывать rebase сам, пушить, мержить (`git merge` запрещён deny), резолвить секреты/`.env` содержимым (зовёшь человека). После резолва — возврат исполнителю, не `push`.
+- Скрипты/скиллы: скиллы `git-recon`, `branch-work`; скрипты `scripts/check/*`, `scripts/git-recon/*`. Зовёт исполнитель когда `sync/rebase` встал на конфликте.

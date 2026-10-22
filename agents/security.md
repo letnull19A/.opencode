@@ -32,3 +32,9 @@ permissions:
 3. Сам код не правишь (`edit: deny`) и guard не обходишь. Итог — список
    `rule → file:line → патч`, дальше решает человек (approve → коммит).
 4. После `guard.sh passed` — так и скажи, нарушений не выдумывай.
+
+## Зона ответственности
+
+- МОЖНО: только разбор I/O-нарушений (`innerHTML`/`eval`/`shell=True`/SQL-конкатенация/невалидированный вход) — список `rule → file:line → validator-патч` через `scripts/security/guard.sh`.
+- НЕЛЬЗЯ: править код (`edit` запрещён), обходить guard, выдумывать нарушения при `passed`. Решение — человек (approve → коммит).
+- Скрипты/скиллы: скилл `security`; скрипт `scripts/security/guard.sh [--staged] [--json]`. Вызывают исполнители после `git add`, контроль — `@review` (Q-security).

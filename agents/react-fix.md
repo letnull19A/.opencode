@@ -1,5 +1,5 @@
 ---
-description: Чинит React-компоненты по имени CSS-класса: находит скриптом, правит точечно.
+description: "Чинит React-компоненты по имени CSS-класса: находит скриптом, правит точечно."
 mode: subagent
 model: opencode-go/muse-spark-1.3-contributor
 hidden: true
@@ -14,6 +14,32 @@ permissions:
   - {action: shell, resource: "bash /tmp/*", effect: deny}
   - {action: shell, resource: "git merge *", effect: deny}
   - {action: shell, resource: "git push --force *", effect: deny}
+  - {action: shell, resource: "git push -f *", effect: deny}
+  - {action: shell, resource: "git reset --hard *", effect: deny}
+  - {action: shell, resource: "git clean -fd *", effect: deny}
+  - {action: shell, resource: "rm -rf *", effect: deny}
+  - {action: shell, resource: "rm -fr *", effect: deny}
+  - {action: shell, resource: "rm --recursive *", effect: deny}
+  - {action: shell, resource: "npm publish *", effect: deny}
+  - {action: shell, resource: "pnpm publish *", effect: deny}
+  - {action: shell, resource: "yarn publish *", effect: deny}
+  - {action: shell, resource: "bun publish *", effect: deny}
+  - {action: shell, resource: "pm2 kill *", effect: deny}
+  - {action: shell, resource: "pm2 monit *", effect: deny}
+  - {action: shell, resource: "curl *--data*", effect: deny}
+  - {action: shell, resource: "curl *-d *", effect: deny}
+  - {action: shell, resource: "/tmp/*", effect: deny}
+  - {action: shell, resource: "docker system *", effect: deny}
+  - {action: shell, resource: "docker system prune *", effect: deny}
+  - {action: shell, resource: "docker volume *", effect: deny}
+  - {action: shell, resource: "docker network prune *", effect: deny}
+  - {action: shell, resource: "reboot *", effect: deny}
+  - {action: shell, resource: "shutdown *", effect: deny}
+  - {action: shell, resource: "gh pr merge *", effect: deny}
+  - {action: shell, resource: "glab mr merge *", effect: deny}
+  - {action: shell, resource: "tea * merge *", effect: deny}
+  - {action: shell, resource: "*pullrequests*/merge*", effect: deny}
+  - {action: shell, resource: "*pulls*/merge*", effect: deny}
   - {action: shell, resource: "git reset --hard HEAD", effect: allow}
   - {action: question, resource: "*", effect: allow}
   - {action: subagent, resource: "*", effect: deny}
@@ -76,3 +102,9 @@ permissions:
   токены/box-shadow/dark/a11y): только читаешь, не правишь. Локальные компоненты
   регистрации не требуют. Нужны токен/глобальный компонент/конвенция — показываешь человеку
   точный патч (секция → строки); правит он, затем approve → коммит.
+
+## Зона ответственности
+
+- МОЖНО: только React-верстка/стили/компоненты (tsx/css), точечные правки подтверждённого, проверка командами consumer-проекта (`package.json` scripts). Вызывает: `/fix` или `subagent` → `@react-fix`.
+- НЕЛЬЗЯ: `docker`/`compose`/`Dockerfile`/`nginx`/сети/порты/volumes/`.env`/деплой — это зона `@devops` (эскалация `{"needs_escalation": true}`, инфру сам не трогаешь). Кнопки/другое вне подтверждённого не правишь. Коммиты/пуш — только `/commit` + `/push`.
+- Скрипты/скиллы: скилл `react-fix`; поиск классов — ТОЛЬКО `scripts/react-fix/find-class.sh` (сырой `grep` по классам запрещён); проверка — `scripts/check/run.sh --json`; статус — `scripts/git-recon/run.sh`. PR-ссылки — только из `PR_URL:` от `/push` (сырые `gh` запрещены deny).

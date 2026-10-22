@@ -30,6 +30,29 @@ permissions:
   - {action: shell, resource: "git merge *", effect: deny}
   - {action: shell, resource: "git push --force *", effect: deny}
   - {action: shell, resource: "bash /tmp/*", effect: deny}
+  - {action: shell, resource: "pm2 monit *", effect: deny}
+  - {action: shell, resource: "docker system *", effect: deny}
+  - {action: shell, resource: "docker system prune *", effect: deny}
+  - {action: shell, resource: "docker volume *", effect: deny}
+  - {action: shell, resource: "docker network prune *", effect: deny}
+  - {action: shell, resource: "reboot *", effect: deny}
+  - {action: shell, resource: "shutdown *", effect: deny}
+  - {action: shell, resource: "git push -f *", effect: deny}
+  - {action: shell, resource: "git reset --hard *", effect: deny}
+  - {action: shell, resource: "git clean -fd *", effect: deny}
+  - {action: shell, resource: "rm -rf *", effect: deny}
+  - {action: shell, resource: "rm -fr *", effect: deny}
+  - {action: shell, resource: "rm --recursive *", effect: deny}
+  - {action: shell, resource: "npm publish *", effect: deny}
+  - {action: shell, resource: "pnpm publish *", effect: deny}
+  - {action: shell, resource: "yarn publish *", effect: deny}
+  - {action: shell, resource: "bun publish *", effect: deny}
+  - {action: shell, resource: "/tmp/*", effect: deny}
+  - {action: shell, resource: "gh pr merge *", effect: deny}
+  - {action: shell, resource: "glab mr merge *", effect: deny}
+  - {action: shell, resource: "tea * merge *", effect: deny}
+  - {action: shell, resource: "*pullrequests*/merge*", effect: deny}
+  - {action: shell, resource: "*pulls*/merge*", effect: deny}
   - {action: shell, resource: "git reset --hard HEAD", effect: allow}
   - {action: question, resource: "*", effect: allow}
   - {action: subagent, resource: "*", effect: allow}
@@ -51,3 +74,9 @@ permissions:
 - **DevOps — эскалация:** если карточка содержит `docker` / `Dockerfile` / `compose` / `контейнер` / `dev/prod` / `окружение` / `.env` / `сети` / `network` / `порт` / `volume` / `cgroup` / `лимит памяти/cpu` / `restart` / `деплой` — немедленно остановись и верни `{"needs_escalation": true, "reason": "инфра/деплой → только devops"}` чтобы `auto` переключил на `@devops`. Инфру сам не трогаешь.
 - **Зависимости — эскалация:** если карточка содержит `зависимост` / `package.json` / `pnpm` / `npm` / `yarn` / `pip` / `poetry` / `go mod` / `cargo` / `обновить зависимости` / `upgrade dependencies` / `bump` / любой `*lock` — немедленно остановись и верни `{"needs_escalation": true, "reason": "работа с зависимостями → только build-smart"}` чтобы `auto` переключил на `build-smart` с worktree.
 - **Сложность — эскалация:** задача трогает API/схему, >3 файлов, есть deps/риск — остановись и верни `{"needs_escalation": true, "reason": "..."}` чтобы `auto` переключил на `build-smart`. Ты — дефолт для неопределённого, а не герой для сложного.
+
+## Зона ответственности
+
+- МОЖНО: кодовые задачи неопределённой сложности (ровно карточка), `edit`, проверка раннерами + `scripts/check/run.sh --json`, reuse-first поиск до `edit`.
+- НЕЛЬЗЯ: инфра (→ `@devops`), зависимости (→ `@build-smart`), сложное (→ `@build-smart`) — см. эскалации выше; `git add/commit/push` не делаешь (это `/commit` + `/push`); кнопки фронта вне карточки не трогаешь.
+- Скрипты/скиллы: скиллы `git-recon`, `graphify`, `check`; скрипты `scripts/git-recon/*`, `scripts/graphify/*`, `scripts/check/*`, `scripts/pr/*`, `scripts/branch-ops/*`. PR — только `scripts/pr/*`.

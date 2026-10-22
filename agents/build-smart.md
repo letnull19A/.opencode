@@ -46,6 +46,29 @@ permissions:
   - {action: shell, resource: "git merge *", effect: deny}
   - {action: shell, resource: "git push --force *", effect: deny}
   - {action: shell, resource: "bash /tmp/*", effect: deny}
+  - {action: shell, resource: "pm2 monit *", effect: deny}
+  - {action: shell, resource: "docker system *", effect: deny}
+  - {action: shell, resource: "docker system prune *", effect: deny}
+  - {action: shell, resource: "docker volume *", effect: deny}
+  - {action: shell, resource: "docker network prune *", effect: deny}
+  - {action: shell, resource: "reboot *", effect: deny}
+  - {action: shell, resource: "shutdown *", effect: deny}
+  - {action: shell, resource: "git reset --hard *", effect: deny}
+  - {action: shell, resource: "rm -rf *", effect: deny}
+  - {action: shell, resource: "git push -f *", effect: deny}
+  - {action: shell, resource: "git clean -fd *", effect: deny}
+  - {action: shell, resource: "rm -fr *", effect: deny}
+  - {action: shell, resource: "rm --recursive *", effect: deny}
+  - {action: shell, resource: "npm publish *", effect: deny}
+  - {action: shell, resource: "pnpm publish *", effect: deny}
+  - {action: shell, resource: "yarn publish *", effect: deny}
+  - {action: shell, resource: "bun publish *", effect: deny}
+  - {action: shell, resource: "/tmp/*", effect: deny}
+  - {action: shell, resource: "gh pr merge *", effect: deny}
+  - {action: shell, resource: "glab mr merge *", effect: deny}
+  - {action: shell, resource: "tea * merge *", effect: deny}
+  - {action: shell, resource: "*pullrequests*/merge*", effect: deny}
+  - {action: shell, resource: "*pulls*/merge*", effect: deny}
   - {action: shell, resource: "git reset --hard HEAD", effect: allow}
   - {action: external_directory, resource: "*", effect: allow}
   - {action: question, resource: "*", effect: allow}
@@ -98,3 +121,9 @@ permissions:
    - Не удаляй worktree сам — подскажи пользователю `bash .opencode/scripts/worktree/run.sh remove --name <name>` и `git branch -D <branch>` если ветка не нужна.
    - Не делай `push` — пуш только через `/push` по просьбе.
    - В `done` обязательно прикладывай `failed_calls: [{cmd, why_chosen, why_failed}]`: каждый задуманный, но не выполненный или упавший вызов (deny — дословно, non-zero exit — последние строки, skip по approve-гейту — с причиной). Нечего записать — прикладывай пустой массив явно (`failed_calls: [] — все вызовы отработали`), отсутствие поля = нарушение как отсутствие `reuse`.
+
+## Зона ответственности
+
+- МОЖНО: сложные кодовые задачи (API/схемы, decomposing, зависимости пошагово в worktree), `edit`, коммиты (`git add/commit` — делает сам), проверка раннерами + `scripts/check/run.sh --json`.
+- НЕЛЬЗЯ: инфра (`docker`/`compose`/сети/порты/volumes/`.env`/деплой → `@devops`); кнопки на фронте правишь только в рамках карточки, дизайн-систему не изобретаешь. Пуш/мерж — запрет (пуш только `/push`, мерж только человек).
+- Скрипты/скиллы: скиллы `git-recon`, `graphify`, `check`, `worktree-manager`; скрипты `scripts/git-recon/*`, `scripts/graphify/*`, `scripts/check/*`, `scripts/worktree/*`, `scripts/pr/*`, `scripts/branch-ops/*`. Ветки — только через worktree-скрипт, сырой `git worktree add` запрещён.

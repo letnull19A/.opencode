@@ -661,6 +661,66 @@
         },
         {
           "action": "shell",
+          "resource": "bash .opencode/scripts/pr/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "bash .opencode/scripts/worktree/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "echo*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "cat*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "ls*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git status *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git diff *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git log *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git rev-parse *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git rev-list *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git revert *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "bash .opencode/scripts/issue-writer/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
           "resource": "bash .opencode/scripts/chain/*",
           "effect": "allow"
         },
@@ -701,17 +761,7 @@
         },
         {
           "action": "shell",
-          "resource": "bash .opencode/scripts/pr/*",
-          "effect": "allow"
-        },
-        {
-          "action": "shell",
           "resource": "bash .opencode/scripts/push/*",
-          "effect": "allow"
-        },
-        {
-          "action": "shell",
-          "resource": "bash .opencode/scripts/worktree/*",
           "effect": "allow"
         },
         {
@@ -721,57 +771,7 @@
         },
         {
           "action": "shell",
-          "resource": "echo*",
-          "effect": "allow"
-        },
-        {
-          "action": "shell",
-          "resource": "cat*",
-          "effect": "allow"
-        },
-        {
-          "action": "shell",
-          "resource": "ls*",
-          "effect": "allow"
-        },
-        {
-          "action": "shell",
-          "resource": "git status *",
-          "effect": "allow"
-        },
-        {
-          "action": "shell",
-          "resource": "git diff *",
-          "effect": "allow"
-        },
-        {
-          "action": "shell",
-          "resource": "git log *",
-          "effect": "allow"
-        },
-        {
-          "action": "shell",
           "resource": "git show *",
-          "effect": "allow"
-        },
-        {
-          "action": "shell",
-          "resource": "git rev-parse *",
-          "effect": "allow"
-        },
-        {
-          "action": "shell",
-          "resource": "git rev-list *",
-          "effect": "allow"
-        },
-        {
-          "action": "shell",
-          "resource": "git revert *",
-          "effect": "allow"
-        },
-        {
-          "action": "shell",
-          "resource": "bash .opencode/scripts/issue-writer/*",
           "effect": "allow"
         },
         {
@@ -828,6 +828,16 @@
         },
         {
           "action": "shell",
+          "resource": "bash .opencode/scripts/doctor/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "bash .opencode/scripts/sync/*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
           "resource": "bash .opencode/scripts/pr/*",
           "effect": "allow"
         },
@@ -853,6 +863,21 @@
         },
         {
           "action": "shell",
+          "resource": "git show *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git rev-parse *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git branch *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
           "resource": "bun*",
           "effect": "allow"
         },
@@ -869,11 +894,6 @@
         {
           "action": "shell",
           "resource": "npx*",
-          "effect": "allow"
-        },
-        {
-          "action": "shell",
-          "resource": "pnpm*",
           "effect": "allow"
         },
         {
@@ -954,11 +974,36 @@
         {
           "action": "shell",
           "resource": "pm2 delete *",
-          "effect": "allow"
+          "effect": "deny"
         },
         {
           "action": "shell",
           "resource": "pm2 kill *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "curl *--data*",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "curl *-d *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "git merge *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "git push --force *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "bash /tmp/*",
           "effect": "deny"
         },
         {
@@ -998,26 +1043,6 @@
         },
         {
           "action": "shell",
-          "resource": "curl *--data*",
-          "effect": "deny"
-        },
-        {
-          "action": "shell",
-          "resource": "curl *-d *",
-          "effect": "deny"
-        },
-        {
-          "action": "shell",
-          "resource": "git merge *",
-          "effect": "deny"
-        },
-        {
-          "action": "shell",
-          "resource": "git push --force *",
-          "effect": "deny"
-        },
-        {
-          "action": "shell",
           "resource": "git reset --hard *",
           "effect": "deny"
         },
@@ -1028,8 +1053,78 @@
         },
         {
           "action": "shell",
-          "resource": "bash /tmp/*",
+          "resource": "git push -f *",
           "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "git clean -fd *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "rm -fr *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "rm --recursive *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "npm publish *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "pnpm publish *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "yarn publish *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "bun publish *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "/tmp/*",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "gh pr merge *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "glab mr merge *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "tea * merge *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "*pullrequests*/merge*",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "*pulls*/merge*",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "pnpm*",
+          "effect": "allow"
         },
         {
           "action": "shell",
@@ -1231,11 +1326,36 @@
         {
           "action": "shell",
           "resource": "pm2 delete *",
-          "effect": "allow"
+          "effect": "deny"
         },
         {
           "action": "shell",
           "resource": "pm2 kill *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "curl *--data*",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "curl *-d *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "git merge *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "git push --force *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "bash /tmp/*",
           "effect": "deny"
         },
         {
@@ -1275,26 +1395,6 @@
         },
         {
           "action": "shell",
-          "resource": "curl *--data*",
-          "effect": "deny"
-        },
-        {
-          "action": "shell",
-          "resource": "curl *-d *",
-          "effect": "deny"
-        },
-        {
-          "action": "shell",
-          "resource": "git merge *",
-          "effect": "deny"
-        },
-        {
-          "action": "shell",
-          "resource": "git push --force *",
-          "effect": "deny"
-        },
-        {
-          "action": "shell",
           "resource": "git reset --hard *",
           "effect": "deny"
         },
@@ -1305,7 +1405,72 @@
         },
         {
           "action": "shell",
-          "resource": "bash /tmp/*",
+          "resource": "git push -f *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "git clean -fd *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "rm -fr *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "rm --recursive *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "npm publish *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "pnpm publish *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "yarn publish *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "bun publish *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "/tmp/*",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "gh pr merge *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "glab mr merge *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "tea * merge *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "*pullrequests*/merge*",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "*pulls*/merge*",
           "effect": "deny"
         },
         {
@@ -1443,11 +1608,26 @@
         {
           "action": "shell",
           "resource": "pm2 delete *",
-          "effect": "allow"
+          "effect": "deny"
         },
         {
           "action": "shell",
           "resource": "pm2 kill *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "git merge *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "git push --force *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "bash /tmp/*",
           "effect": "deny"
         },
         {
@@ -1487,17 +1667,82 @@
         },
         {
           "action": "shell",
-          "resource": "git merge *",
+          "resource": "git push -f *",
           "effect": "deny"
         },
         {
           "action": "shell",
-          "resource": "git push --force *",
+          "resource": "git reset --hard *",
           "effect": "deny"
         },
         {
           "action": "shell",
-          "resource": "bash /tmp/*",
+          "resource": "git clean -fd *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "rm -rf *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "rm -fr *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "rm --recursive *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "npm publish *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "pnpm publish *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "yarn publish *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "bun publish *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "/tmp/*",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "gh pr merge *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "glab mr merge *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "tea * merge *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "*pullrequests*/merge*",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "*pulls*/merge*",
           "effect": "deny"
         },
         {
@@ -1655,37 +1900,12 @@
         {
           "action": "shell",
           "resource": "docker compose down *",
-          "effect": "allow"
+          "effect": "ask"
         },
         {
           "action": "shell",
           "resource": "docker build *",
           "effect": "ask"
-        },
-        {
-          "action": "shell",
-          "resource": "docker rm *",
-          "effect": "allow"
-        },
-        {
-          "action": "shell",
-          "resource": "docker rmi *",
-          "effect": "allow"
-        },
-        {
-          "action": "shell",
-          "resource": "docker image rm *",
-          "effect": "allow"
-        },
-        {
-          "action": "shell",
-          "resource": "docker compose rm *",
-          "effect": "allow"
-        },
-        {
-          "action": "shell",
-          "resource": "docker stop *",
-          "effect": "allow"
         },
         {
           "action": "shell",
@@ -1705,21 +1925,6 @@
         {
           "action": "shell",
           "resource": "pm2 restart *",
-          "effect": "allow"
-        },
-        {
-          "action": "shell",
-          "resource": "pm2 reload *",
-          "effect": "allow"
-        },
-        {
-          "action": "shell",
-          "resource": "pm2 stop *",
-          "effect": "allow"
-        },
-        {
-          "action": "shell",
-          "resource": "pm2 delete *",
           "effect": "allow"
         },
         {
@@ -1749,7 +1954,17 @@
         },
         {
           "action": "shell",
+          "resource": "pm2 delete *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
           "resource": "pm2 kill *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "bash /tmp/*",
           "effect": "deny"
         },
         {
@@ -1789,8 +2004,128 @@
         },
         {
           "action": "shell",
-          "resource": "bash /tmp/*",
+          "resource": "git merge *",
           "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "git push --force *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "git push -f *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "git reset --hard *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "git clean -fd *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "rm -rf *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "rm -fr *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "rm --recursive *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "npm publish *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "pnpm publish *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "yarn publish *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "bun publish *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "/tmp/*",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "gh pr merge *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "glab mr merge *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "tea * merge *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "*pullrequests*/merge*",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "*pulls*/merge*",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "docker rm *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "docker rmi *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "docker image rm *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "docker compose rm *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "docker stop *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "pm2 reload *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "pm2 stop *",
+          "effect": "allow"
         },
         {
           "action": "shell",
@@ -1827,6 +2162,11 @@
         {
           "action": "shell",
           "resource": "echo*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "bash .opencode/scripts/git-recon/*",
           "effect": "allow"
         },
         {
@@ -2208,6 +2548,151 @@
           "effect": "deny"
         },
         {
+          "action": "shell",
+          "resource": "git merge *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "git push --force *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "git push -f *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "git reset --hard *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "git clean -fd *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "rm -rf *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "rm -fr *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "rm --recursive *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "npm publish *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "pnpm publish *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "yarn publish *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "bun publish *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "pm2 kill *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "pm2 monit *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "curl *--data*",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "curl *-d *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "/tmp/*",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "docker system *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "docker system prune *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "docker volume *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "docker network prune *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "reboot *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "shutdown *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "gh pr merge *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "glab mr merge *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "tea * merge *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "*pullrequests*/merge*",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "*pulls*/merge*",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "git reset --hard HEAD",
+          "effect": "allow"
+        },
+        {
           "action": "question",
           "resource": "*",
           "effect": "allow"
@@ -2399,6 +2884,136 @@
           "effect": "deny"
         },
         {
+          "action": "shell",
+          "resource": "git push -f *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "git reset --hard *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "git clean -fd *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "rm -rf *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "rm -fr *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "rm --recursive *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "npm publish *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "pnpm publish *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "yarn publish *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "bun publish *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "pm2 kill *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "pm2 monit *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "curl *--data*",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "curl *-d *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "/tmp/*",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "docker system *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "docker system prune *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "docker volume *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "docker network prune *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "reboot *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "shutdown *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "gh pr merge *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "glab mr merge *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "tea * merge *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "*pullrequests*/merge*",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "*pulls*/merge*",
+          "effect": "deny"
+        },
+        {
           "action": "question",
           "resource": "*",
           "effect": "allow"
@@ -2454,6 +3069,151 @@
           "action": "shell",
           "resource": "bash /tmp/*",
           "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "git merge *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "git push --force *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "git push -f *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "git reset --hard *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "git clean -fd *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "rm -rf *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "rm -fr *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "rm --recursive *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "npm publish *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "pnpm publish *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "yarn publish *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "bun publish *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "pm2 kill *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "pm2 monit *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "curl *--data*",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "curl *-d *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "/tmp/*",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "docker system *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "docker system prune *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "docker volume *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "docker network prune *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "reboot *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "shutdown *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "gh pr merge *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "glab mr merge *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "tea * merge *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "*pullrequests*/merge*",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "*pulls*/merge*",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "git reset --hard HEAD",
+          "effect": "allow"
         },
         {
           "action": "question",
@@ -2541,11 +3301,6 @@
         },
         {
           "action": "shell",
-          "resource": "bash .opencode/scripts/check/*",
-          "effect": "allow"
-        },
-        {
-          "action": "shell",
           "resource": "echo*",
           "effect": "allow"
         },
@@ -2572,6 +3327,11 @@
         {
           "action": "shell",
           "resource": "git log *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "bash .opencode/scripts/check/*",
           "effect": "allow"
         },
         {
@@ -2930,6 +3690,136 @@
         },
         {
           "action": "shell",
+          "resource": "git push -f *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "git reset --hard *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "git clean -fd *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "rm -rf *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "rm -fr *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "rm --recursive *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "npm publish *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "pnpm publish *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "yarn publish *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "bun publish *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "pm2 kill *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "pm2 monit *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "curl *--data*",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "curl *-d *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "/tmp/*",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "docker system *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "docker system prune *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "docker volume *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "docker network prune *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "reboot *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "shutdown *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "gh pr merge *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "glab mr merge *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "tea * merge *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "*pullrequests*/merge*",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "*pulls*/merge*",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
           "resource": "git reset --hard HEAD",
           "effect": "allow"
         },
@@ -2972,11 +3862,6 @@
         },
         {
           "action": "grep",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "question",
           "resource": "*",
           "effect": "allow"
         },
@@ -3103,6 +3988,151 @@
           "action": "shell",
           "resource": "bash /tmp/*",
           "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "git merge *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "git push --force *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "git push -f *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "git reset --hard *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "git clean -fd *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "rm -rf *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "rm -fr *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "rm --recursive *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "npm publish *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "pnpm publish *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "yarn publish *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "bun publish *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "pm2 kill *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "pm2 monit *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "curl *--data*",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "curl *-d *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "/tmp/*",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "docker system *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "docker system prune *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "docker volume *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "docker network prune *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "reboot *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "shutdown *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "gh pr merge *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "glab mr merge *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "tea * merge *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "*pullrequests*/merge*",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "*pulls*/merge*",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "git reset --hard HEAD",
+          "effect": "allow"
         },
         {
           "action": "question",
@@ -3572,7 +4602,7 @@
         {
           "action": "shell",
           "resource": "*",
-          "effect": "ask"
+          "effect": "deny"
         },
         {
           "action": "shell",
@@ -3650,6 +4680,151 @@
           "effect": "deny"
         },
         {
+          "action": "shell",
+          "resource": "git merge *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "git push --force *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "git push -f *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "git reset --hard *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "git clean -fd *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "rm -rf *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "rm -fr *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "rm --recursive *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "npm publish *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "pnpm publish *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "yarn publish *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "bun publish *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "pm2 kill *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "pm2 monit *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "curl *--data*",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "curl *-d *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "/tmp/*",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "docker system *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "docker system prune *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "docker volume *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "docker network prune *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "reboot *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "shutdown *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "gh pr merge *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "glab mr merge *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "tea * merge *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "*pullrequests*/merge*",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "*pulls*/merge*",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "git reset --hard HEAD",
+          "effect": "allow"
+        },
+        {
           "action": "question",
           "resource": "*",
           "effect": "allow"
@@ -3717,7 +4892,11 @@
   "mcp": {
     "trello": {
       "type": "local",
-      "command": ["npx", "-y", "@delorenj/mcp-server-trello"],
+      "command": [
+        "npx",
+        "-y",
+        "@delorenj/mcp-server-trello"
+      ],
       "environment": {
         "TRELLO_API_KEY": "{env:TRELLO_API_KEY}",
         "TRELLO_TOKEN": "{env:TRELLO_TOKEN}"
@@ -3734,7 +4913,11 @@
     },
     "dokploy": {
       "type": "local",
-      "command": ["npx", "-y", "@dokploy/mcp"],
+      "command": [
+        "npx",
+        "-y",
+        "@dokploy/mcp"
+      ],
       "environment": {
         "DOKPLOY_URL": "{env:DOKPLOY_URL}",
         "DOKPLOY_API_KEY": "{env:DOKPLOY_API_KEY}",
@@ -3753,7 +4936,12 @@
     },
     "postgres": {
       "type": "local",
-      "command": ["npx", "-y", "mcp-postgres", "{env:DATABASE_URL}"],
+      "command": [
+        "npx",
+        "-y",
+        "mcp-postgres",
+        "{env:DATABASE_URL}"
+      ],
       "environment": {
         "DATABASE_URL": "{env:DATABASE_URL}",
         "POSTGRES_HOST": "{env:POSTGRES_HOST}",

@@ -118,3 +118,9 @@ Severity: `fail` в Q1/Q4/Q5-error/Q8-секреты = `blocker`; `fail` в Q2/Q
 - Доказательства — только выводы скриптов и цитаты контрактов (`path:line`). Нет записи в JSON guard/check — нет нарушения.
 - Код не правишь, guard-скрипты флагами не отключаешь, `sec:ignore` без доказанной причины не предлагаешь.
 - Не расширяешь скоуп: проверяешь только diff + критерии карточки, чужие файлы не аудитишь.
+
+## Зона ответственности
+
+- МОЖНО: только гейт качества (diff vs `AGENTS.md`/`CODE_OF_CONDUCT.md`/`DESIGN.md` по Q1..Q8) через `scripts/check/run.sh --json` + `security`/`design` guard-скрипты. Возврат `{verdict: APPROVED|NEEDS_WORK|SKIPPED, findings}`.
+- НЕЛЬЗЯ: править код (`edit` запрещён), отключать guard флагами, расширять скоуп. SKIPPED — только при пустом diff (fail-closed).
+- Скрипты/скиллы: скиллы `check`, `security`, `design`; скрипты `scripts/check/*`, `scripts/security/*`, `scripts/design/*`, `scripts/graphify/*`, `scripts/git-recon/*`, `scripts/prompt-lint/*`. Вызывают исполнители перед `done`, контроль — `@auto`.

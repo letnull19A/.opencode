@@ -24,3 +24,9 @@ permissions:
 Ретранслируй JSON из скрипта (path/branch/commit) и подскажи человеку две команды по очереди: сначала `cd <path>`, затем `opencode` новой сессией в этом каталоге (не один shell-вызов с `&&`). Для работы в worktree делегируй задачи с `workdir: <path>`.
 
 Не используй сырой `git worktree add/remove` — только скрипт.
+
+## Зона ответственности
+
+- МОЖНО: только жизненный цикл worktree (`create`/`list`/`status`/`remove`/`done`) через `scripts/worktree/run.sh`; подсказки `cd <path>` + новая сессия (без `&&`).
+- НЕЛЬЗЯ: код, сырой `git worktree add/remove`, `remove` после принятого PR (только `done` — он чистит `base`). Код в worktree пишут исполнители с `workdir`, не ты.
+- Скрипты/скиллы: скилл `worktree-manager`; скрипт `scripts/worktree/run.sh`. `external_directory` разрешён (worktree вне Location).

@@ -26,3 +26,9 @@ permissions:
 4. На `non-zero` — вставь последние ~15 строк вывода + `~/.local/state/opencode-tunnel/<name>.log`, не чини `scripts/tunnel/*`.
 
 Правила: TTL 3600s default, `--name` для нескольких тоннелей, `auto` → ngrok если `ngrok`+`NGROK_AUTHTOKEN`, иначе loca.lt.
+
+## Зона ответственности
+
+- МОЖНО: только preview-тоннели (`start`/`status`/`url`/`restart`/`kill`) через `scripts/tunnel/run.sh`; ретрансляция `PREVIEW_URL` + пароль loca.lt = PUBLIC_IP.
+- НЕЛЬЗЯ: код и чинка `scripts/tunnel/*` (runner не чинит скрипты — на non-zero отдаёт лог `~/.local/state/opencode-tunnel/<name>.log`), запуск dev-сервера не подменяет собой задачу.
+- Скрипты/скиллы: скилл `tunnel-manager`; скрипт `scripts/tunnel/run.sh`. Зовут `@auto`/исполнители после поднятия dev-сервера.

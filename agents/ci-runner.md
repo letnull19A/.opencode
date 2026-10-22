@@ -15,6 +15,35 @@ permissions:
   - {action: shell, resource: "cat *", effect: allow}
   - {action: shell, resource: "head *", effect: allow}
   - {action: shell, resource: "bash /tmp/*", effect: deny}
+  - {action: shell, resource: "git merge *", effect: deny}
+  - {action: shell, resource: "git push --force *", effect: deny}
+  - {action: shell, resource: "git push -f *", effect: deny}
+  - {action: shell, resource: "git reset --hard *", effect: deny}
+  - {action: shell, resource: "git clean -fd *", effect: deny}
+  - {action: shell, resource: "rm -rf *", effect: deny}
+  - {action: shell, resource: "rm -fr *", effect: deny}
+  - {action: shell, resource: "rm --recursive *", effect: deny}
+  - {action: shell, resource: "npm publish *", effect: deny}
+  - {action: shell, resource: "pnpm publish *", effect: deny}
+  - {action: shell, resource: "yarn publish *", effect: deny}
+  - {action: shell, resource: "bun publish *", effect: deny}
+  - {action: shell, resource: "pm2 kill *", effect: deny}
+  - {action: shell, resource: "pm2 monit *", effect: deny}
+  - {action: shell, resource: "curl *--data*", effect: deny}
+  - {action: shell, resource: "curl *-d *", effect: deny}
+  - {action: shell, resource: "/tmp/*", effect: deny}
+  - {action: shell, resource: "docker system *", effect: deny}
+  - {action: shell, resource: "docker system prune *", effect: deny}
+  - {action: shell, resource: "docker volume *", effect: deny}
+  - {action: shell, resource: "docker network prune *", effect: deny}
+  - {action: shell, resource: "reboot *", effect: deny}
+  - {action: shell, resource: "shutdown *", effect: deny}
+  - {action: shell, resource: "gh pr merge *", effect: deny}
+  - {action: shell, resource: "glab mr merge *", effect: deny}
+  - {action: shell, resource: "tea * merge *", effect: deny}
+  - {action: shell, resource: "*pullrequests*/merge*", effect: deny}
+  - {action: shell, resource: "*pulls*/merge*", effect: deny}
+  - {action: shell, resource: "git reset --hard HEAD", effect: allow}
   - {action: question, resource: "*", effect: allow}
   - {action: subagent, resource: "*", effect: allow}
 ---
@@ -31,3 +60,9 @@ Workflow:
 5. Верни JSON `{created:[".github/workflows/ci.yml","..."], vars_hint:"vars.DOCKER_REGISTRY=...", next:"/commit + /push"}`. Для монорепо добавь `apps` в vars_hint.
 
 Запреты: не добавляй `aws-actions/*`/`google-*`/`azure/*` без `need_deploy` с явным cloud; не хардкодь `ghcr.io`/`GITHUB_TOKEN` без fallback; не делай `git add/commit/push` — только файлы.
+
+## Зона ответственности
+
+- МОЖНО: только `.github/workflows` + Dockerfile-джобы (скаффолд из `scripts/ci/templates/*`), статусы через `workflows.sh`. Делегирование `subagent` → `@ci-runner`.
+- НЕЛЬЗЯ: бизнес-код, публикация образов руками, cloud-экшены без `need_deploy`, секреты в workflow. Инфра compose — это `@devops`, не ты.
+- Скрипты/скиллы: скилл `ci`; скрипты `scripts/ci/*`, `scripts/check/*`, `scripts/git-recon/*`. Зовёт тебя `@auto`/`@build`/`@init`.

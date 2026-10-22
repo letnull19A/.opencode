@@ -22,6 +22,17 @@ permissions:
   - {action: shell, resource: "git rev-list *", effect: allow}
   - {action: shell, resource: "git revert *", effect: allow}
   - {action: shell, resource: "bash .opencode/scripts/issue-writer/*", effect: allow}
+  - {action: shell, resource: "bash .opencode/scripts/chain/*", effect: allow}
+  - {action: shell, resource: "bash .opencode/scripts/tunnel/*", effect: allow}
+  - {action: shell, resource: "bash .opencode/scripts/security/*", effect: allow}
+  - {action: shell, resource: "bash .opencode/scripts/design/*", effect: allow}
+  - {action: shell, resource: "bash .opencode/scripts/react-fix/*", effect: allow}
+  - {action: shell, resource: "bash .opencode/scripts/planner/*", effect: allow}
+  - {action: shell, resource: "bash .opencode/scripts/ci/*", effect: allow}
+  - {action: shell, resource: "bash .opencode/scripts/docker-pack/*", effect: allow}
+  - {action: shell, resource: "bash .opencode/scripts/push/*", effect: allow}
+  - {action: shell, resource: "bash .opencode/scripts/doctor/*", effect: allow}
+  - {action: shell, resource: "git show *", effect: allow}
   - {action: shell, resource: "bash /tmp/*", effect: deny}
   - {action: external_directory, resource: "*", effect: allow}
   - {action: question, resource: "*", effect: allow}

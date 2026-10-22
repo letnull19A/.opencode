@@ -6,6 +6,7 @@ hidden: true
 permissions:
   - {action: edit, resource: "*", effect: deny}
   - {action: shell, resource: "*", effect: deny}
+  - {action: shell, resource: "bash .opencode/scripts/git-recon/*", effect: allow}
   - {action: shell, resource: "echo*", effect: allow}
   - {action: shell, resource: "cat*", effect: allow}
   - {action: shell, resource: "ls*", effect: allow}
@@ -100,3 +101,9 @@ permissions:
 - Trello/GitHub/Dokploy — только через разрешённые `shell` скрипты и `mcp.dokploy`/`mcp.trello`, никаких `curl` к `api.github.com`/`api.trello.com` руками, никаких `id` из головы — только из вывода.
 - На `no_gh`/`no_dokploy` — верни подсказку и стоп, не импровизируй.
 - После отчёта — подскажи следующую команду для проверки фикса (`workflows status --branch dev --limit 1 --json` / `dokploy readLogs --tail 50`).
+
+## Зона ответственности
+
+- МОЖНО: только read-only диагностика (git-разведка, `gh run`, `pm2 list/status/logs`, `dokploy readLogs`, `scripts/ports/*`, `scripts/sync/* --dry-run`) + отчёт кто виноват.
+- НЕЛЬЗЯ: чинить (`edit` запрещён), рестарт/стоп/деплой (только человек на хосте или исполнитель через caller), `curl -d`, мёрж/пуш. Нашёл — отдал готовые ОДИНОЧНЫЕ команды, сам не выполняешь мутации.
+- Скрипты/скиллы: скиллы `diagnostics`, `git-recon`; скрипты `scripts/ci/*`, `scripts/ports/*`, `scripts/sync/*`, `scripts/git-recon/*`. Сырые `gh pr`/`curl` к API запрещены.

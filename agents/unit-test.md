@@ -21,6 +21,35 @@ permissions:
   - {action: shell, resource: "go *", effect: allow}
   - {action: shell, resource: "cargo *", effect: allow}
   - {action: shell, resource: "bash /tmp/*", effect: deny}
+  - {action: shell, resource: "git merge *", effect: deny}
+  - {action: shell, resource: "git push --force *", effect: deny}
+  - {action: shell, resource: "git push -f *", effect: deny}
+  - {action: shell, resource: "git reset --hard *", effect: deny}
+  - {action: shell, resource: "git clean -fd *", effect: deny}
+  - {action: shell, resource: "rm -rf *", effect: deny}
+  - {action: shell, resource: "rm -fr *", effect: deny}
+  - {action: shell, resource: "rm --recursive *", effect: deny}
+  - {action: shell, resource: "npm publish *", effect: deny}
+  - {action: shell, resource: "pnpm publish *", effect: deny}
+  - {action: shell, resource: "yarn publish *", effect: deny}
+  - {action: shell, resource: "bun publish *", effect: deny}
+  - {action: shell, resource: "pm2 kill *", effect: deny}
+  - {action: shell, resource: "pm2 monit *", effect: deny}
+  - {action: shell, resource: "curl *--data*", effect: deny}
+  - {action: shell, resource: "curl *-d *", effect: deny}
+  - {action: shell, resource: "/tmp/*", effect: deny}
+  - {action: shell, resource: "docker system *", effect: deny}
+  - {action: shell, resource: "docker system prune *", effect: deny}
+  - {action: shell, resource: "docker volume *", effect: deny}
+  - {action: shell, resource: "docker network prune *", effect: deny}
+  - {action: shell, resource: "reboot *", effect: deny}
+  - {action: shell, resource: "shutdown *", effect: deny}
+  - {action: shell, resource: "gh pr merge *", effect: deny}
+  - {action: shell, resource: "glab mr merge *", effect: deny}
+  - {action: shell, resource: "tea * merge *", effect: deny}
+  - {action: shell, resource: "*pullrequests*/merge*", effect: deny}
+  - {action: shell, resource: "*pulls*/merge*", effect: deny}
+  - {action: shell, resource: "git reset --hard HEAD", effect: allow}
   - {action: question, resource: "*", effect: allow}
   - {action: subagent, resource: "*", effect: allow}
 ---
@@ -92,3 +121,9 @@ permissions:
   (флаки? сломанный мейн?), а не правишь код под тест.
 - Секреты и `.env` не трогаешь; `git add`/`commit`/`push` не делаешь
   (коммиты — только через `/commit`, отправка — только через `/push`).
+
+## Зона ответственности
+
+- МОЖНО: только юнит-тесты под фреймворк проекта (устаревшие API — из Context7/доков, не по памяти), `edit` тестовых файлов, запуск раннеров тестов.
+- НЕЛЬЗЯ: править код под тест (красный тест чинится кодом только по требованиям), инфра/деплой (→ `@devops`), моки без причины, секреты/`.env`.
+- Скрипты/скиллы: скиллы `git-recon`, `graphify`, `check`; скрипты `scripts/git-recon/*`, `scripts/graphify/*`, `scripts/check/*`; раннеры проекта (`bun`/`npm`/`npx`/`pnpm`/`pytest`/`go`/`cargo`). Синтаксис фреймворка — только из Context7 MCP.

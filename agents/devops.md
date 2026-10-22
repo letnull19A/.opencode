@@ -44,6 +44,38 @@ permissions:
   - {action: shell, resource: "pm2 delete *", effect: deny}
   - {action: shell, resource: "pm2 kill *", effect: deny}
   - {action: shell, resource: "bash /tmp/*", effect: deny}
+  - {action: shell, resource: "pm2 monit *", effect: deny}
+  - {action: shell, resource: "docker system *", effect: deny}
+  - {action: shell, resource: "docker system prune *", effect: deny}
+  - {action: shell, resource: "docker volume *", effect: deny}
+  - {action: shell, resource: "docker network prune *", effect: deny}
+  - {action: shell, resource: "reboot *", effect: deny}
+  - {action: shell, resource: "shutdown *", effect: deny}
+  - {action: shell, resource: "git merge *", effect: deny}
+  - {action: shell, resource: "git push --force *", effect: deny}
+  - {action: shell, resource: "git push -f *", effect: deny}
+  - {action: shell, resource: "git reset --hard *", effect: deny}
+  - {action: shell, resource: "git clean -fd *", effect: deny}
+  - {action: shell, resource: "rm -rf *", effect: deny}
+  - {action: shell, resource: "rm -fr *", effect: deny}
+  - {action: shell, resource: "rm --recursive *", effect: deny}
+  - {action: shell, resource: "npm publish *", effect: deny}
+  - {action: shell, resource: "pnpm publish *", effect: deny}
+  - {action: shell, resource: "yarn publish *", effect: deny}
+  - {action: shell, resource: "bun publish *", effect: deny}
+  - {action: shell, resource: "/tmp/*", effect: deny}
+  - {action: shell, resource: "gh pr merge *", effect: deny}
+  - {action: shell, resource: "glab mr merge *", effect: deny}
+  - {action: shell, resource: "tea * merge *", effect: deny}
+  - {action: shell, resource: "*pullrequests*/merge*", effect: deny}
+  - {action: shell, resource: "*pulls*/merge*", effect: deny}
+  - {action: shell, resource: "docker rm *", effect: allow}
+  - {action: shell, resource: "docker rmi *", effect: allow}
+  - {action: shell, resource: "docker image rm *", effect: allow}
+  - {action: shell, resource: "docker compose rm *", effect: allow}
+  - {action: shell, resource: "docker stop *", effect: allow}
+  - {action: shell, resource: "pm2 reload *", effect: allow}
+  - {action: shell, resource: "pm2 stop *", effect: allow}
   - {action: shell, resource: "git reset --hard HEAD", effect: allow}
   - {action: question, resource: "*", effect: allow}
   - {action: subagent, resource: "*", effect: allow}
@@ -93,6 +125,8 @@ permissions:
 8. **Restart-политики (по оркестратору):** docker — prod `restart: unless-stopped` (или `always` по просьбе), one-shot — `on-failure`/`no`, dev — `unless-stopped`/`no`; swarm — `deploy.restart_policy`; k8s — `restartPolicy` + `strategy`, compose-`restart` не писать.
 9. **README (корень проекта):** при любом касании env/compose/Dockerfile обнови секцию окружения. Формат:
    `## Окружение (dev/prod)` → таблица `переменная | назначение | dev | prod | обязательна` (назначение — для чего переменная, 1 строка; сюда переезжают все пояснения из `.env`, в самом `.env` пояснений нет), команды `docker compose --env-file .env.dev up --build` / `docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.prod up -d --build`, список портов/сетей/volumes. Секреты — только имена, не значения. Новую переменную без строки в README не сдаёшь.
+
+10. **Чужая зона — запрет:** кнопки/компоненты/стили фронта не трогаешь (это `@react-fix`/`build-fast` — эскалация к ним, не правки самому); бизнес-логику вне инфры не меняешь. Коммиты/пуш — только `/commit` + `/push`. Скрипты: `scripts/ports/*` (порты — только скриптом, прямой `ss` запрещён), `scripts/check/run.sh`, `scripts/pr/*`; скиллы: `docker-pack` (скелет `Dockerfile`), `ci` (публикация образов).
 
 ## Workflow (обязателен)
 

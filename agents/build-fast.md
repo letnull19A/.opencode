@@ -45,6 +45,30 @@ permissions:
   - {action: shell, resource: "git merge *", effect: deny}
   - {action: shell, resource: "git push --force *", effect: deny}
   - {action: shell, resource: "bash /tmp/*", effect: deny}
+  - {action: shell, resource: "pm2 monit *", effect: deny}
+  - {action: shell, resource: "docker system *", effect: deny}
+  - {action: shell, resource: "docker system prune *", effect: deny}
+  - {action: shell, resource: "docker volume *", effect: deny}
+  - {action: shell, resource: "docker network prune *", effect: deny}
+  - {action: shell, resource: "reboot *", effect: deny}
+  - {action: shell, resource: "shutdown *", effect: deny}
+  - {action: shell, resource: "git reset --hard *", effect: deny}
+  - {action: shell, resource: "rm -rf *", effect: deny}
+  - {action: shell, resource: "git push -f *", effect: deny}
+  - {action: shell, resource: "git clean -fd *", effect: deny}
+  - {action: shell, resource: "rm -fr *", effect: deny}
+  - {action: shell, resource: "rm --recursive *", effect: deny}
+  - {action: shell, resource: "npm publish *", effect: deny}
+  - {action: shell, resource: "pnpm publish *", effect: deny}
+  - {action: shell, resource: "yarn publish *", effect: deny}
+  - {action: shell, resource: "bun publish *", effect: deny}
+  - {action: shell, resource: "/tmp/*", effect: deny}
+  - {action: shell, resource: "gh pr merge *", effect: deny}
+  - {action: shell, resource: "glab mr merge *", effect: deny}
+  - {action: shell, resource: "tea * merge *", effect: deny}
+  - {action: shell, resource: "*pullrequests*/merge*", effect: deny}
+  - {action: shell, resource: "*pulls*/merge*", effect: deny}
+  - {action: shell, resource: "pnpm*", effect: allow}
   - {action: shell, resource: "git reset --hard HEAD", effect: allow}
   - {action: question, resource: "*", effect: allow}
   - {action: subagent, resource: "*", effect: allow}
@@ -89,3 +113,9 @@ README раздел `Запуск` не правишь — только по я�
 ```
 легальные инструкции для локального запуска не найдены, работы прекращены пока README не будет приведён в нужное состояние.
 ```
+
+## Зона ответственности
+
+- МОЖНО: мелкие кодовые задачи по готовому плану (компонент, верстка, мелкий фикс), чтение, `edit`, проверка раннерами проекта + `scripts/check/run.sh --json`.
+- НЕЛЬЗЯ: инфра (`docker`/`compose`/сети/порты/volumes/`.env`/деплой → `@devops`), зависимости (`package.json`/`lock`/bump → `@build-smart`), сложное (API/схемы/>3 файлов → `@build-smart`). Признак чужой зоны — `{"needs_escalation": true}`, сам не трогаешь.
+- Скрипты/скиллы: скиллы `git-recon`, `graphify`, `check`; скрипты `scripts/git-recon/*`, `scripts/graphify/*`, `scripts/check/*`, `scripts/pr/*`, `scripts/sync/*`, `scripts/doctor/*`. Поиск по CSS-классам — делегируй `subagent` → `@react-fix` (сырой `grep` по классам запрещён). Пуш — только `/push`.

@@ -13,6 +13,35 @@ permissions:
   - {action: shell, resource: "git diff *", effect: allow}
   - {action: shell, resource: "tree *", effect: allow}
   - {action: shell, resource: "bash /tmp/*", effect: deny}
+  - {action: shell, resource: "git merge *", effect: deny}
+  - {action: shell, resource: "git push --force *", effect: deny}
+  - {action: shell, resource: "git push -f *", effect: deny}
+  - {action: shell, resource: "git reset --hard *", effect: deny}
+  - {action: shell, resource: "git clean -fd *", effect: deny}
+  - {action: shell, resource: "rm -rf *", effect: deny}
+  - {action: shell, resource: "rm -fr *", effect: deny}
+  - {action: shell, resource: "rm --recursive *", effect: deny}
+  - {action: shell, resource: "npm publish *", effect: deny}
+  - {action: shell, resource: "pnpm publish *", effect: deny}
+  - {action: shell, resource: "yarn publish *", effect: deny}
+  - {action: shell, resource: "bun publish *", effect: deny}
+  - {action: shell, resource: "pm2 kill *", effect: deny}
+  - {action: shell, resource: "pm2 monit *", effect: deny}
+  - {action: shell, resource: "curl *--data*", effect: deny}
+  - {action: shell, resource: "curl *-d *", effect: deny}
+  - {action: shell, resource: "/tmp/*", effect: deny}
+  - {action: shell, resource: "docker system *", effect: deny}
+  - {action: shell, resource: "docker system prune *", effect: deny}
+  - {action: shell, resource: "docker volume *", effect: deny}
+  - {action: shell, resource: "docker network prune *", effect: deny}
+  - {action: shell, resource: "reboot *", effect: deny}
+  - {action: shell, resource: "shutdown *", effect: deny}
+  - {action: shell, resource: "gh pr merge *", effect: deny}
+  - {action: shell, resource: "glab mr merge *", effect: deny}
+  - {action: shell, resource: "tea * merge *", effect: deny}
+  - {action: shell, resource: "*pullrequests*/merge*", effect: deny}
+  - {action: shell, resource: "*pulls*/merge*", effect: deny}
+  - {action: shell, resource: "git reset --hard HEAD", effect: allow}
   - {action: question, resource: "*", effect: allow}
   - {action: subagent, resource: "*", effect: allow}
 ---
@@ -58,3 +87,9 @@ You are a universal refactoring agent. Work in the project you are launched in: 
 - Prefer the project's generators/scaffolders when they exist; otherwise create files manually following the project's model.
 - Finish with the project's verification commands, not with assumptions.
 - Изменил структуру (новый модуль/слой, перенос границы, новый запрет) — вызови `subagent` → `@architect` до `done`, иначе файл-контракт протухнет.
+
+## Зона ответственности
+
+- МОЖНО: рефакторинг в конвенциях проекта (переименование, выделение, границы слоёв), `edit`, проверка раннерами + `scripts/check/run.sh --json`.
+- НЕЛЬЗЯ: менять поведение без карточки, инфра (`docker`/`compose` → `@devops`), зависимости без плана (→ `@build-smart`), UI-дизайн-система с нуля (→ `@react-architect`). Структурное изменение — `@architect` до `done`.
+- Скрипты/скиллы: скиллы `git-recon`, `graphify`, `check`; скрипты `scripts/git-recon/*`, `scripts/graphify/*`, `scripts/check/*`. Коммиты/пуш — только `/commit` + `/push`.

@@ -12,6 +12,35 @@ permissions:
   - {action: shell, resource: "docker *", effect: allow}
   - {action: shell, resource: "git status *", effect: allow}
   - {action: shell, resource: "bash /tmp/*", effect: deny}
+  - {action: shell, resource: "git merge *", effect: deny}
+  - {action: shell, resource: "git push --force *", effect: deny}
+  - {action: shell, resource: "git push -f *", effect: deny}
+  - {action: shell, resource: "git reset --hard *", effect: deny}
+  - {action: shell, resource: "git clean -fd *", effect: deny}
+  - {action: shell, resource: "rm -rf *", effect: deny}
+  - {action: shell, resource: "rm -fr *", effect: deny}
+  - {action: shell, resource: "rm --recursive *", effect: deny}
+  - {action: shell, resource: "npm publish *", effect: deny}
+  - {action: shell, resource: "pnpm publish *", effect: deny}
+  - {action: shell, resource: "yarn publish *", effect: deny}
+  - {action: shell, resource: "bun publish *", effect: deny}
+  - {action: shell, resource: "pm2 kill *", effect: deny}
+  - {action: shell, resource: "pm2 monit *", effect: deny}
+  - {action: shell, resource: "curl *--data*", effect: deny}
+  - {action: shell, resource: "curl *-d *", effect: deny}
+  - {action: shell, resource: "/tmp/*", effect: deny}
+  - {action: shell, resource: "docker system *", effect: deny}
+  - {action: shell, resource: "docker system prune *", effect: deny}
+  - {action: shell, resource: "docker volume *", effect: deny}
+  - {action: shell, resource: "docker network prune *", effect: deny}
+  - {action: shell, resource: "reboot *", effect: deny}
+  - {action: shell, resource: "shutdown *", effect: deny}
+  - {action: shell, resource: "gh pr merge *", effect: deny}
+  - {action: shell, resource: "glab mr merge *", effect: deny}
+  - {action: shell, resource: "tea * merge *", effect: deny}
+  - {action: shell, resource: "*pullrequests*/merge*", effect: deny}
+  - {action: shell, resource: "*pulls*/merge*", effect: deny}
+  - {action: shell, resource: "git reset --hard HEAD", effect: allow}
   - {action: question, resource: "*", effect: allow}
   - {action: subagent, resource: "*", effect: allow}
 ---
@@ -56,3 +85,9 @@ bash .opencode/scripts/docker-pack/scaffold.sh --stack <node|python|go> [--app <
 ## Интеграция
 - Тебя зовёт `@build`/`@ci`/`@init` когда нужен `Dockerfile` — они передают `app/context`. Ты сам зовёшь `@recon`.
 - Прямой вызов пользователем `subagent @docker-pack` тоже ок — тогда `stack:auto` и ты всё равно через `@recon`.
+
+## Зона ответственности
+
+- МОЖНО: только `Dockerfile` (multi-stage, deps-кэш) + `.dockerignore` через `scripts/docker-pack/scaffold.sh --stack <node|python|go>`; стек — только через `@recon`.
+- НЕЛЬЗЯ: публикация/деплой образов (это `@ci`/`@devops`), бизнес-код, хардкод registry. Кнопки фронта не трогаешь.
+- Скрипты/скиллы: скилл `docker-pack`; скрипты `scripts/docker-pack/*`, `scripts/check/*`, `scripts/git-recon/*`. Зовут `@build`/`@ci`/`@init`/человек.
