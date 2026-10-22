@@ -139,177 +139,177 @@
     },
     {
       "action": "shell",
-      "resource": "echo*",
+      "resource": "echo *",
       "effect": "allow"
     },
     {
       "action": "shell",
-      "resource": "cat*",
+      "resource": "cat *",
       "effect": "allow"
     },
     {
       "action": "shell",
-      "resource": "ls*",
+      "resource": "ls *",
       "effect": "allow"
     },
     {
       "action": "shell",
-      "resource": "head*",
+      "resource": "head *",
       "effect": "allow"
     },
     {
       "action": "shell",
-      "resource": "tail*",
+      "resource": "tail *",
       "effect": "allow"
     },
     {
       "action": "shell",
-      "resource": "jq*",
+      "resource": "jq *",
       "effect": "allow"
     },
     {
       "action": "shell",
-      "resource": "wc*",
+      "resource": "wc *",
       "effect": "allow"
     },
     {
       "action": "shell",
-      "resource": "grep*",
+      "resource": "grep *",
       "effect": "allow"
     },
     {
       "action": "shell",
-      "resource": "rg*",
+      "resource": "rg *",
       "effect": "allow"
     },
     {
       "action": "shell",
-      "resource": "find*",
+      "resource": "find *",
       "effect": "allow"
     },
     {
       "action": "shell",
-      "resource": "tree*",
+      "resource": "tree *",
       "effect": "allow"
     },
     {
       "action": "shell",
-      "resource": "diff*",
+      "resource": "diff *",
       "effect": "allow"
     },
     {
       "action": "shell",
-      "resource": "sort*",
+      "resource": "sort *",
       "effect": "allow"
     },
     {
       "action": "shell",
-      "resource": "uniq*",
+      "resource": "uniq *",
       "effect": "allow"
     },
     {
       "action": "shell",
-      "resource": "sed -n*",
+      "resource": "sed -n *",
       "effect": "allow"
     },
     {
       "action": "shell",
-      "resource": "pwd*",
+      "resource": "pwd *",
       "effect": "allow"
     },
     {
       "action": "shell",
-      "resource": "which*",
+      "resource": "which *",
       "effect": "allow"
     },
     {
       "action": "shell",
-      "resource": "date*",
+      "resource": "date *",
       "effect": "allow"
     },
     {
       "action": "shell",
-      "resource": "basename*",
+      "resource": "basename *",
       "effect": "allow"
     },
     {
       "action": "shell",
-      "resource": "dirname*",
+      "resource": "dirname *",
       "effect": "allow"
     },
     {
       "action": "shell",
-      "resource": "mkdir*",
+      "resource": "mkdir *",
       "effect": "allow"
     },
     {
       "action": "shell",
-      "resource": "cp*",
+      "resource": "cp *",
       "effect": "allow"
     },
     {
       "action": "shell",
-      "resource": "mv*",
+      "resource": "mv *",
       "effect": "allow"
     },
     {
       "action": "shell",
-      "resource": "touch*",
+      "resource": "touch *",
       "effect": "allow"
     },
     {
       "action": "shell",
-      "resource": "rm*",
+      "resource": "rm *",
       "effect": "allow"
     },
     {
       "action": "shell",
-      "resource": "node*",
+      "resource": "node *",
       "effect": "allow"
     },
     {
       "action": "shell",
-      "resource": "bun*",
+      "resource": "bun *",
       "effect": "allow"
     },
     {
       "action": "shell",
-      "resource": "npx*",
+      "resource": "npx *",
       "effect": "allow"
     },
     {
       "action": "shell",
-      "resource": "pnpm*",
+      "resource": "pnpm *",
       "effect": "allow"
     },
     {
       "action": "shell",
-      "resource": "npm*",
+      "resource": "npm *",
       "effect": "allow"
     },
     {
       "action": "shell",
-      "resource": "yarn*",
+      "resource": "yarn *",
       "effect": "allow"
     },
     {
       "action": "shell",
-      "resource": "python3*",
+      "resource": "python3 *",
       "effect": "allow"
     },
     {
       "action": "shell",
-      "resource": "python*",
+      "resource": "python *",
       "effect": "allow"
     },
     {
       "action": "shell",
-      "resource": "pip*",
+      "resource": "pip *",
       "effect": "allow"
     },
     {
       "action": "shell",
-      "resource": "make*",
+      "resource": "make *",
       "effect": "allow"
     },
     {
@@ -564,12 +564,12 @@
     },
     {
       "action": "shell",
-      "resource": "curl *--data*",
+      "resource": "curl * --data *",
       "effect": "deny"
     },
     {
       "action": "shell",
-      "resource": "curl *-d *",
+      "resource": "curl * -d *",
       "effect": "deny"
     },
     {
@@ -671,17 +671,17 @@
         },
         {
           "action": "shell",
-          "resource": "echo*",
+          "resource": "echo *",
           "effect": "allow"
         },
         {
           "action": "shell",
-          "resource": "cat*",
+          "resource": "cat *",
           "effect": "allow"
         },
         {
           "action": "shell",
-          "resource": "ls*",
+          "resource": "ls *",
           "effect": "allow"
         },
         {
@@ -712,6 +712,11 @@
         {
           "action": "shell",
           "resource": "git revert *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git restore *",
           "effect": "allow"
         },
         {
@@ -772,11 +777,6 @@
         {
           "action": "shell",
           "resource": "git show *",
-          "effect": "allow"
-        },
-        {
-          "action": "shell",
-          "resource": "git restore *",
           "effect": "allow"
         },
         {
@@ -883,22 +883,32 @@
         },
         {
           "action": "shell",
-          "resource": "bun*",
+          "resource": "git restore *",
           "effect": "allow"
         },
         {
           "action": "shell",
-          "resource": "npm*",
+          "resource": "bun *",
           "effect": "allow"
         },
         {
           "action": "shell",
-          "resource": "node*",
+          "resource": "npm *",
           "effect": "allow"
         },
         {
           "action": "shell",
-          "resource": "npx*",
+          "resource": "node *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "npx *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "pnpm *",
           "effect": "allow"
         },
         {
@@ -968,17 +978,12 @@
         },
         {
           "action": "shell",
-          "resource": "python3*",
+          "resource": "python3 *",
           "effect": "allow"
         },
         {
           "action": "shell",
-          "resource": "make*",
-          "effect": "allow"
-        },
-        {
-          "action": "shell",
-          "resource": "git restore *",
+          "resource": "make *",
           "effect": "allow"
         },
         {
@@ -993,12 +998,12 @@
         },
         {
           "action": "shell",
-          "resource": "curl *--data*",
+          "resource": "curl * --data *",
           "effect": "deny"
         },
         {
           "action": "shell",
-          "resource": "curl *-d *",
+          "resource": "curl * -d *",
           "effect": "deny"
         },
         {
@@ -1133,11 +1138,6 @@
         },
         {
           "action": "shell",
-          "resource": "pnpm*",
-          "effect": "allow"
-        },
-        {
-          "action": "shell",
           "resource": "git reset --hard HEAD",
           "effect": "allow"
         },
@@ -1225,17 +1225,22 @@
         },
         {
           "action": "shell",
-          "resource": "bun*",
+          "resource": "bun *",
           "effect": "allow"
         },
         {
           "action": "shell",
-          "resource": "npm*",
+          "resource": "npm *",
           "effect": "allow"
         },
         {
           "action": "shell",
-          "resource": "node*",
+          "resource": "node *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "npx *",
           "effect": "allow"
         },
         {
@@ -1285,12 +1290,12 @@
         },
         {
           "action": "shell",
-          "resource": "python3*",
+          "resource": "python3 *",
           "effect": "allow"
         },
         {
           "action": "shell",
-          "resource": "make*",
+          "resource": "make *",
           "effect": "allow"
         },
         {
@@ -1350,12 +1355,12 @@
         },
         {
           "action": "shell",
-          "resource": "curl *--data*",
+          "resource": "curl * --data *",
           "effect": "deny"
         },
         {
           "action": "shell",
-          "resource": "curl *-d *",
+          "resource": "curl * -d *",
           "effect": "deny"
         },
         {
@@ -1562,7 +1567,47 @@
         },
         {
           "action": "shell",
-          "resource": "bun*",
+          "resource": "git log *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git restore *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "bun *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "npm *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "node *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "npx *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "pnpm *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "python3 *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "make *",
           "effect": "allow"
         },
         {
@@ -1612,17 +1657,12 @@
         },
         {
           "action": "shell",
-          "resource": "git restore *",
-          "effect": "allow"
-        },
-        {
-          "action": "shell",
-          "resource": "curl *--data*",
+          "resource": "curl * --data *",
           "effect": "deny"
         },
         {
           "action": "shell",
-          "resource": "curl *-d *",
+          "resource": "curl * -d *",
           "effect": "deny"
         },
         {
@@ -1869,6 +1909,11 @@
         },
         {
           "action": "shell",
+          "resource": "git restore *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
           "resource": "bash -n *",
           "effect": "allow"
         },
@@ -1964,17 +2009,47 @@
         },
         {
           "action": "shell",
-          "resource": "git restore *",
+          "resource": "docker rm *",
           "effect": "allow"
         },
         {
           "action": "shell",
-          "resource": "curl *--data*",
+          "resource": "docker rmi *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "docker image rm *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "docker compose rm *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "docker stop *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "pm2 reload *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "pm2 stop *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "curl * --data *",
           "effect": "deny"
         },
         {
           "action": "shell",
-          "resource": "curl *-d *",
+          "resource": "curl * -d *",
           "effect": "deny"
         },
         {
@@ -2119,41 +2194,6 @@
         },
         {
           "action": "shell",
-          "resource": "docker rm *",
-          "effect": "allow"
-        },
-        {
-          "action": "shell",
-          "resource": "docker rmi *",
-          "effect": "allow"
-        },
-        {
-          "action": "shell",
-          "resource": "docker image rm *",
-          "effect": "allow"
-        },
-        {
-          "action": "shell",
-          "resource": "docker compose rm *",
-          "effect": "allow"
-        },
-        {
-          "action": "shell",
-          "resource": "docker stop *",
-          "effect": "allow"
-        },
-        {
-          "action": "shell",
-          "resource": "pm2 reload *",
-          "effect": "allow"
-        },
-        {
-          "action": "shell",
-          "resource": "pm2 stop *",
-          "effect": "allow"
-        },
-        {
-          "action": "shell",
           "resource": "git reset --hard HEAD",
           "effect": "allow"
         },
@@ -2186,22 +2226,22 @@
         },
         {
           "action": "shell",
-          "resource": "echo*",
-          "effect": "allow"
-        },
-        {
-          "action": "shell",
           "resource": "bash .opencode/scripts/git-recon/*",
           "effect": "allow"
         },
         {
           "action": "shell",
-          "resource": "cat*",
+          "resource": "echo *",
           "effect": "allow"
         },
         {
           "action": "shell",
-          "resource": "ls*",
+          "resource": "cat *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "ls *",
           "effect": "allow"
         },
         {
@@ -2286,12 +2326,12 @@
         },
         {
           "action": "shell",
-          "resource": "curl *--data*",
+          "resource": "curl * --data *",
           "effect": "deny"
         },
         {
           "action": "shell",
-          "resource": "curl *-d *",
+          "resource": "curl * -d *",
           "effect": "deny"
         },
         {
@@ -2554,6 +2594,11 @@
         },
         {
           "action": "shell",
+          "resource": "git log *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
           "resource": "ls *",
           "effect": "allow"
         },
@@ -2565,6 +2610,41 @@
         {
           "action": "shell",
           "resource": "head *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "node *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "bun *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "npm *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "npx *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "pnpm *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "python3 *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "make *",
           "effect": "allow"
         },
         {
@@ -2644,12 +2724,12 @@
         },
         {
           "action": "shell",
-          "resource": "curl *--data*",
+          "resource": "curl * --data *",
           "effect": "deny"
         },
         {
           "action": "shell",
-          "resource": "curl *-d *",
+          "resource": "curl * -d *",
           "effect": "deny"
         },
         {
@@ -2975,12 +3055,12 @@
         },
         {
           "action": "shell",
-          "resource": "curl *--data*",
+          "resource": "curl * --data *",
           "effect": "deny"
         },
         {
           "action": "shell",
-          "resource": "curl *-d *",
+          "resource": "curl * -d *",
           "effect": "deny"
         },
         {
@@ -3097,6 +3177,16 @@
         },
         {
           "action": "shell",
+          "resource": "git diff *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "git log *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
           "resource": "bash /tmp/*",
           "effect": "deny"
         },
@@ -3172,12 +3262,12 @@
         },
         {
           "action": "shell",
-          "resource": "curl *--data*",
+          "resource": "curl * --data *",
           "effect": "deny"
         },
         {
           "action": "shell",
-          "resource": "curl *-d *",
+          "resource": "curl * -d *",
           "effect": "deny"
         },
         {
@@ -3331,17 +3421,17 @@
         },
         {
           "action": "shell",
-          "resource": "echo*",
+          "resource": "echo *",
           "effect": "allow"
         },
         {
           "action": "shell",
-          "resource": "cat*",
+          "resource": "cat *",
           "effect": "allow"
         },
         {
           "action": "shell",
-          "resource": "ls*",
+          "resource": "ls *",
           "effect": "allow"
         },
         {
@@ -3517,7 +3607,7 @@
         },
         {
           "action": "shell",
-          "resource": "cat*",
+          "resource": "cat *",
           "effect": "allow"
         },
         {
@@ -3705,6 +3795,46 @@
         },
         {
           "action": "shell",
+          "resource": "git log *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "bun *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "npm *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "node *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "npx *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "pnpm *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "python3 *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "make *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
           "resource": "bash /tmp/*",
           "effect": "deny"
         },
@@ -3780,12 +3910,12 @@
         },
         {
           "action": "shell",
-          "resource": "curl *--data*",
+          "resource": "curl * --data *",
           "effect": "deny"
         },
         {
           "action": "shell",
-          "resource": "curl *-d *",
+          "resource": "curl * -d *",
           "effect": "deny"
         },
         {
@@ -4011,7 +4141,47 @@
         },
         {
           "action": "shell",
+          "resource": "git log *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
           "resource": "tree *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "bun *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "npm *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "node *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "npx *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "pnpm *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "python3 *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "make *",
           "effect": "allow"
         },
         {
@@ -4091,12 +4261,12 @@
         },
         {
           "action": "shell",
-          "resource": "curl *--data*",
+          "resource": "curl * --data *",
           "effect": "deny"
         },
         {
           "action": "shell",
-          "resource": "curl *-d *",
+          "resource": "curl * -d *",
           "effect": "deny"
         },
         {
@@ -4661,12 +4831,22 @@
         },
         {
           "action": "shell",
+          "resource": "git log *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
           "resource": "bun *",
           "effect": "allow"
         },
         {
           "action": "shell",
           "resource": "npm *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "node *",
           "effect": "allow"
         },
         {
@@ -4702,6 +4882,11 @@
         {
           "action": "shell",
           "resource": "cargo *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "make *",
           "effect": "allow"
         },
         {
@@ -4781,12 +4966,12 @@
         },
         {
           "action": "shell",
-          "resource": "curl *--data*",
+          "resource": "curl * --data *",
           "effect": "deny"
         },
         {
           "action": "shell",
-          "resource": "curl *-d *",
+          "resource": "curl * -d *",
           "effect": "deny"
         },
         {

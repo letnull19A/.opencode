@@ -13,8 +13,15 @@ permissions:
   - {action: shell, resource: "bash .opencode/scripts/branch-ops/*", effect: allow}
   - {action: shell, resource: "git status *", effect: allow}
   - {action: shell, resource: "git diff *", effect: allow}
+  - {action: shell, resource: "git log *", effect: allow}
   - {action: shell, resource: "git restore *", effect: allow}
-  - {action: shell, resource: "bun*", effect: allow}
+  - {action: shell, resource: "bun *", effect: allow}
+  - {action: shell, resource: "npm *", effect: allow}
+  - {action: shell, resource: "node *", effect: allow}
+  - {action: shell, resource: "npx *", effect: allow}
+  - {action: shell, resource: "pnpm *", effect: allow}
+  - {action: shell, resource: "python3 *", effect: allow}
+  - {action: shell, resource: "make *", effect: allow}
   - {action: shell, resource: "pm2 list *", effect: allow}
   - {action: shell, resource: "pm2 status *", effect: allow}
   - {action: shell, resource: "pm2 start *", effect: allow}
@@ -24,8 +31,8 @@ permissions:
   - {action: shell, resource: "pm2 save *", effect: allow}
   - {action: shell, resource: "pm2 resurrect *", effect: allow}
   - {action: shell, resource: "curl *", effect: allow}
-  - {action: shell, resource: "curl *--data*", effect: deny}
-  - {action: shell, resource: "curl *-d *", effect: deny}
+  - {action: shell, resource: "curl * --data *", effect: deny}
+  - {action: shell, resource: "curl * -d *", effect: deny}
   - {action: shell, resource: "pm2 delete *", effect: deny}
   - {action: shell, resource: "pm2 kill *", effect: deny}
   - {action: shell, resource: "git merge *", effect: deny}

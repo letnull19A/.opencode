@@ -40,8 +40,15 @@ permissions:
   - {action: shell, resource: "pm2 save *", effect: allow}
   - {action: shell, resource: "pm2 resurrect *", effect: allow}
   - {action: shell, resource: "curl *", effect: allow}
-  - {action: shell, resource: "curl *--data*", effect: deny}
-  - {action: shell, resource: "curl *-d *", effect: deny}
+  - {action: shell, resource: "docker rm *", effect: allow}
+  - {action: shell, resource: "docker rmi *", effect: allow}
+  - {action: shell, resource: "docker image rm *", effect: allow}
+  - {action: shell, resource: "docker compose rm *", effect: allow}
+  - {action: shell, resource: "docker stop *", effect: allow}
+  - {action: shell, resource: "pm2 reload *", effect: allow}
+  - {action: shell, resource: "pm2 stop *", effect: allow}
+  - {action: shell, resource: "curl * --data *", effect: deny}
+  - {action: shell, resource: "curl * -d *", effect: deny}
   - {action: shell, resource: "pm2 delete *", effect: deny}
   - {action: shell, resource: "pm2 kill *", effect: deny}
   - {action: shell, resource: "bash /tmp/*", effect: deny}
@@ -70,13 +77,6 @@ permissions:
   - {action: shell, resource: "tea * merge *", effect: deny}
   - {action: shell, resource: "*pullrequests*/merge*", effect: deny}
   - {action: shell, resource: "*pulls*/merge*", effect: deny}
-  - {action: shell, resource: "docker rm *", effect: allow}
-  - {action: shell, resource: "docker rmi *", effect: allow}
-  - {action: shell, resource: "docker image rm *", effect: allow}
-  - {action: shell, resource: "docker compose rm *", effect: allow}
-  - {action: shell, resource: "docker stop *", effect: allow}
-  - {action: shell, resource: "pm2 reload *", effect: allow}
-  - {action: shell, resource: "pm2 stop *", effect: allow}
   - {action: shell, resource: "git reset --hard HEAD", effect: allow}
   - {action: question, resource: "*", effect: allow}
   - {action: subagent, resource: "*", effect: allow}

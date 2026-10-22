@@ -12,9 +12,9 @@ permissions:
   - {action: shell, resource: "bash .opencode/scripts/sync/*", effect: allow}
   - {action: shell, resource: "bash .opencode/scripts/pr/*", effect: allow}
   - {action: shell, resource: "bash .opencode/scripts/worktree/*", effect: allow}
-  - {action: shell, resource: "echo*", effect: allow}
-  - {action: shell, resource: "cat*", effect: allow}
-  - {action: shell, resource: "ls*", effect: allow}
+  - {action: shell, resource: "echo *", effect: allow}
+  - {action: shell, resource: "cat *", effect: allow}
+  - {action: shell, resource: "ls *", effect: allow}
   - {action: shell, resource: "git status *", effect: allow}
   - {action: shell, resource: "git diff *", effect: allow}
   - {action: shell, resource: "git log *", effect: allow}

@@ -5,9 +5,9 @@ model: opencode-go/muse-spark-1.3-contributor
 permissions:
   - {action: edit, resource: "*", effect: deny}
   - {action: shell, resource: "*", effect: deny}
-  - {action: shell, resource: "echo*", effect: allow}
-  - {action: shell, resource: "cat*", effect: allow}
-  - {action: shell, resource: "ls*", effect: allow}
+  - {action: shell, resource: "echo *", effect: allow}
+  - {action: shell, resource: "cat *", effect: allow}
+  - {action: shell, resource: "ls *", effect: allow}
   - {action: shell, resource: "git status *", effect: allow}
   - {action: shell, resource: "git diff *", effect: allow}
   - {action: shell, resource: "git log *", effect: allow}

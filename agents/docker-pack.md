@@ -11,6 +11,8 @@ permissions:
   - {action: shell, resource: "bash .opencode/scripts/git-recon/*", effect: allow}
   - {action: shell, resource: "docker *", effect: allow}
   - {action: shell, resource: "git status *", effect: allow}
+  - {action: shell, resource: "git diff *", effect: allow}
+  - {action: shell, resource: "git log *", effect: allow}
   - {action: shell, resource: "bash /tmp/*", effect: deny}
   - {action: shell, resource: "git merge *", effect: deny}
   - {action: shell, resource: "git push --force *", effect: deny}
@@ -26,8 +28,8 @@ permissions:
   - {action: shell, resource: "bun publish *", effect: deny}
   - {action: shell, resource: "pm2 kill *", effect: deny}
   - {action: shell, resource: "pm2 monit *", effect: deny}
-  - {action: shell, resource: "curl *--data*", effect: deny}
-  - {action: shell, resource: "curl *-d *", effect: deny}
+  - {action: shell, resource: "curl * --data *", effect: deny}
+  - {action: shell, resource: "curl * -d *", effect: deny}
   - {action: shell, resource: "/tmp/*", effect: deny}
   - {action: shell, resource: "docker system *", effect: deny}
   - {action: shell, resource: "docker system prune *", effect: deny}

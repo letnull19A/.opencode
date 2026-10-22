@@ -30,8 +30,8 @@ permissions:
   - {action: shell, resource: "bun publish *", effect: deny}
   - {action: shell, resource: "pm2 kill *", effect: deny}
   - {action: shell, resource: "pm2 monit *", effect: deny}
-  - {action: shell, resource: "curl *--data*", effect: deny}
-  - {action: shell, resource: "curl *-d *", effect: deny}
+  - {action: shell, resource: "curl * --data *", effect: deny}
+  - {action: shell, resource: "curl * -d *", effect: deny}
   - {action: shell, resource: "/tmp/*", effect: deny}
   - {action: shell, resource: "docker system *", effect: deny}
   - {action: shell, resource: "docker system prune *", effect: deny}

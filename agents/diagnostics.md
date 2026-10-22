@@ -7,9 +7,9 @@ permissions:
   - {action: edit, resource: "*", effect: deny}
   - {action: shell, resource: "*", effect: deny}
   - {action: shell, resource: "bash .opencode/scripts/git-recon/*", effect: allow}
-  - {action: shell, resource: "echo*", effect: allow}
-  - {action: shell, resource: "cat*", effect: allow}
-  - {action: shell, resource: "ls*", effect: allow}
+  - {action: shell, resource: "echo *", effect: allow}
+  - {action: shell, resource: "cat *", effect: allow}
+  - {action: shell, resource: "ls *", effect: allow}
   - {action: shell, resource: "git status *", effect: allow}
   - {action: shell, resource: "git diff *", effect: allow}
   - {action: shell, resource: "git log *", effect: allow}
@@ -26,8 +26,8 @@ permissions:
   - {action: shell, resource: "pm2 logs *", effect: allow}
   - {action: shell, resource: "pm2 jlist *", effect: allow}
   - {action: shell, resource: "curl *", effect: allow}
-  - {action: shell, resource: "curl *--data*", effect: deny}
-  - {action: shell, resource: "curl *-d *", effect: deny}
+  - {action: shell, resource: "curl * --data *", effect: deny}
+  - {action: shell, resource: "curl * -d *", effect: deny}
   - {action: shell, resource: "pm2 restart *", effect: deny}
   - {action: shell, resource: "pm2 stop *", effect: deny}
   - {action: shell, resource: "pm2 delete *", effect: deny}

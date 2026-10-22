@@ -9,7 +9,7 @@ permissions:
   - {action: shell, resource: "git status *", effect: allow}
   - {action: shell, resource: "git diff *", effect: allow}
   - {action: shell, resource: "git log *", effect: allow}
-  - {action: shell, resource: "cat*", effect: allow}
+  - {action: shell, resource: "cat *", effect: allow}
   - {action: shell, resource: "python3 .opencode/scripts/issue-writer/*", effect: allow}
   - {action: question, resource: "*", effect: allow}
   - {action: subagent, resource: "*", effect: deny}
