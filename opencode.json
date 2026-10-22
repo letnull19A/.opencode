@@ -364,6 +364,11 @@
     },
     {
       "action": "shell",
+      "resource": "pm2 delete *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
       "resource": "pm2 save *",
       "effect": "allow"
     },
@@ -430,12 +435,37 @@
     {
       "action": "shell",
       "resource": "docker compose down *",
-      "effect": "ask"
+      "effect": "allow"
     },
     {
       "action": "shell",
       "resource": "docker build *",
       "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "docker rm *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "docker rmi *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "docker image rm *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "docker compose rm *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "docker stop *",
+      "effect": "allow"
     },
     {
       "action": "shell",
@@ -524,11 +554,6 @@
     },
     {
       "action": "shell",
-      "resource": "pm2 delete *",
-      "effect": "deny"
-    },
-    {
-      "action": "shell",
       "resource": "pm2 kill *",
       "effect": "deny"
     },
@@ -555,6 +580,36 @@
     {
       "action": "shell",
       "resource": "/tmp/*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "docker system *",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "docker system prune *",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "docker volume *",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "docker network prune *",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "reboot *",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "shutdown *",
       "effect": "deny"
     },
     {
@@ -899,11 +954,46 @@
         {
           "action": "shell",
           "resource": "pm2 delete *",
-          "effect": "deny"
+          "effect": "allow"
         },
         {
           "action": "shell",
           "resource": "pm2 kill *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "pm2 monit *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "docker system *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "docker system prune *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "docker volume *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "docker network prune *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "reboot *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "shutdown *",
           "effect": "deny"
         },
         {
@@ -1141,11 +1231,46 @@
         {
           "action": "shell",
           "resource": "pm2 delete *",
-          "effect": "deny"
+          "effect": "allow"
         },
         {
           "action": "shell",
           "resource": "pm2 kill *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "pm2 monit *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "docker system *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "docker system prune *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "docker volume *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "docker network prune *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "reboot *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "shutdown *",
           "effect": "deny"
         },
         {
@@ -1318,11 +1443,46 @@
         {
           "action": "shell",
           "resource": "pm2 delete *",
-          "effect": "deny"
+          "effect": "allow"
         },
         {
           "action": "shell",
           "resource": "pm2 kill *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "pm2 monit *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "docker system *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "docker system prune *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "docker volume *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "docker network prune *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "reboot *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "shutdown *",
           "effect": "deny"
         },
         {
@@ -1495,12 +1655,37 @@
         {
           "action": "shell",
           "resource": "docker compose down *",
-          "effect": "ask"
+          "effect": "allow"
         },
         {
           "action": "shell",
           "resource": "docker build *",
           "effect": "ask"
+        },
+        {
+          "action": "shell",
+          "resource": "docker rm *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "docker rmi *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "docker image rm *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "docker compose rm *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "docker stop *",
+          "effect": "allow"
         },
         {
           "action": "shell",
@@ -1520,6 +1705,21 @@
         {
           "action": "shell",
           "resource": "pm2 restart *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "pm2 reload *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "pm2 stop *",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "pm2 delete *",
           "effect": "allow"
         },
         {
@@ -1549,12 +1749,42 @@
         },
         {
           "action": "shell",
-          "resource": "pm2 delete *",
+          "resource": "pm2 kill *",
           "effect": "deny"
         },
         {
           "action": "shell",
-          "resource": "pm2 kill *",
+          "resource": "pm2 monit *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "docker system *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "docker system prune *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "docker volume *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "docker network prune *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "reboot *",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "shutdown *",
           "effect": "deny"
         },
         {
