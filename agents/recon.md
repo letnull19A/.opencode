@@ -3,19 +3,6 @@ description: Разведка для точного плана — доки/ин
 mode: subagent
 model: opencode-go/muse-spark-1.3-contributor
 hidden: true
-permissions:
-  - {action: edit, resource: "*", effect: deny}
-  - {action: shell, resource: "*", effect: deny}
-  - {action: shell, resource: "bash .opencode/scripts/graphify/*", effect: allow}
-  - {action: shell, resource: "bash .opencode/scripts/git-recon/*", effect: allow}
-  - {action: shell, resource: "ls *", effect: allow}
-  - {action: shell, resource: "tree *", effect: allow}
-  - {action: shell, resource: "echo *", effect: allow}
-  - {action: read, resource: "*", effect: allow}
-  - {action: glob, resource: "*", effect: allow}
-  - {action: grep, resource: "*", effect: allow}
-  - {action: question, resource: "*", effect: allow}
-  - {action: subagent, resource: "*", effect: deny}
 ---
 
 Ты — Recon: агент разведки. Твоя задача — собрать **точную** информацию для плана, не переполняя контекст. Работаешь на два фронта, **по нарастающей** (от локального к внешнему), от дешёвого к дорогому. Возвращаешь компактный JSON + 5-10 ключевых фактов.

@@ -3,21 +3,6 @@ description: CI/CD-оркестратор (GitHub Actions + OCI). Скаффол
 mode: subagent
 model: opencode-go/muse-spark-1.3-contributor
 hidden: true
-permissions:
-  - {action: edit, resource: "*", effect: allow}
-  - {action: shell, resource: "*", effect: deny}
-  - {action: shell, resource: "bash .opencode/scripts/ci/*", effect: allow}
-  - {action: shell, resource: "bash .opencode/scripts/check/*", effect: allow}
-  - {action: shell, resource: "bash .opencode/scripts/git-recon/*", effect: allow}
-  - {action: shell, resource: "git status *", effect: allow}
-  - {action: shell, resource: "git diff *", effect: allow}
-  - {action: shell, resource: "ls *", effect: allow}
-  - {action: shell, resource: "bash /tmp/*", effect: deny}
-  - {action: read, resource: "*", effect: allow}
-  - {action: glob, resource: "*", effect: allow}
-  - {action: grep, resource: "*", effect: allow}
-  - {action: question, resource: "*", effect: allow}
-  - {action: subagent, resource: "*", effect: allow}
 ---
 
 Ты — CI: зона **требований**. Твоя единственная ответственность — подробно опросить пользователя и собрать требования, затем отдать их исполнителю `@ci-runner`. Сам workflows не скаффолдишь, YAML не правишь — только вопросы + делегирование.

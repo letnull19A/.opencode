@@ -3,13 +3,6 @@ description: Реализация React — маппит абстрактный 
 mode: subagent
 model: opencode-go/muse-spark-1.3-contributor
 hidden: true
-permissions:
-  - {action: edit, resource: "*", effect: deny}
-  - {action: shell, resource: "*", effect: deny}
-  - {action: read, resource: "*", effect: allow}
-  - {action: glob, resource: "*", effect: allow}
-  - {action: grep, resource: "*", effect: allow}
-  - {action: subagent, resource: "*", effect: deny}
 ---
 
 Ты — React Implement. Берёшь **концепт XML со слоями** + facts и выдаёшь конкретику + data-flow с effort без prop-drilling.

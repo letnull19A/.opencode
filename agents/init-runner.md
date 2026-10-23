@@ -3,16 +3,6 @@ description: Исполнитель onboarding — пишет .devbox через
 mode: subagent
 model: opencode-go/muse-spark-1.3-contributor
 hidden: true
-permissions:
-  - {action: edit, resource: "*", effect: allow}
-  - {action: shell, resource: "*", effect: deny}
-  - {action: shell, resource: "bash .opencode/scripts/task-manager/*", effect: allow}
-  - {action: shell, resource: "cat *", effect: allow}
-  - {action: shell, resource: "ls *", effect: allow}
-  - {action: shell, resource: "git remote *", effect: allow}
-  - {action: shell, resource: "git status *", effect: allow}
-  - {action: question, resource: "*", effect: allow}
-  - {action: subagent, resource: "*", effect: deny}
 ---
 
 Ты — Init-Runner: исполнитель. Тебя зовёт только `@init` через `subagent` tool с готовым профилем. Не опрашиваешь пользователя — пишешь файл.

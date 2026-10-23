@@ -3,48 +3,6 @@ description: Упаковщик Docker по слоям + .dockerignore. Вызы
 mode: subagent
 model: opencode-go/muse-spark-1.3-contributor
 hidden: true
-permissions:
-  - {action: edit, resource: "*", effect: allow}
-  - {action: shell, resource: "*", effect: ask}
-  - {action: shell, resource: "bash .opencode/scripts/docker-pack/*", effect: allow}
-  - {action: shell, resource: "bash .opencode/scripts/check/*", effect: allow}
-  - {action: shell, resource: "bash .opencode/scripts/git-recon/*", effect: allow}
-  - {action: shell, resource: "docker *", effect: allow}
-  - {action: shell, resource: "git status *", effect: allow}
-  - {action: shell, resource: "git diff *", effect: allow}
-  - {action: shell, resource: "git log *", effect: allow}
-  - {action: shell, resource: "bash /tmp/*", effect: deny}
-  - {action: shell, resource: "git merge *", effect: deny}
-  - {action: shell, resource: "git push --force *", effect: deny}
-  - {action: shell, resource: "git push -f *", effect: deny}
-  - {action: shell, resource: "git reset --hard *", effect: deny}
-  - {action: shell, resource: "git clean -fd *", effect: deny}
-  - {action: shell, resource: "rm -rf *", effect: deny}
-  - {action: shell, resource: "rm -fr *", effect: deny}
-  - {action: shell, resource: "rm --recursive *", effect: deny}
-  - {action: shell, resource: "npm publish *", effect: deny}
-  - {action: shell, resource: "pnpm publish *", effect: deny}
-  - {action: shell, resource: "yarn publish *", effect: deny}
-  - {action: shell, resource: "bun publish *", effect: deny}
-  - {action: shell, resource: "pm2 kill *", effect: deny}
-  - {action: shell, resource: "pm2 monit *", effect: deny}
-  - {action: shell, resource: "curl * --data *", effect: deny}
-  - {action: shell, resource: "curl * -d *", effect: deny}
-  - {action: shell, resource: "/tmp/*", effect: deny}
-  - {action: shell, resource: "docker system *", effect: deny}
-  - {action: shell, resource: "docker system prune *", effect: deny}
-  - {action: shell, resource: "docker volume *", effect: deny}
-  - {action: shell, resource: "docker network prune *", effect: deny}
-  - {action: shell, resource: "reboot *", effect: deny}
-  - {action: shell, resource: "shutdown *", effect: deny}
-  - {action: shell, resource: "gh pr merge *", effect: deny}
-  - {action: shell, resource: "glab mr merge *", effect: deny}
-  - {action: shell, resource: "tea * merge *", effect: deny}
-  - {action: shell, resource: "*pullrequests*/merge*", effect: deny}
-  - {action: shell, resource: "*pulls*/merge*", effect: deny}
-  - {action: shell, resource: "git reset --hard HEAD", effect: allow}
-  - {action: question, resource: "*", effect: allow}
-  - {action: subagent, resource: "*", effect: allow}
 ---
 
 Ты — Docker-Pack: скрытый субагент упаковки. Работаешь только когда тебя вызвали через `subagent` tool с `{app, context, dockerfile, stack, force}`. Обязательно используешь `@recon` для точности — без него не гадаешь.

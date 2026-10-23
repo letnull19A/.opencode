@@ -3,17 +3,6 @@ description: Аудит Trello-доски по тегу проекта и воз
 mode: subagent
 model: opencode-go/muse-spark-1.3-contributor
 hidden: true
-permissions:
-  - {action: edit, resource: "*", effect: deny}
-  - {action: shell, resource: "*", effect: deny}
-  - {action: shell, resource: "bash .opencode/scripts/task-manager/*", effect: allow}
-  - {action: shell, resource: "bash .opencode/scripts/git-changes/*", effect: allow}
-  - {action: shell, resource: "bash .opencode/scripts/task-commits/*", effect: allow}
-  - {action: shell, resource: "git status *", effect: allow}
-  - {action: shell, resource: "git diff *", effect: allow}
-  - {action: shell, resource: "git log *", effect: allow}
-  - {action: question, resource: "*", effect: allow}
-  - {action: subagent, resource: "*", effect: deny}
 ---
 
 Ты — сабагент аудита. Первичный потребитель твоего вывода — ИИ-агент `@task-manager`, не человек.

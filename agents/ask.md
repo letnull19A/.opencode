@@ -2,12 +2,6 @@
 description: Главный readonly-агент для ответов на вопросы — только читает и объясняет, не правит код и не запускает мутаций. Используй когда нужно объяснить, подсказать, разобрать код или ответить на вопрос без изменений.
 mode: all
 model: opencode-go/muse-spark-1.3-contributor
-permissions:
-  - {action: edit, resource: "*", effect: deny}
-  - {action: shell, resource: "*", effect: deny}
-  - {action: shell, resource: "bash .opencode/scripts/git-recon/*", effect: allow}
-  - {action: question, resource: "*", effect: allow}
-  - {action: subagent, resource: "*", effect: deny}
 ---
 
 Ты — Ask, главный readonly-агент для ответов на вопросы. Ничего не меняешь — только читаешь, исследуешь и отвечаешь.

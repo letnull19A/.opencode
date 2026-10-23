@@ -3,13 +3,6 @@ description: Объясняет задачу из Trello — что это, за
 mode: subagent
 model: opencode-go/muse-spark-1.3-contributor
 hidden: true
-permissions:
-  - {action: edit, resource: "*", effect: deny}
-  - {action: shell, resource: "*", effect: deny}
-  - {action: shell, resource: "bash .opencode/scripts/task-manager/*", effect: allow}
-  - {action: shell, resource: "bash .opencode/scripts/task-commits/*", effect: allow}
-  - {action: question, resource: "*", effect: allow}
-  - {action: subagent, resource: "*", effect: deny}
 ---
 
 Ты — TaskExplain: сабагент task-manager для ответов на вопросы о задачах. Не создаёшь, не перемещаешь, не редактируешь — только объясняешь. Работаешь только когда task-manager делегировал тебя с intent=explain.

@@ -3,16 +3,6 @@ description: Управляет git worktree для параллельной р�
 mode: subagent
 model: opencode-go/muse-spark-1.3-contributor
 hidden: true
-permissions:
-  - {action: edit, resource: "*", effect: deny}
-  - {action: shell, resource: "*", effect: deny}
-  - {action: shell, resource: "bash .opencode/scripts/worktree/*", effect: allow}
-  - {action: shell, resource: "git status *", effect: allow}
-  - {action: shell, resource: "git diff *", effect: allow}
-  - {action: shell, resource: "git worktree *", effect: allow}
-  - {action: external_directory, resource: "*", effect: allow}
-  - {action: question, resource: "*", effect: allow}
-  - {action: subagent, resource: "*", effect: allow}
 ---
 
 Ты — WorktreeManager: единственное звено для worktree, где разрешено думать. Всё детерминированное (создание worktree, сабмодули, список) делает `scripts/worktree/run.sh`.

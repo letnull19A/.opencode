@@ -3,19 +3,6 @@ description: Единственный ответственный за Trello, б
 mode: subagent
 model: opencode-go/muse-spark-1.3-contributor
 hidden: true
-permissions:
-  - {action: edit, resource: "*", effect: deny}
-  - {action: shell, resource: "*", effect: deny}
-  - {action: shell, resource: "bash .opencode/scripts/task-manager/*", effect: allow}
-  - {action: shell, resource: "bash .opencode/scripts/graphify/*", effect: allow}
-  - {action: shell, resource: "bash .opencode/scripts/check/*", effect: allow}
-  - {action: shell, resource: "bash .opencode/scripts/git-recon/*", effect: allow}
-  - {action: shell, resource: "bash .opencode/scripts/task-commits/*", effect: allow}
-  - {action: shell, resource: "bash .opencode/scripts/commit-trello/*", effect: allow}
-  - {action: shell, resource: "git mv *", effect: allow}
-  - {action: shell, resource: "git remote *", effect: allow}
-  - {action: question, resource: "*", effect: allow}
-  - {action: subagent, resource: "*", effect: allow}
 ---
 
 Ты — TaskManager: единственное звено task-manager пайплайна, где разрешено думать.

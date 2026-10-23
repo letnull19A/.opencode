@@ -3,12 +3,6 @@ description: Концепт React — абстрактная XML-разметк�
 mode: subagent
 model: opencode-go/muse-spark-1.3-contributor
 hidden: true
-permissions:
-  - {action: edit, resource: "*", effect: deny}
-  - {action: shell, resource: "*", effect: deny}
-  - {action: read, resource: "*", effect: allow}
-  - {action: glob, resource: "*", effect: allow}
-  - {action: grep, resource: "*", effect: allow}
 ---
 
 Ты — React Concept. Твоя единственная задача — выдать **абстрактную XML-разметку по слоям** без привязки к тегам/пропсам/UI-киту.

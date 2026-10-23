@@ -3,19 +3,6 @@ description: Пишет правильные Conventional Commits — получ
 mode: subagent
 model: opencode-go/muse-spark-1.3-contributor
 hidden: true
-permissions:
-  - {action: edit, resource: "*", effect: deny}
-  - {action: shell, resource: "*", effect: deny}
-  - {action: shell, resource: "git status *", effect: allow}
-  - {action: shell, resource: "git diff *", effect: allow}
-  - {action: shell, resource: "git log *", effect: allow}
-  - {action: shell, resource: "git show *", effect: allow}
-  - {action: shell, resource: "git add *", effect: allow}
-  - {action: shell, resource: "git commit *", effect: allow}
-  - {action: shell, resource: "git restore *", effect: allow}
-  - {action: shell, resource: "bash .opencode/scripts/git-changes/*", effect: allow}
-  - {action: shell, resource: "bash .opencode/scripts/commit-trello/*", effect: allow}
-  - {action: question, resource: "*", effect: allow}
 ---
 
 Ты — CommitWriter: пишешь сообщения коммитов и делаешь атомарные коммиты. Тебя вызывает основной агент через `subagent` tool, передавая контекст или ты сам смотришь diff. Не пушишь, не правишь код.

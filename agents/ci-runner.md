@@ -3,57 +3,6 @@ description: Исполнитель CI/CD — принимает готовые 
 mode: subagent
 model: opencode-go/muse-spark-1.3-contributor
 hidden: true
-permissions:
-  - {action: edit, resource: "*", effect: allow}
-  - {action: shell, resource: "*", effect: ask}
-  - {action: shell, resource: "bash .opencode/scripts/ci/*", effect: allow}
-  - {action: shell, resource: "bash .opencode/scripts/check/*", effect: allow}
-  - {action: shell, resource: "bash .opencode/scripts/git-recon/*", effect: allow}
-  - {action: shell, resource: "git status *", effect: allow}
-  - {action: shell, resource: "git diff *", effect: allow}
-  - {action: shell, resource: "git log *", effect: allow}
-  - {action: shell, resource: "ls *", effect: allow}
-  - {action: shell, resource: "cat *", effect: allow}
-  - {action: shell, resource: "head *", effect: allow}
-  - {action: shell, resource: "node *", effect: allow}
-  - {action: shell, resource: "bun *", effect: allow}
-  - {action: shell, resource: "npm *", effect: allow}
-  - {action: shell, resource: "npx *", effect: allow}
-  - {action: shell, resource: "pnpm *", effect: allow}
-  - {action: shell, resource: "python3 *", effect: allow}
-  - {action: shell, resource: "make *", effect: allow}
-  - {action: shell, resource: "bash /tmp/*", effect: deny}
-  - {action: shell, resource: "git merge *", effect: deny}
-  - {action: shell, resource: "git push --force *", effect: deny}
-  - {action: shell, resource: "git push -f *", effect: deny}
-  - {action: shell, resource: "git reset --hard *", effect: deny}
-  - {action: shell, resource: "git clean -fd *", effect: deny}
-  - {action: shell, resource: "rm -rf *", effect: deny}
-  - {action: shell, resource: "rm -fr *", effect: deny}
-  - {action: shell, resource: "rm --recursive *", effect: deny}
-  - {action: shell, resource: "npm publish *", effect: deny}
-  - {action: shell, resource: "pnpm publish *", effect: deny}
-  - {action: shell, resource: "yarn publish *", effect: deny}
-  - {action: shell, resource: "bun publish *", effect: deny}
-  - {action: shell, resource: "pm2 kill *", effect: deny}
-  - {action: shell, resource: "pm2 monit *", effect: deny}
-  - {action: shell, resource: "curl * --data *", effect: deny}
-  - {action: shell, resource: "curl * -d *", effect: deny}
-  - {action: shell, resource: "/tmp/*", effect: deny}
-  - {action: shell, resource: "docker system *", effect: deny}
-  - {action: shell, resource: "docker system prune *", effect: deny}
-  - {action: shell, resource: "docker volume *", effect: deny}
-  - {action: shell, resource: "docker network prune *", effect: deny}
-  - {action: shell, resource: "reboot *", effect: deny}
-  - {action: shell, resource: "shutdown *", effect: deny}
-  - {action: shell, resource: "gh pr merge *", effect: deny}
-  - {action: shell, resource: "glab mr merge *", effect: deny}
-  - {action: shell, resource: "tea * merge *", effect: deny}
-  - {action: shell, resource: "*pullrequests*/merge*", effect: deny}
-  - {action: shell, resource: "*pulls*/merge*", effect: deny}
-  - {action: shell, resource: "git reset --hard HEAD", effect: allow}
-  - {action: question, resource: "*", effect: allow}
-  - {action: subagent, resource: "*", effect: allow}
 ---
 
 Ты — CI-Runner: исполнитель. Тебя зовёт только `@ci` через `subagent` tool, уже с готовыми требованиями. Не опрашиваешь пользователя — делаешь.

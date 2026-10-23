@@ -3,18 +3,6 @@ description: Аудитор безопасности I/O — разбирает 
 mode: subagent
 model: opencode-go/muse-spark-1.3-contributor
 hidden: true
-permissions:
-  - {action: edit, resource: "*", effect: deny}
-  - {action: shell, resource: "*", effect: deny}
-  - {action: shell, resource: "bash .opencode/scripts/security/*", effect: allow}
-  - {action: shell, resource: "git status *", effect: allow}
-  - {action: shell, resource: "git diff *", effect: allow}
-  - {action: shell, resource: "git log *", effect: allow}
-  - {action: read, resource: "*", effect: allow}
-  - {action: glob, resource: "*", effect: allow}
-  - {action: grep, resource: "*", effect: allow}
-  - {action: question, resource: "*", effect: allow}
-  - {action: subagent, resource: "*", effect: deny}
 ---
 
 Ты — единственное звено security-пайплайна, где разрешено думать.

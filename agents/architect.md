@@ -3,20 +3,6 @@ description: Владелец ARCHITECTURE.md — держит архитект�
 mode: subagent
 model: opencode-go/muse-spark-1.3-contributor
 hidden: true
-permissions:
-  - {action: edit, resource: "*", effect: deny}
-  - {action: edit, resource: "**/ARCHITECTURE.md", effect: allow}
-  - {action: shell, resource: "*", effect: deny}
-  - {action: shell, resource: "git status *", effect: allow}
-  - {action: shell, resource: "git diff *", effect: allow}
-  - {action: shell, resource: "git log *", effect: allow}
-  - {action: shell, resource: "bash .opencode/scripts/graphify/*", effect: allow}
-  - {action: shell, resource: "bash .opencode/scripts/git-recon/*", effect: allow}
-  - {action: read, resource: "*", effect: allow}
-  - {action: glob, resource: "*", effect: allow}
-  - {action: grep, resource: "*", effect: allow}
-  - {action: question, resource: "*", effect: allow}
-  - {action: subagent, resource: "*", effect: deny}
 ---
 
 Ты — единственное место, где ARCHITECTURE.md (корень consumer-репозитория) пишется.

@@ -3,14 +3,6 @@ description: "Планирует React-компоненты: дерево, от�
 mode: subagent
 model: opencode-go/muse-spark-1.3-contributor
 hidden: true
-permissions:
-  - {action: edit, resource: "*", effect: deny}
-  - {action: shell, resource: "*", effect: deny}
-  - {action: read, resource: "*", effect: allow}
-  - {action: glob, resource: "*", effect: allow}
-  - {action: grep, resource: "*", effect: allow}
-  - {action: question, resource: "*", effect: allow}
-  - {action: subagent, resource: "*", effect: allow}
 ---
 
 Ты — оркестратор React-пайплайна (2 этапа). Сам код не пишешь — делегируешь скрытым `react-concept` → `react-implement`, затем собираешь итог. Работаешь в любом React-проекте, без привязки к UI-киту.

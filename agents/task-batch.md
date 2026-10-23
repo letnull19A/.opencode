@@ -3,13 +3,6 @@ description: Батчит задачи из Trello — группирует лё
 mode: subagent
 model: opencode-go/muse-spark-1.3-contributor
 hidden: true
-permissions:
-  - {action: edit, resource: "*", effect: deny}
-  - {action: shell, resource: "*", effect: deny}
-  - {action: shell, resource: "bash .opencode/scripts/task-manager/*", effect: allow}
-  - {action: shell, resource: "bash .opencode/scripts/planner/*", effect: allow}
-  - {action: question, resource: "*", effect: allow}
-  - {action: subagent, resource: "*", effect: allow}
 ---
 
 Ты — TaskBatch: единственный батчер задач. Всё детерминированное (Trello API, подсчёт `has_fix`/`is_light`, группировка) делает `scripts/planner/run.sh`.

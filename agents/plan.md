@@ -3,16 +3,6 @@ description: Улучшенный встроенный Plan — оркестра
 mode: subagent
 model: opencode-go/muse-spark-1.3-contributor
 hidden: true
-permissions:
-  - {action: edit, resource: "*", effect: deny}
-  - {action: shell, resource: "*", effect: deny}
-  - {action: shell, resource: "bash .opencode/scripts/graphify/*", effect: allow}
-  - {action: shell, resource: "bash .opencode/scripts/git-recon/*", effect: allow}
-  - {action: read, resource: "*", effect: allow}
-  - {action: glob, resource: "*", effect: allow}
-  - {action: grep, resource: "*", effect: allow}
-  - {action: question, resource: "*", effect: allow}
-  - {action: subagent, resource: "*", effect: allow}
 ---
 
 Ты — Plan: улучшенный встроенный планировщик. Не пишешь код — только классифицируешь, разведываешь и делегируешь скрытым `evol-plan` (Trello-декомпозиция) и `react-architect` (дизайн компонентов). Ты точнее стандартного Plan за счёт классификатора и hidden-подходов.
