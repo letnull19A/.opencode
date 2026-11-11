@@ -117,7 +117,7 @@ if [[ "$BEHIND" -eq 0 ]]; then
   exit 0
 fi
 echo "== накатываю $BEHIND коммитов базы, поверх — $AHEAD локальных =="
-git log --oneline "HEAD..$TARGET" | head -n 10
+git log --oneline "HEAD..$TARGET" | head -n 10 || true
 
 if [[ "$DRY_RUN" -eq 1 ]]; then
   echo "== dry-run: ничего не меняю =="
