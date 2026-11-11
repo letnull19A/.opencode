@@ -7,14 +7,21 @@
  * task-manager, worktree, tunnel, postgres) молча исчезают из каталога.
  *
  * Что делает: берёт определения из `tools/*.ts` (V2-форма: `{description,
- * input(JSON Schema), execute}`) и регистрирует как есть через
- * `ctx.tool.transform` после validate-execute (`adapt`: `execute` обязан
- * быть функцией, иначе throw — тула не будет в каталоге).
- * Резолв корня скриптов и раскладки (consumer `.opencode/` vs сам пак)
- * живёт в `tools/_resolve.ts`: `resolveScript(scriptRel, context)` берёт
- * `worktree/directory/cwd` из контекста вызова и ищет строго
- * `<root>/.opencode/scripts/<rel>`, затем `<root>/scripts/<rel>` —
- * без тихих фолбэков, иначе throw.
+ * input(JSON Schema), execute}`) и регистрирует через `ctx.tool.transform`
+ * после validate-execute (`adapt`: `execute` обязан быть функцией, иначе
+ * throw — тула не будет в каталоге).
+ * Корень скриптов (`worktree`/`directory`/`cwd`) V2 в контекст вызова НЕ
+ * передаёт (там только `sessionID`/`agent`/`signal`), поэтому плагин сам
+ * оборачивает `execute` и подставляет корень: явный аргумент тула →
+ * контекст вызова → сессия (`ctx.session.get().location.directory`) →
+ * `ctx.location.directory` (канонический checkout). Без этого
+ * `tools/_resolve.ts` падает на `scripts root unresolved`.
+ * Явный корень можно передать аргументами `worktree`/`directory` — плагин
+ * добавляет их в схему каждого тула и вырезает из входа перед вызовом
+ * (нужно хостед-обвязке, где каталог в контексте недоступен).
+ * Резолв самой раскладки (consumer `.opencode/` vs сам пак) остаётся в
+ * `tools/_resolve.ts`: строго `<root>/.opencode/scripts/<rel>`, затем
+ * `<root>/scripts/<rel>` — без тихих фолбэков, иначе throw.
  * `{name}` = имя файла в `tools/`.
  */
 import boards from "../../tools/boards.ts"
@@ -68,11 +75,84 @@ const TOOLS: Record<string, unknown> = {
   workflow,
 }
 
+/** Ключи, которыми можно передать корень репозитория аргументом тула. */
+const ROOT_KEYS = ["worktree", "directory", "cwd"] as const
+
+type AnyContext = { worktree?: string; directory?: string; cwd?: string; sessionID?: string; signal?: AbortSignal } | undefined
+
+/** Корень скриптов: явный аргумент → контекст вызова → сессия → канонический checkout. */
+async function resolveRoot(ctx: any, context: AnyContext, explicit?: string): Promise<string> {
+  if (typeof explicit === "string" && explicit) return explicit
+  const direct = context?.worktree ?? context?.directory ?? context?.cwd
+  if (typeof direct === "string" && direct) return direct
+  const sessionID = context?.sessionID
+  if (sessionID && typeof ctx?.session?.get === "function") {
+    try {
+      const session = await ctx.session.get({ sessionID })
+      const dir = session?.location?.directory
+      if (typeof dir === "string" && dir) return dir
+    } catch {
+      // сессия недоступна — падаем на канонический checkout
+    }
+  }
+  const fallback = ctx?.location?.directory ?? ctx?.location?.project?.directory
+  if (typeof fallback === "string" && fallback) return fallback
+  throw new Error("[pack-tools] scripts root unresolved: нет ни аргумента worktree/directory, ни сессии, ни location")
+}
+
+/** Вырезает корень из входа тула, чтобы не ломал `additionalProperties: false` внутри определений. */
+function splitRoot(input: unknown): { args: unknown; root?: string } {
+  if (!input || typeof input !== "object" || Array.isArray(input)) return { args: input }
+  const args: Record<string, unknown> = { ...(input as Record<string, unknown>) }
+  let root: string | undefined
+  for (const key of ROOT_KEYS) {
+    const value = args[key]
+    if (typeof value === "string" && value) {
+      root ??= value
+      delete args[key]
+    }
+  }
+  return { args, root }
+}
+
+/** Добавляет в схему входа необязательный корень: хостед-обвязка не может отдать каталог контекстом. */
+function withRootInput(definition: any): any {
+  const input = definition?.input
+  if (!input || input.type !== "object" || typeof input.properties !== "object") return definition
+  if (input.properties.directory || input.properties.worktree) return definition
+  return {
+    ...definition,
+    input: {
+      ...input,
+      properties: {
+        ...input.properties,
+        worktree: { type: "string", description: "Корень worktree (приоритетнее directory), если контекст вызова без каталога" },
+        directory: { type: "string", description: "Корень consumer-репо, если контекст вызова без каталога" },
+      },
+    },
+  }
+}
+
 function adapt(name: string, definition: any, ctx: any) {
   if (typeof definition?.execute !== "function") {
     throw new Error(`[pack-tools] ${name}: определение тула без execute()`)
   }
-  return { name, ...definition }
+  const prepared = withRootInput(definition)
+  return {
+    ...prepared,
+    name,
+    async execute(input: unknown, context: AnyContext) {
+      const { args, root } = splitRoot(input)
+      const resolved = await resolveRoot(ctx, context, root)
+      return prepared.execute(args ?? {}, {
+        ...(context ?? {}),
+        worktree: resolved,
+        directory: resolved,
+        cwd: resolved,
+        abort: () => context?.signal,
+      })
+    },
+  }
 }
 
 export default {

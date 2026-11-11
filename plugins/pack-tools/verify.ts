@@ -72,6 +72,20 @@ check("classify_build выбрал исполнителя", ["build-fast", "buil
 const viaSession = await added.classify_build.execute({ title: "task", desc: "x".repeat(40) }, { sessionID: "ses-test" })
 check("корень резолвится через сессию", typeof viaSession.content === "string" && viaSession.content.length > 0)
 
+// регрессия: скриптовый тул обязан найти корень из сессии, без явного directory
+const scriptSchema = added.git_changes.input
+check("скриптовому тулу добавлен корень в схему входа", "directory" in scriptSchema.properties && "worktree" in scriptSchema.properties)
+const scriptViaSession = await added.git_changes.execute({ limit: 1 }, { sessionID: "ses-test" })
+check("скриптовый тул резолвит корень из сессии", scriptViaSession.content.trim().startsWith("{"), scriptViaSession.content.trim().slice(0, 60))
+
+// корень, переданный аргументом тула (хостед-обвязка), вырезается из входа и работает
+const scriptViaArg = await added.git_changes.execute({ limit: 1, directory: ROOT }, {})
+check("скриптовый тул резолвит корень из аргумента directory", scriptViaArg.content.trim().startsWith("{"), scriptViaArg.content.trim().slice(0, 60))
+
+// канонический checkout — последний рубеж, когда нет ни сессии, ни аргумента
+const noSession = await added.check.execute({ json: true }, {})
+check("скриптовый тул резолвит корень из location", noSession.content.includes("files"), noSession.content.trim().slice(0, 60))
+
 // реальный вызов скриптового тула: worktree list в фейковом consumer-репо
 const listed = await added.worktree.execute({ command: "list", json: true }, { directory: ROOT })
 check("worktree list вернул вывод", listed.content.trim().length > 0, listed.content.split("\n")[0]?.slice(0, 80))
