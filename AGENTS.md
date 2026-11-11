@@ -295,6 +295,12 @@ issue_provider: github
      `worktree-manager` — остальным не нужно.
   Составные команды (`&&`, `|`, `;`) проверяются по частям: `cd`, `sudo`, `xargs`
   не allowlisted нигде, их присутствие в цепочке отклоняет вызов целиком.
+  `experimental.subagent_depth: 3` — обязателен: дефолт v2 = `1`, то есть агент,
+  сам запущенный через `subagent` (например `@auto` из другой сессии), не может
+  делегировать никого — любой вложенный вызов падает с
+  `Subagent depth limit reached (1)`. Пайплайн пака вложенный
+  (`auto` → `build-smart` → `review`, `auto` → `ci` → `ci-runner`,
+  `auto` → `task-manager` → `task-audit`), поэтому глубина 3 — минимум.
   `mcp.trello` (`npx -y
   @delorenj/mcp-server-trello`, ключи только через `{env:TRELLO_API_KEY}` /
   `{env:TRELLO_TOKEN}`) + `mcp.context7` (remote `https://mcp.context7.com/mcp`,
